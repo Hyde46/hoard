@@ -4,5 +4,7 @@
     },
     "lldb.verboseLogging": true,
     "editor.tabSize": 4,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true
 }
