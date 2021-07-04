@@ -1,0 +1,45 @@
+name: hoard
+version: "0.1"
+about: Does awesome things
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        about: Sets a custom config file
+        takes_value: true
+    - verbose:
+        short: v
+        multiple: true
+        about: Sets the level of verbosity
+subcommands:
+    - new:
+        about: Save new command
+        version: "0.1"
+        args:
+            - name:
+                long: name
+                short: n
+                value_name: NAME
+                about: Name of the command
+                takes_value: true
+            - namespace:
+                long: namespace
+                short: s
+                value_name: NAMESPACE
+                about: Namespace of the command
+                takes_value: true
+                default_value: "default"
+            - tags:
+                long: tags
+                short: t
+                value_name: TAGS
+                about: Supply single word tags for the newly created command
+                takes_value: true
+                multiple: true
+            - command:
+                long: command
+                short: c
+                value_name: COMMAND
+                about: The command to save as string
+                takes_value: true

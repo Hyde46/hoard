@@ -4,6 +4,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Launch executable 'hoard'",
+            "cargo": {
+                "args": [
+                    "run",
+                    "--bin=hoard",
+                    "--package=hoard"
+                ],
+                "filter": {
+                    "name": "hoard",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'hoard'",
             "cargo": {
                 "args": [

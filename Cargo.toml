@@ -6,3 +6,9 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
+# Command lien argument parser
+clap = { version = "3.0.0-beta.2", features = ["yaml"] }
+# pretty dialogues in terminal
+dialoguer = "0.8.0"
+# Cross terminal support
+crossterm = "0.20.0"
