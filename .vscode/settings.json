@@ -2,5 +2,6 @@
     "search.exclude": {
         "**/target": true
     },
-    "lldb.verboseLogging": true
+    "lldb.verboseLogging": true,
+    "editor.tabSize": 4
 }
