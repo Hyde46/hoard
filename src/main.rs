@@ -38,19 +38,19 @@ fn main() {
         // "$ hoard new" was run
         let mut new_command = NewCommand::default();
         if matches.is_present("name") {
-            // "$ hoard test -d" was run
+            // "$ hoard test -n" was run
             new_command.name = Some("abab".to_owned());
         }
         if matches.is_present("namespace") {
-            // "$ hoard test -d" was run
+            // "$ hoard test -s" was run
             new_command.namespace = Some("abab".to_owned());
         }
         if matches.is_present("tags") {
-            // "$ hoard test -d" was run
+            // "$ hoard test -t" was run
             new_command.tags = Some(vec!["abab".to_owned()]);
         }
         if matches.is_present("command") {
-            // "$ hoard test -d" was run
+            // "$ hoard test -c" was run
             new_command.command = Some("abab".to_owned());
         }
         println!("{:?}",new_command);
