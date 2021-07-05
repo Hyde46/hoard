@@ -35,7 +35,6 @@ subcommands:
                 short: t
                 value_name: TAGS
                 about: Supply single word tags for the newly created command
-                takes_value: true
                 multiple: true
             - command:
                 long: command

@@ -11,21 +11,24 @@ pub struct NewCommand {
 impl command::Command for NewCommand {
     fn new(matches: &&clap::ArgMatches) -> NewCommand {
         let mut new_command = NewCommand::default();
-        if matches.is_present("name") {
-            // "$ hoard test -n" was run
-            new_command.name = Some("abab".to_owned());
+
+        if let Some(n) = matches.value_of("name") {
+            // TODO: some name validation for when we have it
+            new_command.name = Some(n.to_string());
         }
-        if matches.is_present("namespace") {
-            // "$ hoard test -s" was run
-            new_command.namespace = Some("abab".to_owned());
+        // Defaults to 'default' namespace
+        if let Some(ns) = matches.value_of("namespace") {
+            // TODO: some validation for when we have it
+            new_command.namespace = Some(ns.to_string());
         }
-        if matches.is_present("tags") {
-            // "$ hoard test -t" was run
-            new_command.tags = Some(vec!["abab".to_owned()]);
+        // "$ hoard test -t" was run
+        // Expects comma seperated tags
+        if let Some(tags) = matches.value_of("tags") {
+            new_command.tags = Some(tags.split(',').map(|s| s.to_string()).collect());
         }
-        if matches.is_present("command") {
-            // "$ hoard test -c" was run
-            new_command.command = Some("abab".to_owned());
+        if let Some(c) = matches.value_of("command") {
+            // TODO: some validation for when we have it
+            new_command.command = Some(c.to_string());
         }
         new_command
     }
