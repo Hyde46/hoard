@@ -3,7 +3,11 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+	"runArgs": [
+		"--cap-add=SYS_PTRACE",
+		"--security-opt",
+		"seccomp=unconfined"
+	],
 	"settings": {
 		"lldb.executable": "/usr/bin/lldb",
 		"files.watcherExclude": {
@@ -11,13 +15,12 @@
 		}
 	},
 	"extensions": [
-		"rust-lang.rust",
 		"bungcip.better-toml",
 		"vadimcn.vscode-lldb",
 		"mutantdino.resourcemonitor",
-		"github.vscode-pull-request-github"
+		"github.vscode-pull-request-github",
+		"matklad.rust-analyzer"
 	],
 	"postCreateCommand": "pre-commit install",
 	"remoteUser": "vscode"
 }
-
