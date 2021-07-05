@@ -29,7 +29,6 @@ subcommands:
                 value_name: NAMESPACE
                 about: Namespace of the command
                 takes_value: true
-                default_value: "default"
             - tags:
                 long: tags
                 short: t

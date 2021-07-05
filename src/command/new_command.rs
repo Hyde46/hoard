@@ -1,11 +1,13 @@
 use super::command;
 
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NewCommand {
-    name: Option<String>,
-    namespace: Option<String>,
-    tags: Option<Vec<String>>,
-    command: Option<String>,
+    pub name: Option<String>,
+    pub namespace: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub command: Option<String>,
 }
 
 impl command::Command for NewCommand {
