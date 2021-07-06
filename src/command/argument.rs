@@ -1,6 +1,7 @@
 use dialoguer::{theme::ColorfulTheme, Input};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Argument {
     pub name: String,
     pub value: Option<String>,

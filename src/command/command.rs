@@ -1,9 +1,11 @@
 use super::argument::Argument;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Command {
     pub name: String,
     pub arguments: Vec<Argument>,
+    #[serde(skip_serializing)]
     is_complete: bool,
 }
 
