@@ -19,8 +19,7 @@
 		"vadimcn.vscode-lldb",
 		"mutantdino.resourcemonitor",
 		"github.vscode-pull-request-github",
-		"matklad.rust-analyzer",
-		"gruntfuggly.todo-tree"
+		"matklad.rust-analyzer"
 	],
 	"postCreateCommand": "pre-commit install",
 	"remoteUser": "vscode"

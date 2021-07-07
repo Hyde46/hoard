@@ -6,7 +6,5 @@
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
     "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "lldb.showDisassembly": "auto",
-    "lldb.dereferencePointers": true
+    "files.trimFinalNewlines": true
 }
