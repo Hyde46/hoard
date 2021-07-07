@@ -59,7 +59,7 @@ fn load_or_build(path: PathBuf) -> Result<HoardConfig, Error> {
 
     let hoard_config_path = hoard_dir.join(HOARD_CONFIG);
 
-    // Check if $HOME/.hoard/config.tml exists. Create default config if it does not exist
+    // Check if $HOME/.hoard/config.yml exists. Create default config if it does not exist
     let config = if !hoard_config_path.exists() {
         let new_config = HoardConfig::new();
         let s = serde_yaml::to_string(&new_config)?;
