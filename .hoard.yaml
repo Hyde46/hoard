@@ -1,0 +1,7 @@
+---
+name: new
+arguments:
+  - name: new
+    value: test-value
+  - name: tags
+    value: abc

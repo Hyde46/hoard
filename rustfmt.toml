@@ -1,0 +1,3 @@
+reorder_imports = true
+report_todo = "Always"
+report_fixme = "Always"
