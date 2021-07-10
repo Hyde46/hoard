@@ -16,7 +16,10 @@ impl Hoard {
 
     pub fn with_config(&mut self, hoard_home_path: Option<String>) -> &mut Self {
         let _config = load_or_build_config(hoard_home_path);
-        //self.config = Some(config);
+        self
+    }
+
+    pub fn load_commands(&mut self) -> &mut Self {
         self
     }
 

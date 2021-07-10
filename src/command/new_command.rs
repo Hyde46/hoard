@@ -1,6 +1,11 @@
 use super::command;
 
 #[derive(Debug)]
+pub struct CommandTrove {
+    version: String,
+    commands: Option<Vec<NewCommand>>,
+}
+#[derive(Debug)]
 pub struct NewCommand {
     name: Option<String>,
     namespace: Option<String>,

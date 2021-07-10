@@ -2,24 +2,27 @@ use anyhow::{anyhow, Error, Result};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::{stdin, Write},
     path::{Path, PathBuf},
 };
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const HOARD_HOMEDIR: &'static str = ".hoard";
-const _HOARD_FILE: &'static str = "trove.yml";
+const HOARD_FILE: &'static str = "trove.yml";
 const HOARD_CONFIG: &'static str = "config.yml";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HoardConfig {
-    version: String,
+    pub version: String,
+    pub config_home_path: PathBuf,
+    pub trove_home_path: PathBuf,
 }
 
 impl HoardConfig {
-    pub fn new() -> HoardConfig {
+    pub fn new(hoard_home_path: PathBuf) -> HoardConfig {
         HoardConfig {
             version: VERSION.to_string(),
+            config_home_path: hoard_home_path.clone(),
+            trove_home_path: hoard_home_path.join(HOARD_FILE),
         }
     }
 }
@@ -61,7 +64,7 @@ fn load_or_build(path: PathBuf) -> Result<HoardConfig, Error> {
 
     // Check if $HOME/.hoard/config.yml exists. Create default config if it does not exist
     let config = if !hoard_config_path.exists() {
-        let new_config = HoardConfig::new();
+        let new_config = HoardConfig::new(hoard_dir);
         let s = serde_yaml::to_string(&new_config)?;
         fs::write(hoard_config_path, s).expect("Unable to write config file");
         Ok(new_config)

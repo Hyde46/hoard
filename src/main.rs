@@ -9,6 +9,7 @@ use hoard::Hoard;
 fn main() {
     Hoard::new()
         .with_config(None)
+        .load_commands()
         .start()
         .expect("Unable to start hoard");
 }
