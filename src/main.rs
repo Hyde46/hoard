@@ -1,3 +1,5 @@
+use simple_logger::SimpleLogger;
+
 extern crate serde;
 extern crate serde_yaml;
 
@@ -7,9 +9,11 @@ mod hoard;
 
 use hoard::Hoard;
 fn main() {
-    Hoard::new()
+    SimpleLogger::new().init().unwrap();
+
+    Hoard::default()
         .with_config(None)
-        .load_commands()
+        .load_trove()
         .start()
         .expect("Unable to start hoard");
 }
