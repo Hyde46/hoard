@@ -1,7 +1,7 @@
-use simple_logger::SimpleLogger;
-
 extern crate serde;
 extern crate serde_yaml;
+
+use simple_logger::SimpleLogger;
 
 mod command;
 mod config;
