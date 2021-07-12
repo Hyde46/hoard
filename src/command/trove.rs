@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use std::{fs, path::PathBuf};
 
-use super::new_command::NewCommand;
+use super::hoard_command::HoardCommand;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommandTrove {
     pub version: String,
-    pub commands: Vec<NewCommand>,
+    pub commands: Vec<HoardCommand>,
 }
 
 impl Default for CommandTrove {
@@ -43,7 +43,7 @@ impl CommandTrove {
         fs::write(path, s).expect("Unable to write config file");
     }
 
-    pub fn add_command(&mut self, new_command: NewCommand) {
+    pub fn add_command(&mut self, new_command: HoardCommand) {
         self.commands.push(new_command);
     }
 }

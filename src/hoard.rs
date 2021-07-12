@@ -3,7 +3,7 @@ use log::{info, warn};
 
 use crate::config::load_or_build_config;
 
-use super::command::new_command::NewCommand;
+use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 
@@ -39,7 +39,7 @@ impl Hoard {
     }
 
     pub fn with_example_command(&mut self) -> &mut Self {
-        let example_command = NewCommand {
+        let example_command = HoardCommand {
             name: Some(String::from("example")),
             namespace: Some(String::from("default")),
             tags: Some(vec![String::from("default"), String::from("example")]),
@@ -85,7 +85,7 @@ impl Hoard {
         let yaml = load_yaml!("resources/cli.yaml");
         let _matches = App::from(yaml).get_matches();
 
-        self.trove.add_command(NewCommand {
+        self.trove.add_command(HoardCommand {
             name: Some(String::from("example")),
             namespace: Some(String::from("default")),
             tags: Some(vec![String::from("default"), String::from("example")]),
