@@ -1,16 +1,22 @@
-use super::command;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
-pub struct NewCommand {
-    name: Option<String>,
-    namespace: Option<String>,
-    tags: Option<Vec<String>>,
-    command: Option<String>,
+pub trait Parsable {
+    fn new(matches: &&clap::ArgMatches) -> Self;
+    fn default() -> Self;
+    fn is_complete(&self) -> bool;
 }
 
-impl command::Command for NewCommand {
-    fn new(matches: &&clap::ArgMatches) -> NewCommand {
-        let mut new_command = NewCommand::default();
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HoardCommand {
+    pub name: Option<String>,
+    pub namespace: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub command: Option<String>,
+}
+
+impl Parsable for HoardCommand {
+    fn new(matches: &&clap::ArgMatches) -> HoardCommand {
+        let mut new_command = HoardCommand::default();
 
         if let Some(n) = matches.value_of("name") {
             // TODO: some name validation for when we have it
@@ -34,7 +40,7 @@ impl command::Command for NewCommand {
     }
 
     fn default() -> Self {
-        NewCommand {
+        HoardCommand {
             name: None,
             namespace: None,
             tags: None,
