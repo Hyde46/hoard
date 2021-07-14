@@ -3,6 +3,8 @@ use log::{info, warn};
 
 use crate::config::load_or_build_config;
 
+use dialoguer::{theme::ColorfulTheme, Input};
+
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
@@ -84,8 +86,33 @@ impl Hoard {
 
     pub fn start(&mut self) -> Result<(), serde_yaml::Error> {
         let yaml = load_yaml!("resources/cli.yaml");
-        let _matches = App::from(yaml).get_matches();
+        let matches = App::from(yaml).get_matches();
 
+        match matches.subcommand_name() {
+            Some("new") => {
+                // WIP
+                let command_string: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Command to hoard")
+                    .interact_text()
+                    .unwrap();
+                let command_name: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Name the command")
+                    .interact_text()
+                    .unwrap();
+                let command_tags: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Set tags for the new command")
+                    .interact_text()
+                    .unwrap();
+                let namespace: String = Input::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Set the namespace")
+                    .interact_text()
+                    .unwrap();
+            }
+            // Rest of subcommands go here for now
+            _ => {
+                println!("Not implemented yet!")
+            }
+        }
         // Only testing purposes.
         // How to add a new command to the trove
         self.trove.add_command(HoardCommand {
