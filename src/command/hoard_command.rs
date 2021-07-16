@@ -53,7 +53,7 @@ impl HoardCommand {
 
     pub fn with_tags_input(self) -> Self {
         let tags: String = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("Give your command tags ( commar separated )")
+            .with_prompt("Give your command tags ( comma separated )")
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
                     if input.contains(' ') {
