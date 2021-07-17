@@ -67,6 +67,7 @@ impl Hoard {
         let matches = App::from(yaml).get_matches();
 
         match matches.subcommand_name() {
+            // Create new command and save it it in trove
             Some("new") => {
                 let new_command = HoardCommand::default()
                     .with_command_string_input()
@@ -76,6 +77,10 @@ impl Hoard {
                     .with_namespace_input();
                 self.trove.add_command(new_command);
                 self.save_trove();
+            }
+            // List all available commands
+            Some("list") => {
+                self.trove.print_trove();
             }
             // Rest of subcommands go here for now
             _ => {

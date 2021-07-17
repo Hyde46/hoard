@@ -42,3 +42,12 @@ subcommands:
                 value_name: COMMAND
                 about: The command to save as string
                 takes_value: true
+            - description:
+                long: description
+                short: d
+                value_name: DESCRIPTION
+                about: Description of what the command does
+                takes_value: true
+    - list:
+        about: List commands saved in trove
+        version: "0.1"

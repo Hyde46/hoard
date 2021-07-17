@@ -1,4 +1,6 @@
 use log::info;
+use prettytable::{color, Attr, Cell, Row, Table};
+
 use serde::{Deserialize, Serialize};
 
 use std::{fs, path::PathBuf};
@@ -45,5 +47,31 @@ impl CommandTrove {
 
     pub fn add_command(&mut self, new_command: HoardCommand) {
         self.commands.push(new_command);
+    }
+
+    pub fn print_trove(&self) {
+        // Create the table
+        let mut table = Table::new();
+        // Add header
+        table.add_row(row!["Name", "namespace", "command", "description", "tags"]);
+        // Iterate through trove and populate table
+        self.commands.iter().for_each(|c| {
+            table.add_row(Row::new(vec![
+                // Name
+                Cell::new(&c.name.as_ref().unwrap()[..])
+                    .with_style(Attr::Bold)
+                    .with_style(Attr::ForegroundColor(color::GREEN)),
+                // namespace
+                Cell::new(&c.namespace.as_ref().unwrap()[..]),
+                // command
+                Cell::new(&c.command.as_ref().unwrap()[..]),
+                // description
+                Cell::new(&c.description.as_ref().unwrap()[..]),
+                // tags
+                Cell::new(&c.tags.as_ref().unwrap_or(&vec![String::from("")]).join(",")[..]),
+            ]));
+        });
+        // Print the table to stdout
+        table.printstd();
     }
 }
