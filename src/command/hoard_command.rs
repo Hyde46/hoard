@@ -125,6 +125,8 @@ impl HoardCommand {
             description: Some(description_string),
         }
     }
+
+    pub fn list_commands(self) {}
 }
 
 impl Parsable for HoardCommand {
