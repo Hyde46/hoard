@@ -51,3 +51,6 @@ subcommands:
     - list:
         about: List commands saved in trove
         version: "0.1"
+    - copy:
+        about: Copy command to clipboard based on command name
+        version: "0.1"
