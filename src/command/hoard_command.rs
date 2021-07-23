@@ -5,31 +5,31 @@ pub trait Parsable {
     fn parse_arguments(matches: &&clap::ArgMatches) -> Self;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HoardCommand {
-    pub name: Option<String>,
-    pub namespace: Option<String>,
+    pub name: String,
+    pub namespace: String,
     pub tags: Option<Vec<String>>,
-    pub command: Option<String>,
+    pub command: String,
     pub description: Option<String>,
 }
 
 impl HoardCommand {
     pub fn default() -> Self {
         HoardCommand {
-            name: None,
-            namespace: None,
+            name: String::from(""),
+            namespace: String::from(""),
             tags: None,
-            command: None,
+            command: String::from(""),
             description: None,
         }
     }
 
     pub fn is_complete(&self) -> bool {
-        if self.name.is_none()
-            || self.namespace.is_none()
+        if self.name == ""
+            || self.namespace == ""
             || self.tags.is_none()
-            || self.command.is_none()
+            || self.command == ""
             || self.description.is_none()
         {
             return false;
@@ -46,7 +46,7 @@ impl HoardCommand {
             name: self.name,
             namespace: self.namespace,
             tags: self.tags,
-            command: Some(command_string),
+            command: command_string,
             description: self.description,
         }
     }
@@ -82,7 +82,7 @@ impl HoardCommand {
             .unwrap();
         Self {
             name: self.name,
-            namespace: Some(namespace),
+            namespace,
             tags: self.tags,
             command: self.command,
             description: self.description,
@@ -90,7 +90,7 @@ impl HoardCommand {
     }
 
     pub fn with_name_input(self) -> Self {
-        let command_name: String = Input::with_theme(&ColorfulTheme::default())
+        let name: String = Input::with_theme(&ColorfulTheme::default())
             .with_prompt("Name your command")
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
@@ -104,7 +104,7 @@ impl HoardCommand {
             .interact_text()
             .unwrap();
         Self {
-            name: Some(command_name),
+            name,
             namespace: self.namespace,
             tags: self.tags,
             command: self.command,
@@ -135,12 +135,12 @@ impl Parsable for HoardCommand {
 
         if let Some(n) = matches.value_of("name") {
             // TODO: some name validation for when we have it
-            new_command.name = Some(n.to_string());
+            new_command.name = n.to_string();
         }
         // Defaults to 'default' namespace
         if let Some(ns) = matches.value_of("namespace") {
             // TODO: some validation for when we have it
-            new_command.namespace = Some(ns.to_string());
+            new_command.namespace = ns.to_string();
         }
         // "$ hoard test -t" was run
         // Expects comma seperated tags
@@ -149,7 +149,7 @@ impl Parsable for HoardCommand {
         }
         if let Some(c) = matches.value_of("command") {
             // TODO: some validation for when we have it
-            new_command.command = Some(c.to_string());
+            new_command.command = c.to_string();
         }
         new_command
     }

@@ -1,9 +1,9 @@
+use anyhow::{anyhow, Result};
 use log::info;
 use prettytable::{color, Attr, Cell, Row, Table};
-
 use serde::{Deserialize, Serialize};
 
-use std::{fs, path::PathBuf};
+use std::{any, fs, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
 
@@ -49,6 +49,16 @@ impl CommandTrove {
         self.commands.push(new_command);
     }
 
+    pub fn pick_command(&self, name: String) -> Result<HoardCommand> {
+        let filtered_command: Option<&HoardCommand> =
+            self.commands.iter().filter(|c| c.name == name).nth(0);
+        if let Some(command) = filtered_command {
+            return Ok(command.clone());
+        } else {
+            return Err(anyhow!("No matching command found with name: {}", name));
+        }
+    }
+
     pub fn print_trove(&self) {
         // Create the table
         let mut table = Table::new();
@@ -58,13 +68,13 @@ impl CommandTrove {
         self.commands.iter().for_each(|c| {
             table.add_row(Row::new(vec![
                 // Name
-                Cell::new(&c.name.as_ref().unwrap()[..])
+                Cell::new(&c.name[..])
                     .with_style(Attr::Bold)
                     .with_style(Attr::ForegroundColor(color::GREEN)),
                 // namespace
-                Cell::new(&c.namespace.as_ref().unwrap()[..]),
+                Cell::new(&c.namespace[..]),
                 // command
-                Cell::new(&c.command.as_ref().unwrap()[..]),
+                Cell::new(&c.command[..]),
                 // description
                 Cell::new(&c.description.as_ref().unwrap()[..]),
                 // tags
