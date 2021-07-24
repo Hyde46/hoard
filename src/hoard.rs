@@ -1,5 +1,5 @@
 use clap::{load_yaml, App};
-use log::{info, warn};
+use log::{error, info, warn};
 
 use crate::{command::hoard_command::Parsable, config::load_or_build_config};
 
@@ -9,6 +9,9 @@ use std::io::{stdin, Write};
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
+use super::gui::tui_test;
+use dialoguer::{theme::ColorfulTheme, Input};
+use std::io::{stdin, Write};
 
 use std::{fs, path::PathBuf};
 #[derive(Debug)]
@@ -79,9 +82,25 @@ impl Hoard {
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
+            // Fuzzy search through trove
+            // Need tui gui setup
+            Some("search") => {}
             // List all available commands
             Some("list") => {
-                self.trove.print_trove();
+                // Simplified view. Should be hidden behind a flag
+                // TODO: Defaults to pretty tui table
+                tui_test::run().ok();
+                //self.trove.print_trove();
+            }
+            // Load command by name into clipboard, if available
+            Some("pick") => {
+                let command_result = self.trove.pick_command(String::from("home2"));
+                match command_result {
+                    Ok(c) => {
+                        println!("{}", c.command)
+                    }
+                    Err(e) => eprintln!("{}", e),
+                }
             }
             // Load command by name
             Some("copy") => {}
