@@ -9,9 +9,6 @@ use std::io::{stdin, Write};
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
-use super::gui::tui_test;
-use dialoguer::{theme::ColorfulTheme, Input};
-use std::io::{stdin, Write};
 
 use std::{fs, path::PathBuf};
 #[derive(Debug)]
@@ -89,8 +86,7 @@ impl Hoard {
             Some("list") => {
                 // Simplified view. Should be hidden behind a flag
                 // TODO: Defaults to pretty tui table
-                tui_test::run().ok();
-                //self.trove.print_trove();
+                self.trove.print_trove();
             }
             // Load command by name into clipboard, if available
             Some("pick") => {

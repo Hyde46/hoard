@@ -7,7 +7,6 @@ extern crate prettytable;
 
 mod command;
 mod config;
-mod gui;
 mod hoard;
 use hoard::Hoard;
 fn main() {

@@ -21,8 +21,3 @@ dirs = "3.0.1"
 log = "0.4"
 simple_logger = "1.11.0"
 prettytable-rs = "0.8.0"
-tui = { version = "0.14.0", features = ["crossterm"]}
-tokio = { version = "0.2", features = ["full"] }
-chrono = { version = "0.4", features = ["serde"] }
-rand = { version = "0.7.3", default-features = false, features = ["std"] }
-thiserror = "1.0"
