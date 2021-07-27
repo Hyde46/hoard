@@ -50,6 +50,7 @@ struct Pet {
 enum MenuItem {
     Home,
     Pets,
+    Namespace,
 }
 
 impl From<MenuItem> for usize {
@@ -57,6 +58,7 @@ impl From<MenuItem> for usize {
         match input {
             MenuItem::Home => 0,
             MenuItem::Pets => 1,
+            MenuItem::Namespace => 2,
         }
     }
 }
@@ -161,6 +163,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                     rect.render_stateful_widget(left, pets_chunks[0], &mut pet_list_state);
                     rect.render_widget(right, pets_chunks[1]);
                 }
+                MenuItem::Namespace => rect.render_widget(render_home(), chunks[1]),
             }
             rect.render_widget(copyright, chunks[2]);
         })?;
