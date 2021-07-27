@@ -3,6 +3,9 @@ use log::{error, info, warn};
 
 use crate::{command::hoard_command::Parsable, config::load_or_build_config};
 
+use dialoguer::{theme::ColorfulTheme, Input};
+use std::io::{stdin, Write};
+
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
@@ -99,6 +102,8 @@ impl Hoard {
                     Err(e) => eprintln!("{}", e),
                 }
             }
+            // Load command by name
+            Some("copy") => {}
             // Rest of subcommands go here for now
             _ => {
                 println!("Not implemented yet!")
