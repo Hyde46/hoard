@@ -3,10 +3,10 @@ use log::{error, info, warn};
 
 use crate::{command::hoard_command::Parsable, config::load_or_build_config};
 
-
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
+use super::gui::commands_gui;
 use super::gui::tui_test;
 use dialoguer::{theme::ColorfulTheme, Input};
 use std::io::{stdin, Write};
@@ -87,7 +87,7 @@ impl Hoard {
             Some("list") => {
                 // Simplified view. Should be hidden behind a flag
                 // TODO: Defaults to pretty tui table
-                tui_test::run().ok();
+                commands_gui::run().ok();
                 //self.trove.print_trove();
             }
             // Load command by name into clipboard, if available
