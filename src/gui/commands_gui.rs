@@ -124,7 +124,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
 
             rect.render_widget(tabs, chunks[0]);
             
-            let pets_chunks = Layout::default()
+            let commands_chunks = Layout::default()
                         .direction(Direction::Horizontal)
                         .constraints(
                             [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
@@ -135,9 +135,9 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                         .constraints(
                             [Constraint::Percentage(30), Constraint::Percentage(30), Constraint::Percentage(40)].as_ref(),
                         )
-                        .split(pets_chunks[1]);
+                        .split(commands_chunks[1]);
             let (commands, command, namespace, tags, description) = render_commands(trove.commands.clone(), &command_list_state);
-            rect.render_stateful_widget(commands, pets_chunks[0], &mut command_list_state);
+            rect.render_stateful_widget(commands, commands_chunks[0], &mut command_list_state);
             rect.render_widget(namespace, command_detail_chunks[0]);
             rect.render_widget(tags, command_detail_chunks[1]);
             rect.render_widget(description, command_detail_chunks[2]);
