@@ -55,6 +55,7 @@ impl Hoard {
         self
     }
 
+
     pub fn save_trove(&self) {
         match &self.config {
             Some(config) => self
