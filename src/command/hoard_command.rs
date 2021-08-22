@@ -36,6 +36,10 @@ impl HoardCommand {
         }
         true
     }
+    
+    pub fn tags_as_string(&self) -> String {
+        self.tags.as_ref().unwrap_or(&vec![String::from("")]).join(",")
+    }
 
     pub fn with_command_string_input(self) -> Self {
         let command_string: String = Input::with_theme(&ColorfulTheme::default())

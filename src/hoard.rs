@@ -87,7 +87,8 @@ impl Hoard {
             Some("list") => {
                 // Simplified view. Should be hidden behind a flag
                 // TODO: Defaults to pretty tui table
-                commands_gui::run().ok();
+                commands_gui::run(&mut self.trove).ok();
+                //tui_test::run().ok();
                 //self.trove.print_trove();
             }
             // Load command by name into clipboard, if available

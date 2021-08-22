@@ -1,23 +1,21 @@
-use chrono::prelude::*;
+use super::super::command::hoard_command::HoardCommand;
+use super::super::command::trove::CommandTrove;
 use crossterm::{
     event::{self, Event as CEvent, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
-use rand::{distributions::Alphanumeric, prelude::*};
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
-use thiserror::Error;
 use tui::{
     backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{
-        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table, Tabs,
+        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Tabs, Wrap
     },
     Terminal,
 };
@@ -48,7 +46,7 @@ impl From<MenuItem> for usize {
     }
 }
 
-pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
     enable_raw_mode().expect("Cant run in raw mode");
 
     let (tx, rx) = mpsc::channel();
@@ -79,7 +77,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
-
+    
     let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
     let mut active_menu_item = MenuItem::List;
     let mut command_list_state = ListState::default();
@@ -101,18 +99,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                     .as_ref(),
                 )
                 .split(size);
-
-            let command = Paragraph::new("cd ~")
-                .style(Style::default().fg(Color::LightCyan))
-                .alignment(Alignment::Center)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .style(Style::default().fg(Color::White))
-                        .title("Hoarded command")
-                        .border_type(BorderType::Plain),
-                );
-
             let menu = menu_titles
                 .iter()
                 .map(|t| {
@@ -131,13 +117,30 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
             let tabs = Tabs::new(menu)
                 .select(active_menu_item.into())
-                .block(Block::default().title("Menu").borders(Borders::ALL))
+                .block(Block::default().title("Hoard Menu").borders(Borders::ALL))
                 .style(Style::default().fg(Color::White))
                 .highlight_style(Style::default().fg(Color::Yellow))
                 .divider(Span::raw("|"));
 
             rect.render_widget(tabs, chunks[0]);
-
+            
+            let pets_chunks = Layout::default()
+                        .direction(Direction::Horizontal)
+                        .constraints(
+                            [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
+                        )
+                        .split(chunks[1]);
+            let command_detail_chunks = Layout::default()
+                        .direction(Direction::Vertical)
+                        .constraints(
+                            [Constraint::Percentage(30), Constraint::Percentage(30), Constraint::Percentage(40)].as_ref(),
+                        )
+                        .split(pets_chunks[1]);
+            let (commands, command, namespace, tags, description) = render_commands(trove.commands.clone(), &command_list_state);
+            rect.render_stateful_widget(commands, pets_chunks[0], &mut command_list_state);
+            rect.render_widget(namespace, command_detail_chunks[0]);
+            rect.render_widget(tags, command_detail_chunks[1]);
+            rect.render_widget(description, command_detail_chunks[2]);
             rect.render_widget(command, chunks[2]);
         })?;
 
@@ -148,10 +151,111 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                     terminal.show_cursor()?;
                     break;
                 }
+                KeyCode::Down => {
+                    if let Some(selected) = command_list_state.selected() {
+                        let amount_commands = trove.commands.clone().len();
+                        if selected >= amount_commands - 1 {
+                            command_list_state.select(Some(0));
+                        } else {
+                            command_list_state.select(Some(selected + 1));
+                        }
+                    }
+                }
+                KeyCode::Up => {
+                    if let Some(selected) = command_list_state.selected() {
+                        let amount_commands = trove.commands.clone().len();
+                        if selected > 0 {
+                            command_list_state.select(Some(selected - 1));
+                        } else {
+                            command_list_state.select(Some(amount_commands - 1));
+                        }
+                    }
+                }
                 _ => {}
             },
             Event::Tick => {}
         }
     }
     Ok(())
+}
+
+fn render_commands<'a>(commands_list: Vec<HoardCommand>, command_list_state: &ListState) -> (List<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>) {
+    let commands = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default().fg(Color::White))
+        .title("Commands")
+        .border_type(BorderType::Plain);
+
+    let items: Vec<_> = commands_list
+        .iter()
+        .map(|command| {
+            ListItem::new(Spans::from(vec![Span::styled(
+                command.name.clone(),
+                Style::default(),
+            )]))
+        })
+        .collect();
+
+    let selected_command = commands_list
+        .get(
+            command_list_state
+                .selected()
+                .expect("there is always a selected command"),
+        )
+        .expect("exists")
+        .clone();
+
+    let list = List::new(items).block(commands).highlight_style(
+        Style::default()
+            .bg(Color::Yellow)
+            .fg(Color::Black)
+            .add_modifier(Modifier::BOLD),
+    );
+
+    let command = Paragraph::new(selected_command.command.clone())
+    .style(Style::default().fg(Color::LightCyan))
+    .alignment(Alignment::Center)
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Hoarded command")
+            .border_type(BorderType::Plain),
+    );
+
+    let namespace = Paragraph::new(selected_command.namespace.clone())
+    .style(Style::default().fg(Color::White))
+    .alignment(Alignment::Left)
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Namespace")
+            .border_type(BorderType::Plain),
+    );
+
+    let tags = Paragraph::new(selected_command.tags_as_string())
+    .style(Style::default().fg(Color::White))
+    .alignment(Alignment::Left)
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Tags")
+            .border_type(BorderType::Plain),
+    );
+
+    let description = Paragraph::new(selected_command.description.unwrap_or_default())
+    .style(Style::default().fg(Color::White))
+    .alignment(Alignment::Left)
+    .wrap(Wrap { trim: true })
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Description")
+            .border_type(BorderType::Plain),
+    );
+
+    (list, command, namespace, tags, description)
 }
