@@ -78,7 +78,8 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
     
-    let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
+    //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
+    let menu_titles = vec!["List", "Quit"];
     let mut active_menu_item = MenuItem::List;
     let mut command_list_state = ListState::default();
     command_list_state.select(Some(0));
@@ -89,7 +90,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
             let size = rect.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .margin(2)
+                .margin(1)
                 .constraints(
                     [
                         Constraint::Length(3),
