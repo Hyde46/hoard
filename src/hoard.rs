@@ -101,13 +101,14 @@ impl Hoard {
                 }
             }
             // Load command by name into clipboard, if available
-            Some(("pick", _sub_m)) => {
-                let command_result = self.trove.pick_command(String::from("home2"));
-                match command_result {
-                    Ok(c) => {
-                        println!("{}", c.command)
+            Some(("pick", sub_m)) => {
+                if let Some(command_name) = sub_m.value_of("name") {
+                    let command_result = self.trove.pick_command(command_name.into()); match command_result {
+                        Ok(c) => {
+                            println!("{}", c.command)
+                        }
+                        Err(e) => eprintln!("{}", e),
                     }
-                    Err(e) => eprintln!("{}", e),
                 }
             }
             // Load command by name

@@ -65,3 +65,10 @@ subcommands:
         short: p
         about: Pick a command of the trove and print it
         version: "0.1"
+        args: 
+            - name: 
+                long: name
+                short: n
+                help: Name of the command
+                required: true
+                takes_value: true

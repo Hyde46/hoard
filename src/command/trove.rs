@@ -51,7 +51,7 @@ impl CommandTrove {
 
     pub fn pick_command(&self, name: String) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> =
-            self.commands.iter().filter(|c| c.name == name).nth(0);
+            self.commands.iter().filter(|c| c.name == name).next();
         if let Some(command) = filtered_command {
             return Ok(command.clone());
         } else {
