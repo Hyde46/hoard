@@ -60,7 +60,7 @@ impl Hoard {
         match &self.config {
             Some(config) => self
                 .trove
-                .save_trove_file(&config.trove_home_path.as_ref().unwrap()),
+                .save_trove_file(config.trove_home_path.as_ref().unwrap()),
             None => info!("[DEBUG] No command config loaded"),
         };
     }
@@ -69,9 +69,18 @@ impl Hoard {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
 
-        match matches.subcommand_name() {
+
+        if let Some(matches) = matches.subcommand_matches("test") {
+            if matches.is_present("debug") {
+                println!("Printing debug info...");
+            } else {
+                println!("Printing normally...");
+            }
+        }
+    
+        match matches.subcommand() {
             // Create new command and save it it in trove
-            Some("new") => {
+            Some(("new", _sub_m)) => {
                 let new_command = HoardCommand::default()
                     .with_command_string_input()
                     .with_name_input()
@@ -83,17 +92,17 @@ impl Hoard {
             }
             // Fuzzy search through trove
             // Need tui gui setup
-            Some("search") => {}
+            Some(("search", _sub_m)) => {}
             // List all available commands
-            Some("list") => {
-                // Simplified view. Should be hidden behind a flag
-                // TODO: Defaults to pretty tui table
-                commands_gui::run(&mut self.trove).ok();
-                //tui_test::run().ok();
-                //self.trove.print_trove();
+            Some(("list", sub_m)) => {
+                if sub_m.is_present("simple") {
+                    self.trove.print_trove();
+                } else {
+                    commands_gui::run(&mut self.trove).ok();
+                }
             }
             // Load command by name into clipboard, if available
-            Some("pick") => {
+            Some(("pick", _sub_m)) => {
                 let command_result = self.trove.pick_command(String::from("home2"));
                 match command_result {
                     Ok(c) => {
@@ -103,8 +112,8 @@ impl Hoard {
                 }
             }
             // Load command by name
-            Some("copy") => {
-                info!("This is really fast");
+            Some(("copy", _sub_m)) => {
+                info!("Not yet implemented");
             }
             // Rest of subcommands go here for now
             _ => {

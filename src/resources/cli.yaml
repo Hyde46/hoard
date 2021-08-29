@@ -52,6 +52,11 @@ subcommands:
         short: l
         about: List commands saved in trove
         version: "0.1"
+        args:
+            - simple:
+                long: simple
+                short: s
+                help: Show simplified table of hoarded commands
     - copy:
         short: c
         about: Copy command to clipboard based on command name
