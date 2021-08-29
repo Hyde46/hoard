@@ -7,7 +7,6 @@ use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 use super::gui::commands_gui;
-use super::gui::tui_test;
 use dialoguer::{theme::ColorfulTheme, Input};
 use std::io::{stdin, Write};
 
