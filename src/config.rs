@@ -3,14 +3,13 @@ use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::{stdin, Write},
     path::{Path, PathBuf},
 };
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-const HOARD_HOMEDIR: &'static str = ".hoard";
-const HOARD_FILE: &'static str = "trove.yml";
-const HOARD_CONFIG: &'static str = "config.yml";
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const HOARD_HOMEDIR: &str = ".hoard";
+const HOARD_FILE: &str = "trove.yml";
+const HOARD_CONFIG: &str = "config.yml";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HoardConfig {
@@ -78,7 +77,7 @@ fn load_or_build(path: PathBuf) -> Result<HoardConfig, Error> {
         info!("Config file exists");
         let f = std::fs::File::open(hoard_config_path)?;
         let mut loaded_config: HoardConfig = serde_yaml::from_reader::<_, HoardConfig>(f)?;
-        if let None = loaded_config.trove_home_path {
+        if loaded_config.trove_home_path.is_none() {
             loaded_config.trove_home_path = Some(hoard_dir.join(HOARD_FILE));
         }
         Ok(loaded_config)

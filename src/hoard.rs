@@ -1,16 +1,13 @@
 use clap::{load_yaml, App};
-use log::{error, info, warn};
+use log::{info};
 
-use crate::{command::hoard_command::Parsable, config::load_or_build_config};
+use crate::{config::load_or_build_config};
 
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 use super::gui::commands_gui;
-use dialoguer::{theme::ColorfulTheme, Input};
-use std::io::{stdin, Write};
 
-use std::{fs, path::PathBuf};
 #[derive(Debug)]
 pub struct Hoard {
     config: Option<HoardConfig>,

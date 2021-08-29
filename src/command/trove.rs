@@ -3,7 +3,7 @@ use log::info;
 use prettytable::{color, Attr, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
-use std::{any, fs, path::PathBuf};
+use std::{fs, path::Path, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
 
@@ -40,7 +40,7 @@ impl CommandTrove {
         }
     }
 
-    pub fn save_trove_file(&self, path: &PathBuf) {
+    pub fn save_trove_file(&self, path: &Path) {
         let s = serde_yaml::to_string(&self).unwrap();
         fs::write(path, s).expect("Unable to write config file");
     }
@@ -51,9 +51,9 @@ impl CommandTrove {
 
     pub fn pick_command(&self, name: String) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> =
-            self.commands.iter().filter(|c| c.name == name).next();
+            self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {
-            return Ok(command.clone());
+            Ok(command.clone())
         } else {
             return Err(anyhow!("No matching command found with name: {}", name));
         }

@@ -4,18 +4,17 @@ use crossterm::{
     event::{self, Event as CEvent, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
-use std::fs;
 use std::io;
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 use tui::{
     backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{
-        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Tabs, Wrap
+        Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap
     },
     Terminal,
 };
@@ -25,6 +24,7 @@ enum Event<I> {
     Tick,
 }
 
+#[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 enum MenuItem {
     List,
@@ -65,10 +65,8 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            if last_tick.elapsed() >= tick_rate {
-                if let Ok(_) = tx.send(Event::Tick) {
-                    last_tick = Instant::now();
-                }
+            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
+                last_tick = Instant::now();
             }
         }
     });
@@ -80,7 +78,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
     
     //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
     let menu_titles = vec!["List", "Quit"];
-    let mut active_menu_item = MenuItem::List;
+    let active_menu_item = MenuItem::List;
     let mut command_list_state = ListState::default();
     command_list_state.select(Some(0));
 

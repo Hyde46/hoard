@@ -24,12 +24,12 @@ impl HoardCommand {
             description: None,
         }
     }
-
+    #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
-        if self.name == ""
-            || self.namespace == ""
+        if self.name.is_empty()
+            || self.namespace.is_empty()
             || self.tags.is_none()
-            || self.command == ""
+            || self.command.is_empty()
             || self.description.is_none()
         {
             return false;
@@ -129,8 +129,6 @@ impl HoardCommand {
             description: Some(description_string),
         }
     }
-
-    pub fn list_commands(self) {}
 }
 
 impl Parsable for HoardCommand {
