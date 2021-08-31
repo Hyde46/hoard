@@ -76,7 +76,7 @@ impl Hoard {
     
         match matches.subcommand() {
             // Create new command and save it it in trove
-            Some(("new", _sub_m)) => {
+            ("new", Some(_sub_m)) => {
                 let new_command = HoardCommand::default()
                     .with_command_string_input()
                     .with_name_input()
@@ -88,9 +88,9 @@ impl Hoard {
             }
             // Fuzzy search through trove
             // Need tui gui setup
-            Some(("search", _sub_m)) => {}
+            ("search", Some(_sub_m)) => {}
             // List all available commands
-            Some(("list", sub_m)) => {
+            ("list", Some(sub_m)) => {
                 if sub_m.is_present("simple") {
                     self.trove.print_trove();
                 } else {
@@ -98,7 +98,7 @@ impl Hoard {
                 }
             }
             // Load command by name into clipboard, if available
-            Some(("pick", sub_m)) => {
+            ("pick", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
                     let command_result = self.trove.pick_command(command_name.into()); match command_result {
                         Ok(c) => {
@@ -109,7 +109,7 @@ impl Hoard {
                 }
             }
             // Load command by name
-            Some(("copy", _sub_m)) => {
+            ("copy", Some(_sub_m)) => {
                 info!("Not yet implemented");
             }
             // Rest of subcommands go here for now
