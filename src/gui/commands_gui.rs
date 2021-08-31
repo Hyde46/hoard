@@ -13,9 +13,7 @@ use tui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{
-        Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap
-    },
+    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Terminal,
 };
 
@@ -75,7 +73,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
-    
+
     //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
     let menu_titles = vec!["List", "Quit"];
     let active_menu_item = MenuItem::List;
@@ -122,20 +120,24 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                 .divider(Span::raw("|"));
 
             rect.render_widget(tabs, chunks[0]);
-            
+
             let commands_chunks = Layout::default()
-                        .direction(Direction::Horizontal)
-                        .constraints(
-                            [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
-                        )
-                        .split(chunks[1]);
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
+                .split(chunks[1]);
             let command_detail_chunks = Layout::default()
-                        .direction(Direction::Vertical)
-                        .constraints(
-                            [Constraint::Percentage(30), Constraint::Percentage(30), Constraint::Percentage(40)].as_ref(),
-                        )
-                        .split(commands_chunks[1]);
-            let (commands, command, namespace, tags, description) = render_commands(trove.commands.clone(), &command_list_state);
+                .direction(Direction::Vertical)
+                .constraints(
+                    [
+                        Constraint::Percentage(30),
+                        Constraint::Percentage(30),
+                        Constraint::Percentage(40),
+                    ]
+                    .as_ref(),
+                )
+                .split(commands_chunks[1]);
+            let (commands, command, namespace, tags, description) =
+                render_commands(trove.commands.clone(), &command_list_state);
             rect.render_stateful_widget(commands, commands_chunks[0], &mut command_list_state);
             rect.render_widget(namespace, command_detail_chunks[0]);
             rect.render_widget(tags, command_detail_chunks[1]);
@@ -178,7 +180,16 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn render_commands<'a>(commands_list: Vec<HoardCommand>, command_list_state: &ListState) -> (List<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>) {
+fn render_commands<'a>(
+    commands_list: Vec<HoardCommand>,
+    command_list_state: &ListState,
+) -> (
+    List<'a>,
+    Paragraph<'a>,
+    Paragraph<'a>,
+    Paragraph<'a>,
+    Paragraph<'a>,
+) {
     let commands = Block::default()
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::White))
@@ -212,49 +223,49 @@ fn render_commands<'a>(commands_list: Vec<HoardCommand>, command_list_state: &Li
     );
 
     let command = Paragraph::new(selected_command.command.clone())
-    .style(Style::default().fg(Color::LightCyan))
-    .alignment(Alignment::Center)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Hoarded command")
-            .border_type(BorderType::Plain),
-    );
+        .style(Style::default().fg(Color::LightCyan))
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::White))
+                .title("Hoarded command")
+                .border_type(BorderType::Plain),
+        );
 
     let namespace = Paragraph::new(selected_command.namespace.clone())
-    .style(Style::default().fg(Color::White))
-    .alignment(Alignment::Left)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Namespace")
-            .border_type(BorderType::Plain),
-    );
+        .style(Style::default().fg(Color::White))
+        .alignment(Alignment::Left)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::White))
+                .title("Namespace")
+                .border_type(BorderType::Plain),
+        );
 
     let tags = Paragraph::new(selected_command.tags_as_string())
-    .style(Style::default().fg(Color::White))
-    .alignment(Alignment::Left)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Tags")
-            .border_type(BorderType::Plain),
-    );
+        .style(Style::default().fg(Color::White))
+        .alignment(Alignment::Left)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::White))
+                .title("Tags")
+                .border_type(BorderType::Plain),
+        );
 
     let description = Paragraph::new(selected_command.description.unwrap_or_default())
-    .style(Style::default().fg(Color::White))
-    .alignment(Alignment::Left)
-    .wrap(Wrap { trim: true })
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Description")
-            .border_type(BorderType::Plain),
-    );
+        .style(Style::default().fg(Color::White))
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true })
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::White))
+                .title("Description")
+                .border_type(BorderType::Plain),
+        );
 
     (list, command, namespace, tags, description)
 }

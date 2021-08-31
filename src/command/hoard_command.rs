@@ -36,9 +36,12 @@ impl HoardCommand {
         }
         true
     }
-    
+
     pub fn tags_as_string(&self) -> String {
-        self.tags.as_ref().unwrap_or(&vec![String::from("")]).join(",")
+        self.tags
+            .as_ref()
+            .unwrap_or(&vec![String::from("")])
+            .join(",")
     }
 
     pub fn with_command_string_input(self) -> Self {
@@ -59,7 +62,14 @@ impl HoardCommand {
         Self {
             name: self.name,
             namespace: self.namespace,
-            tags: Some(tags.chars().filter(|c| !c.is_whitespace()).collect::<String>().split(',').map(|s| s.to_string()).collect()),
+            tags: Some(
+                tags.chars()
+                    .filter(|c| !c.is_whitespace())
+                    .collect::<String>()
+                    .split(',')
+                    .map(|s| s.to_string())
+                    .collect(),
+            ),
             command: self.command,
             description: self.description,
         }
