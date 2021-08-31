@@ -49,6 +49,16 @@ impl CommandTrove {
         self.commands.push(new_command);
     }
 
+    pub fn remove_command(&mut self, name: String) -> Result<(),anyhow::Error> {
+        let command_position = self.commands.iter().position(|x| x.name == name);
+        if command_position.is_none() {
+            return Err(anyhow!("Command not found [{}]", name));
+        } else {
+            self.commands.retain(|x| *x.name != name);
+            Ok(())
+        }
+    }
+
     pub fn pick_command(&self, name: String) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {
