@@ -1,7 +1,7 @@
 use clap::{load_yaml, App};
-use log::{info};
+use log::info;
 
-use crate::{config::load_or_build_config};
+use crate::config::load_or_build_config;
 
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
@@ -51,7 +51,6 @@ impl Hoard {
         self
     }
 
-
     pub fn save_trove(&self) {
         match &self.config {
             Some(config) => self
@@ -65,7 +64,6 @@ impl Hoard {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
 
-
         if let Some(matches) = matches.subcommand_matches("test") {
             if matches.is_present("debug") {
                 println!("Printing debug info...");
@@ -73,7 +71,7 @@ impl Hoard {
                 println!("Printing normally...");
             }
         }
-    
+
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
@@ -100,12 +98,26 @@ impl Hoard {
             // Load command by name into clipboard, if available
             ("pick", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self.trove.pick_command(command_name.into()); match command_result {
+                    let command_result = self.trove.pick_command(command_name.into());
+                    match command_result {
                         Ok(c) => {
                             println!("{}", c.command)
                         }
                         Err(e) => eprintln!("{}", e),
                     }
+                }
+            }
+            // removes command from trove with a name supplied by input
+            ("remove", Some(sub_m)) => {
+                if let Some(command_name) = sub_m.value_of("name") {
+                    let command_result = self.trove.remove_command(command_name.into());
+                    match command_result {
+                        Ok(_) => {
+                            println!("Removed [{}]", command_name);
+                        }
+                        Err(e) => eprintln!("{}", e),
+                    }
+                    self.save_trove();
                 }
             }
             // Load command by name
