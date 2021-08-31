@@ -55,6 +55,16 @@ impl HoardCommand {
         }
     }
 
+    pub fn with_tags_raw(self, tags: String) -> Self {
+        Self {
+            name: self.name,
+            namespace: self.namespace,
+            tags: Some(tags.chars().filter(|c| !c.is_whitespace()).collect::<String>().split(',').map(|s| s.to_string()).collect()),
+            command: self.command,
+            description: self.description,
+        }
+    }
+
     pub fn with_tags_input(self) -> Self {
         let tags: String = Input::with_theme(&ColorfulTheme::default())
             .with_prompt("Give your command tags ( comma separated )")
@@ -69,13 +79,7 @@ impl HoardCommand {
             })
             .interact_text()
             .unwrap();
-        Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: Some(tags.split(',').map(|s| s.to_string()).collect()),
-            command: self.command,
-            description: self.description,
-        }
+        self.with_tags_raw(tags)
     }
 
     pub fn with_namespace_input(self) -> Self {
@@ -154,5 +158,59 @@ impl Parsable for HoardCommand {
             new_command.command = c.to_string();
         }
         new_command
+    }
+}
+
+#[cfg(test)]
+mod test_commands {
+    use super::*;
+
+    #[test]
+    fn one_tag_as_string() {
+        let command = HoardCommand::default().with_tags_raw(String::from("foo"));
+        let expected = "foo";
+        assert_eq!(expected, command.tags_as_string());
+    }
+
+    #[test]
+    fn no_tag_as_string() {
+        let command = HoardCommand::default();
+        let expected = "";
+        assert_eq!(expected, command.tags_as_string());
+    }
+
+    #[test]
+    fn multiple_tags_as_string() {
+        let command = HoardCommand::default().with_tags_raw(String::from("foo,bar"));
+        let expected = "foo,bar";
+        assert_eq!(expected, command.tags_as_string());
+    }
+
+    #[test]
+    fn parse_single_tag() {
+        let command = HoardCommand::default().with_tags_raw(String::from("foo"));
+        let expected = Some(vec![String::from("foo")]);
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_no_tag() {
+        let command = HoardCommand::default();
+        let expected = None;
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_multiple_tags() {
+        let command = HoardCommand::default().with_tags_raw(String::from("foo,bar"));
+        let expected = Some(vec![String::from("foo"), String::from("bar")]);
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw(String::from("foo, bar"));
+        let expected = Some(vec![String::from("foo"), String::from("bar")]);
+        assert_eq!(expected, command.tags);
     }
 }
