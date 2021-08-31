@@ -1,7 +1,6 @@
 use clap::{load_yaml, App};
 use log::info;
 
-
 use crate::config::load_or_build_config;
 
 use super::command::hoard_command::HoardCommand;
