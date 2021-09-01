@@ -1,15 +1,17 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
+use termion::raw::IntoRawMode;
 use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode},
+   event::{self, Event as CEvent, KeyCode},
+//    terminal::{disable_raw_mode, enable_raw_mode},
 };
 use std::io;
+use std::io::{Write, stdout};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 use tui::{
-    backend::CrosstermBackend,
+    backend::{TermionBackend},
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
@@ -45,7 +47,7 @@ impl From<MenuItem> for usize {
 }
 
 pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
-    enable_raw_mode().expect("Cant run in raw mode");
+    //enable_raw_mode().expect("Cant run in raw mode");
 
     let (tx, rx) = mpsc::channel();
     let tick_rate = Duration::from_millis(200);
@@ -68,9 +70,9 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     });
-
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
+    let stdout = stdout().into_raw_mode().unwrap();
+    // /let backend = CrosstermBackend::new(stdout);
+    let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
@@ -148,7 +150,6 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
         match rx.recv()? {
             Event::Input(event) => match event.code {
                 KeyCode::Char('q') => {
-                    disable_raw_mode()?;
                     terminal.show_cursor()?;
                     break;
                 }

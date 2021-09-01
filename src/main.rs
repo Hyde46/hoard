@@ -1,4 +1,5 @@
 extern crate crossterm;
+extern crate termion;
 extern crate serde;
 extern crate serde_yaml;
 
