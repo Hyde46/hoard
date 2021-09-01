@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Error, Result};
+use dialoguer::{theme::ColorfulTheme, Input};
 use log::info;
 use serde::{Deserialize, Serialize};
-use dialoguer::{theme::ColorfulTheme, Input};
 use std::{
     fs,
     path::{Path, PathBuf},
