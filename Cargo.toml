@@ -1,6 +1,6 @@
 [package]
 name = "hoard"
-version = "0.0.1"
+version = "0.1.2-beta"
 edition = "2018"
 readme = "README.md"
 license = "MIT"
