@@ -68,6 +68,10 @@ impl CommandTrove {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.commands.is_empty()
+    }
+
     pub fn print_trove(&self) {
         // Create the table
         let mut table = Table::new();
@@ -92,5 +96,24 @@ impl CommandTrove {
         });
         // Print the table to stdout
         table.printstd();
+    }
+}
+
+#[cfg(test)]
+mod test_commands {
+    use super::*;
+
+    #[test]
+    fn empty_trove() {
+        let trove = CommandTrove::default();
+        assert_eq!(true, trove.is_empty());
+    }
+
+    #[test]
+    fn not_empty_trove() {
+        let mut trove = CommandTrove::default();
+        let command = HoardCommand::default();
+        trove.add_command(command);
+        assert_eq!(false, trove.is_empty());
     }
 }

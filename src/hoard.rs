@@ -92,7 +92,11 @@ impl Hoard {
                 if sub_m.is_present("simple") {
                     self.trove.print_trove();
                 } else {
-                    commands_gui::run(&mut self.trove).ok();
+                    if self.trove.is_empty() {
+                        println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
+                    } else {
+                        commands_gui::run(&mut self.trove).ok();
+                    }
                 }
             }
             // Load command by name into clipboard, if available
