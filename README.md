@@ -11,7 +11,7 @@ toolchain, then you can run:
 cargo build --release
 ```
 
-You can find the binaries in `target/release/hoard`
+Find the binaries in `target/release/hoard`
 Move it to wherever you need it
 
 
