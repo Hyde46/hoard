@@ -8,8 +8,12 @@ It's best to use [rustup](https://rustup.rs/) to get setup with a Rust
 toolchain, then you can run:
 
 ```
-cargo install hoard
+cargo build --release
 ```
+
+You can find the binaries in `target/release/hoard`
+Move it to wherever you need it
+
 
 ### Homebrew
 
