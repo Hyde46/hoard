@@ -1,6 +1,7 @@
 name: hoard
-version: "0.1"
-help: Does awesome things
+version: "0.1.2-beta"
+settings:
+    - ArgRequiredElseHelp
 args:
     - config:
         short: c
@@ -8,12 +9,9 @@ args:
         value_name: FILE
         help: Sets a custom config file
         takes_value: true
-    - verbose:
-        short: v
-        multiple: true
-        help: Sets the level of verbosity
 subcommands:
     - new:
+        about: Save new command
         help: Save new command
         version: "0.1"
         args:
@@ -49,6 +47,7 @@ subcommands:
                 takes_value: true
     - list:
         short: l
+        about: List commands saved in trove
         help: List commands saved in trove
         version: "0.1"
         args:
@@ -58,10 +57,12 @@ subcommands:
                 help: Show simplified table of hoarded commands
     - copy:
         short: c
+        about: Copy command to clipboard based on command name
         help: Copy command to clipboard based on command name
         version: "0.1"
     - pick:
         short: p
+        about: Pick a command of the trove and print it
         help: Pick a command of the trove and print it
         version: "0.1"
         args: 
@@ -73,6 +74,7 @@ subcommands:
                 takes_value: true
     - remove:
         short: r
+        about: Removes a command of the trove
         help: Removes a command of the trove
         version: "0.1"
         args: 

@@ -63,7 +63,7 @@ impl Hoard {
     pub fn start(&mut self) -> Result<(), serde_yaml::Error> {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
-
+        let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
         if let Some(matches) = matches.subcommand_matches("test") {
             if matches.is_present("debug") {
                 println!("Printing debug info...");
@@ -80,16 +80,17 @@ impl Hoard {
                     .with_name_input()
                     .with_description_input()
                     .with_tags_input()
-                    .with_namespace_input();
+                    .with_namespace_input(default_namespace);
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
             // Fuzzy search through trove
-            // Need tui gui setup
             ("search", Some(_sub_m)) => {}
             // List all available commands
             ("list", Some(sub_m)) => {
-                if sub_m.is_present("simple") {
+                if self.trove.is_empty() {
+                    println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
+                } else if sub_m.is_present("simple") {
                     self.trove.print_trove();
                 } else {
                     commands_gui::run(&mut self.trove).ok();
@@ -122,12 +123,9 @@ impl Hoard {
             }
             // Load command by name
             ("copy", Some(_sub_m)) => {
-                info!("Not yet implemented");
+                println!("Not yet implemented");
             }
-            // Rest of subcommands go here for now
-            _ => {
-                println!("Not implemented yet!")
-            }
+            _ => {}
         }
 
         Ok(())
