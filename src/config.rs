@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Error, Result};
 use log::info;
 use serde::{Deserialize, Serialize};
+use dialoguer::{theme::ColorfulTheme, Input};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -14,6 +15,7 @@ const HOARD_CONFIG: &str = "config.yml";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HoardConfig {
     pub version: String,
+    pub default_namespace: String,
     pub config_home_path: Option<PathBuf>,
     pub trove_home_path: Option<PathBuf>,
 }
@@ -22,8 +24,23 @@ impl HoardConfig {
     pub fn new(hoard_home_path: PathBuf) -> HoardConfig {
         HoardConfig {
             version: VERSION.to_string(),
+            default_namespace: String::from("default"),
             config_home_path: Some(hoard_home_path.clone()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
+        }
+    }
+
+    pub fn with_default_namespace(self) -> Self {
+        let default_namespace: String = Input::with_theme(&ColorfulTheme::default())
+            .with_prompt("This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.")
+            .default(String::from("default"))
+            .interact_text()
+            .unwrap();
+        HoardConfig {
+            version: self.version,
+            default_namespace,
+            config_home_path: self.config_home_path,
+            trove_home_path: self.trove_home_path,
         }
     }
 }
@@ -69,7 +86,7 @@ fn load_or_build(path: PathBuf) -> Result<HoardConfig, Error> {
     // Check if $HOME/.hoard/config.yml exists. Create default config if it does not exist
     let config = if !hoard_config_path.exists() {
         info!("Config file does not exist. Creating new one");
-        let new_config = HoardConfig::new(hoard_dir);
+        let new_config = HoardConfig::new(hoard_dir).with_default_namespace();
         let s = serde_yaml::to_string(&new_config)?;
         fs::write(hoard_config_path, s).expect("Unable to write config file");
         Ok(new_config)

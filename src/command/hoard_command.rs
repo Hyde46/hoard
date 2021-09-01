@@ -92,10 +92,10 @@ impl HoardCommand {
         self.with_tags_raw(tags)
     }
 
-    pub fn with_namespace_input(self) -> Self {
+    pub fn with_namespace_input(self, default_namespace: String) -> Self {
         let namespace: String = Input::with_theme(&ColorfulTheme::default())
+            .default(default_namespace)
             .with_prompt("Namespace of the command")
-            .with_initial_text("default".to_string())
             .interact_text()
             .unwrap();
         Self {

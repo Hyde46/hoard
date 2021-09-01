@@ -63,7 +63,7 @@ impl Hoard {
     pub fn start(&mut self) -> Result<(), serde_yaml::Error> {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
-
+        let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
         if let Some(matches) = matches.subcommand_matches("test") {
             if matches.is_present("debug") {
                 println!("Printing debug info...");
@@ -80,7 +80,7 @@ impl Hoard {
                     .with_name_input()
                     .with_description_input()
                     .with_tags_input()
-                    .with_namespace_input();
+                    .with_namespace_input(default_namespace);
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
@@ -125,7 +125,6 @@ impl Hoard {
             ("copy", Some(_sub_m)) => {
                 println!("Not yet implemented");
             }
-            // Rest of subcommands go here for now
             _ => {}
         }
 
