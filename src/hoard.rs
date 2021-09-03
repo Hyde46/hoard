@@ -60,18 +60,13 @@ impl Hoard {
         };
     }
 
-    pub fn start(&mut self) -> Result<(), serde_yaml::Error> {
+    pub fn start(&mut self) -> Result<(String, bool), serde_yaml::Error> {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
         let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
-        if let Some(matches) = matches.subcommand_matches("test") {
-            if matches.is_present("debug") {
-                println!("Printing debug info...");
-            } else {
-                println!("Printing normally...");
-            }
-        }
 
+        let mut autocomplete_command = String::from("");
+        
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
@@ -93,7 +88,14 @@ impl Hoard {
                 } else if sub_m.is_present("simple") {
                     self.trove.print_trove();
                 } else {
-                    commands_gui::run(&mut self.trove).ok();
+                    match commands_gui::run(&mut self.trove) {
+                        Ok(selected_command) => {
+                            if let Some(command) = selected_command {
+                                autocomplete_command = command;
+                            }
+                        },
+                        Err(error) => { println!("{}", error);}
+                    }
                 }
             }
             // Load command by name into clipboard, if available
@@ -128,6 +130,6 @@ impl Hoard {
             _ => {}
         }
 
-        Ok(())
+        Ok((autocomplete_command, matches.is_present("autocomplete")))
     }
 }

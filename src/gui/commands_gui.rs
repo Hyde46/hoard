@@ -44,7 +44,7 @@ impl From<MenuItem> for usize {
     }
 }
 
-pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::error::Error>> {
     enable_raw_mode().expect("Cant run in raw mode");
 
     let (tx, rx) = mpsc::channel();
@@ -172,12 +172,25 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
+                KeyCode::Enter => {
+                    let selected_command = trove.commands.clone()
+                    .get(
+                        command_list_state
+                            .selected()
+                            .expect("there is always a selected command"),
+                    )
+                    .expect("exists")
+                    .clone();
+                    disable_raw_mode()?;
+                    terminal.show_cursor()?;
+                    return Ok(Some(selected_command.command));
+                }
                 _ => {}
             },
             Event::Tick => {}
         }
     }
-    Ok(())
+    Ok(None)
 }
 
 fn render_commands<'a>(
