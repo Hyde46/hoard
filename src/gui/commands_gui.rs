@@ -1,26 +1,17 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
-use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode},
-};
-use std::io;
-use std::sync::mpsc;
-use std::thread;
-use std::time::{Duration, Instant};
+use super::event::{Config, Event, Events};
+use std::io::stdout;
+use std::time::Duration;
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
-    backend::CrosstermBackend,
+    backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Terminal,
 };
-
-enum Event<I> {
-    Input(I),
-    Tick,
-}
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
@@ -44,33 +35,15 @@ impl From<MenuItem> for usize {
     }
 }
 
-pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
-    enable_raw_mode().expect("Cant run in raw mode");
-
-    let (tx, rx) = mpsc::channel();
-    let tick_rate = Duration::from_millis(200);
-
-    thread::spawn(move || {
-        let mut last_tick = Instant::now();
-        loop {
-            let timeout = tick_rate
-                .checked_sub(last_tick.elapsed())
-                .unwrap_or_else(|| Duration::from_secs(0));
-
-            if event::poll(timeout).expect("poll works") {
-                if let CEvent::Key(key) = event::read().expect("can read events") {
-                    tx.send(Event::Input(key)).expect("can send events");
-                }
-            }
-
-            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
-                last_tick = Instant::now();
-            }
-        }
+pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let events = Events::with_config(Config {
+        tick_rate: Duration::from_millis(200),
     });
 
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
+    let stdout = stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
@@ -145,24 +118,13 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
             rect.render_widget(command, chunks[2]);
         })?;
 
-        match rx.recv()? {
-            Event::Input(event) => match event.code {
-                KeyCode::Char('q') => {
-                    disable_raw_mode()?;
+        match events.next()? {
+            Event::Input(key) => match key {
+                Key::Char('q') => {
                     terminal.show_cursor()?;
                     break;
                 }
-                KeyCode::Down => {
-                    if let Some(selected) = command_list_state.selected() {
-                        let amount_commands = trove.commands.clone().len();
-                        if selected >= amount_commands - 1 {
-                            command_list_state.select(Some(0));
-                        } else {
-                            command_list_state.select(Some(selected + 1));
-                        }
-                    }
-                }
-                KeyCode::Up => {
+                Key::Up => {
                     if let Some(selected) = command_list_state.selected() {
                         let amount_commands = trove.commands.clone().len();
                         if selected > 0 {
@@ -172,12 +134,36 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
+                Key::Down => {
+                    if let Some(selected) = command_list_state.selected() {
+                        let amount_commands = trove.commands.clone().len();
+                        if selected >= amount_commands - 1 {
+                            command_list_state.select(Some(0));
+                        } else {
+                            command_list_state.select(Some(selected + 1));
+                        }
+                    }
+                }
+                Key::Char('\n') => {
+                    let selected_command = trove
+                        .commands
+                        .clone()
+                        .get(
+                            command_list_state
+                                .selected()
+                                .expect("there is always a selected command"),
+                        )
+                        .expect("exists")
+                        .clone();
+                    terminal.show_cursor()?;
+                    return Ok(Some(selected_command.command));
+                }
                 _ => {}
             },
             Event::Tick => {}
         }
     }
-    Ok(())
+    Ok(None)
 }
 
 fn render_commands<'a>(

@@ -9,6 +9,9 @@ args:
         value_name: FILE
         help: Sets a custom config file
         takes_value: true
+    - autocomplete:
+        long: autocomplete
+        hidden: true
 subcommands:
     - new:
         about: Save new command

@@ -106,7 +106,7 @@ mod test_commands {
     #[test]
     fn empty_trove() {
         let trove = CommandTrove::default();
-        assert_eq!(true, trove.is_empty());
+        assert!(trove.is_empty());
     }
 
     #[test]
@@ -114,6 +114,6 @@ mod test_commands {
         let mut trove = CommandTrove::default();
         let command = HoardCommand::default();
         trove.add_command(command);
-        assert_eq!(false, trove.is_empty());
+        assert!(!trove.is_empty());
     }
 }
