@@ -21,3 +21,7 @@ Move it to wherever you need it
 brew tap Hypde46/hoard
 brew install hoard
 ```
+
+## FAQ
+
+### Why not fzf
