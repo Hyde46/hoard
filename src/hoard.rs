@@ -66,7 +66,7 @@ impl Hoard {
         let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
 
         let mut autocomplete_command = String::from("");
-        
+
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
@@ -95,8 +95,10 @@ impl Hoard {
                                 //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
                                 autocomplete_command = command;
                             }
-                        },
-                        Err(error) => { println!("{}", error);}
+                        }
+                        Err(error) => {
+                            println!("{}", error);
+                        }
                     }
                 }
             }

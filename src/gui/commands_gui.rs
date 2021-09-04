@@ -1,13 +1,11 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
-use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
-};
-use std::io::{stdout};
+use crossterm::event::{self, Event as CEvent, KeyCode};
+use std::io::stdout;
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
-use termion::{raw::IntoRawMode, input::MouseTerminal, screen::AlternateScreen};
+use termion::{input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
@@ -44,8 +42,7 @@ impl From<MenuItem> for usize {
     }
 }
 
-pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::error::Error>> {
-
+pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let (tx, rx) = mpsc::channel();
     let tick_rate = Duration::from_millis(200);
 
@@ -172,14 +169,16 @@ pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::err
                     }
                 }
                 KeyCode::Enter => {
-                    let selected_command = trove.commands.clone()
-                    .get(
-                        command_list_state
-                            .selected()
-                            .expect("there is always a selected command"),
-                    )
-                    .expect("exists")
-                    .clone();
+                    let selected_command = trove
+                        .commands
+                        .clone()
+                        .get(
+                            command_list_state
+                                .selected()
+                                .expect("there is always a selected command"),
+                        )
+                        .expect("exists")
+                        .clone();
                     terminal.show_cursor()?;
                     return Ok(Some(selected_command.command));
                 }
