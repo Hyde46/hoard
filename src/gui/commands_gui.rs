@@ -2,7 +2,7 @@ use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
 use super::event::{Config, Event, Events};
 use std::io::stdout;
-use std::time::{Duration};
+use std::time::Duration;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -36,10 +36,8 @@ impl From<MenuItem> for usize {
 }
 
 pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::error::Error>> {
-
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
-        ..Config::default()
     });
 
     let stdout = stdout().into_raw_mode()?;
@@ -162,9 +160,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                 }
                 _ => {}
             },
-            Event::Tick => {
-                
-            }
+            Event::Tick => {}
         }
     }
     Ok(None)

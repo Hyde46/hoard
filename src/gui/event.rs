@@ -13,6 +13,7 @@ pub enum Event<I> {
 
 /// A small event handler that wrap termion input and tick events. Each event
 /// type is handled in its own thread and returned to a common `Receiver`
+#[allow(dead_code)]
 pub struct Events {
     rx: mpsc::Receiver<Event<Key>>,
     input_handle: thread::JoinHandle<()>,
@@ -33,10 +34,12 @@ impl Default for Config {
 }
 
 impl Events {
+    #[allow(dead_code)]
     pub fn new() -> Events {
         Events::with_config(Config::default())
     }
 
+    #[allow(clippy::manual_flatten)]
     pub fn with_config(config: Config) -> Events {
         let (tx, rx) = mpsc::channel();
         let input_handle = {
