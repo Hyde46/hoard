@@ -90,7 +90,9 @@ impl Hoard {
                 } else {
                     match commands_gui::run(&mut self.trove) {
                         Ok(selected_command) => {
+                            // Is set if a command is selected in GUI
                             if let Some(command) = selected_command {
+                                //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
                                 autocomplete_command = command;
                             }
                         },

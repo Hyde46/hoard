@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
         // Prints to stdout for autocomplete functionality
         Ok((command, is_autocomplete)) => {
             if is_autocomplete {
-                io::stdout().write_all(&command.into_bytes())?;
+                eprintln!("{}", command.clone());
             }
         },
         Err(err) => println!("{}",err)
