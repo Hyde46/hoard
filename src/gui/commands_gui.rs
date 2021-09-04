@@ -2,14 +2,14 @@ use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
 use crossterm::{
     event::{self, Event as CEvent, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode},
 };
-use std::io;
+use std::io::{stdout};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
+use termion::{raw::IntoRawMode, input::MouseTerminal, screen::AlternateScreen};
 use tui::{
-    backend::CrosstermBackend,
+    backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
@@ -45,7 +45,6 @@ impl From<MenuItem> for usize {
 }
 
 pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::error::Error>> {
-    enable_raw_mode().expect("Cant run in raw mode");
 
     let (tx, rx) = mpsc::channel();
     let tick_rate = Duration::from_millis(200);
@@ -68,9 +67,10 @@ pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::err
             }
         }
     });
-
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
+    let stdout = stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
@@ -148,7 +148,6 @@ pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::err
         match rx.recv()? {
             Event::Input(event) => match event.code {
                 KeyCode::Char('q') => {
-                    disable_raw_mode()?;
                     terminal.show_cursor()?;
                     break;
                 }
@@ -181,7 +180,6 @@ pub fn run(trove: &mut CommandTrove) -> Result< Option<String>, Box<dyn std::err
                     )
                     .expect("exists")
                     .clone();
-                    disable_raw_mode()?;
                     terminal.show_cursor()?;
                     return Ok(Some(selected_command.command));
                 }
