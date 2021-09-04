@@ -10,8 +10,6 @@ license = "MIT"
 clap = { version = "2.33.3", features = ["yaml"] }
 # pretty dialogues in terminal
 dialoguer = "0.8.0"
-# Cross terminal support
-crossterm = "0.21.0"
 termion = "1.5.6"
 # Yaml support to save/load command pallettes
 serde = { version = "1.0", features = ["derive"] }

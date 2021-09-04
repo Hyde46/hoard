@@ -1,10 +1,9 @@
-extern crate crossterm;
 extern crate serde_yaml;
 
 #[macro_use]
 extern crate prettytable;
 
-use std::io::{self, Write};
+use std::io;
 
 mod command;
 mod config;

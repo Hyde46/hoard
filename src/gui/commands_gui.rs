@@ -1,11 +1,9 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
-use crossterm::event::{self, Event as CEvent, KeyCode};
+use super::event::{Config, Event, Events};
 use std::io::stdout;
-use std::sync::mpsc;
-use std::thread;
-use std::time::{Duration, Instant};
-use termion::{input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use std::time::{Duration};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
@@ -14,11 +12,6 @@ use tui::{
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Terminal,
 };
-
-enum Event<I> {
-    Input(I),
-    Tick,
-}
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
@@ -43,27 +36,12 @@ impl From<MenuItem> for usize {
 }
 
 pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let (tx, rx) = mpsc::channel();
-    let tick_rate = Duration::from_millis(200);
 
-    thread::spawn(move || {
-        let mut last_tick = Instant::now();
-        loop {
-            let timeout = tick_rate
-                .checked_sub(last_tick.elapsed())
-                .unwrap_or_else(|| Duration::from_secs(0));
-
-            if event::poll(timeout).expect("poll works") {
-                if let CEvent::Key(key) = event::read().expect("can read events") {
-                    tx.send(Event::Input(key)).expect("can send events");
-                }
-            }
-
-            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
-                last_tick = Instant::now();
-            }
-        }
+    let events = Events::with_config(Config {
+        tick_rate: Duration::from_millis(200),
+        ..Config::default()
     });
+
     let stdout = stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
@@ -142,23 +120,13 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
             rect.render_widget(command, chunks[2]);
         })?;
 
-        match rx.recv()? {
-            Event::Input(event) => match event.code {
-                KeyCode::Char('q') => {
+        match events.next()? {
+            Event::Input(key) => match key {
+                Key::Char('q') => {
                     terminal.show_cursor()?;
                     break;
                 }
-                KeyCode::Down => {
-                    if let Some(selected) = command_list_state.selected() {
-                        let amount_commands = trove.commands.clone().len();
-                        if selected >= amount_commands - 1 {
-                            command_list_state.select(Some(0));
-                        } else {
-                            command_list_state.select(Some(selected + 1));
-                        }
-                    }
-                }
-                KeyCode::Up => {
+                Key::Up => {
                     if let Some(selected) = command_list_state.selected() {
                         let amount_commands = trove.commands.clone().len();
                         if selected > 0 {
@@ -168,7 +136,17 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         }
                     }
                 }
-                KeyCode::Enter => {
+                Key::Down => {
+                    if let Some(selected) = command_list_state.selected() {
+                        let amount_commands = trove.commands.clone().len();
+                        if selected >= amount_commands - 1 {
+                            command_list_state.select(Some(0));
+                        } else {
+                            command_list_state.select(Some(selected + 1));
+                        }
+                    }
+                }
+                Key::Char('\n') => {
                     let selected_command = trove
                         .commands
                         .clone()
@@ -184,7 +162,9 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                 }
                 _ => {}
             },
-            Event::Tick => {}
+            Event::Tick => {
+                
+            }
         }
     }
     Ok(None)
