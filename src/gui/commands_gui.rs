@@ -68,7 +68,12 @@ pub fn run(
                 .split(size);
             let menu = namespace_tabs
                 .iter()
-                .map(|t| Spans::from(vec![Span::styled(t, Style::default().fg(Color::White))]))
+                .map(|t| {
+                    Spans::from(vec![Span::styled(
+                        t,
+                        Style::default().fg(Color::Rgb(242, 229, 188)),
+                    )])
+                })
                 .collect();
 
             let tabs = Tabs::new(menu)
@@ -82,10 +87,10 @@ pub fn run(
                         .title(" Hoard Namespace ")
                         .borders(Borders::ALL),
                 )
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
                 .highlight_style(
                     Style::default()
-                        .fg(Color::Yellow)
+                        .fg(Color::Rgb(181, 118, 20))
                         .add_modifier(Modifier::UNDERLINED),
                 )
                 .divider(Span::raw("|"));
@@ -250,7 +255,7 @@ fn render_commands<'a>(
 ) {
     let commands = Block::default()
         .borders(Borders::ALL)
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
         .title(" Commands ")
         .border_type(BorderType::Plain);
 
@@ -275,49 +280,53 @@ fn render_commands<'a>(
 
     let list = List::new(items).block(commands).highlight_style(
         Style::default()
-            .bg(Color::Yellow)
-            .fg(Color::Black)
+            .bg(Color::Rgb(181, 118, 20))
+            .fg(Color::Rgb(50, 48, 47))
             .add_modifier(Modifier::BOLD),
     );
 
     let command = Paragraph::new(selected_command.command.clone())
-        .style(Style::default().fg(Color::LightCyan))
+        .style(Style::default().fg(Color::Rgb(181, 118, 20)))
         .alignment(Alignment::Center)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
                 .title(" Hoarded command ")
                 .border_type(BorderType::Plain),
         );
 
     let tags = Paragraph::new(selected_command.tags_as_string())
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
         .alignment(Alignment::Left)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
                 .title(" Tags ")
                 .border_type(BorderType::Plain),
         );
 
     let description = Paragraph::new(selected_command.description.unwrap_or_default())
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
                 .title(" Description ")
                 .border_type(BorderType::Plain),
         );
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
-    let input =
-        Paragraph::new(query_string).block(Block::default().borders(Borders::ALL).title(" Query "));
+    let input = Paragraph::new(query_string).block(
+        Block::default()
+            .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+            .borders(Borders::ALL)
+            .title(" Query "),
+    );
 
     (list, command, tags, description, input)
 }
