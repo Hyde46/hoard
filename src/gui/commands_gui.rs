@@ -1,8 +1,8 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
 use super::event::{Config, Event, Events};
-use std::io::stdout;
 use std::collections::HashSet;
+use std::io::stdout;
 use std::time::Duration;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
@@ -27,7 +27,13 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
     terminal.clear()?;
 
     //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
-    let mut namespace_tabs: Vec<String> = trove.commands.iter().map(|command| command.namespace.clone()).collect::<HashSet<String>>().into_iter().collect();
+    let mut namespace_tabs: Vec<String> = trove
+        .commands
+        .iter()
+        .map(|command| command.namespace.clone())
+        .collect::<HashSet<String>>()
+        .into_iter()
+        .collect();
     namespace_tabs.insert(0, String::from("All"));
     let mut command_list_state = ListState::default();
     command_list_state.select(Some(0));
@@ -52,18 +58,26 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                 .split(size);
             let menu = namespace_tabs
                 .iter()
-                .map(|t| {
-                    Spans::from(vec![
-                        Span::styled(t, Style::default().fg(Color::White))
-                    ])
-                })
+                .map(|t| Spans::from(vec![Span::styled(t, Style::default().fg(Color::White))]))
                 .collect();
 
             let tabs = Tabs::new(menu)
-                .select(namespace_tab_state.selected().expect("Always a namespace selected"))
-                .block(Block::default().title(" Hoard Namespace ").borders(Borders::ALL))
+                .select(
+                    namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .block(
+                    Block::default()
+                        .title(" Hoard Namespace ")
+                        .borders(Borders::ALL),
+                )
                 .style(Style::default().fg(Color::White))
-                .highlight_style(Style::default().fg(Color::Yellow).add_modifier(Modifier::UNDERLINED))
+                .highlight_style(
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::UNDERLINED),
+                )
                 .divider(Span::raw("|"));
 
             rect.render_widget(tabs, chunks[0]);
@@ -74,13 +88,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                 .split(chunks[1]);
             let command_detail_chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Percentage(40),
-                        Constraint::Percentage(60),
-                    ]
-                    .as_ref(),
-                )
+                .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
                 .split(commands_chunks[1]);
             let (commands, command, tags, description) =
                 render_commands(filetered_trove_commands.clone(), &command_list_state);
@@ -102,13 +110,27 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                     if let Some(selected) = namespace_tab_state.selected() {
                         let amount_ns = namespace_tabs.clone().len();
                         if selected > 0 {
-                            namespace_tab_state.select(Some(selected - 1)); 
+                            namespace_tab_state.select(Some(selected - 1));
                         } else {
                             namespace_tab_state.select(Some(amount_ns - 1));
                         }
-                        let selected_tab = namespace_tabs.get(namespace_tab_state.selected().expect("Always a namespace selected")).expect("Always a tab selected").clone();
-                        filetered_trove_commands = trove.commands.clone().into_iter().filter(|command| command.namespace == selected_tab || selected_tab == "All").collect();
-                        
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        filetered_trove_commands = trove
+                            .commands
+                            .clone()
+                            .into_iter()
+                            .filter(|command| {
+                                command.namespace == selected_tab || selected_tab == "All"
+                            })
+                            .collect();
+
                         command_list_state.select(Some(0));
                     }
                 }
@@ -120,9 +142,23 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         } else {
                             namespace_tab_state.select(Some(selected + 1));
                         }
-                        let selected_tab = namespace_tabs.get(namespace_tab_state.selected().expect("Always a namespace selected")).expect("Always a tab selected").clone();
-                        filetered_trove_commands = trove.commands.clone().into_iter().filter(|command| command.namespace == selected_tab || selected_tab == "All").collect();
-                        
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        filetered_trove_commands = trove
+                            .commands
+                            .clone()
+                            .into_iter()
+                            .filter(|command| {
+                                command.namespace == selected_tab || selected_tab == "All"
+                            })
+                            .collect();
+
                         command_list_state.select(Some(0));
                     }
                 }
@@ -137,7 +173,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         }
                     }
                 }
-                Key::Down | Key::Char('j') | Key::Char('n')  => {
+                Key::Down | Key::Char('j') | Key::Char('n') => {
                     if let Some(selected) = command_list_state.selected() {
                         let amount_commands = filetered_trove_commands.clone().len();
                         if selected >= amount_commands - 1 {
@@ -172,12 +208,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
 fn render_commands<'a>(
     commands_list: Vec<HoardCommand>,
     command_list_state: &ListState,
-) -> (
-    List<'a>,
-    Paragraph<'a>,
-    Paragraph<'a>,
-    Paragraph<'a>,
-) {
+) -> (List<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>) {
     let commands = Block::default()
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::White))
