@@ -18,6 +18,7 @@ pub struct HoardConfig {
     pub default_namespace: String,
     pub config_home_path: Option<PathBuf>,
     pub trove_home_path: Option<PathBuf>,
+    pub query_prefix: String,
 }
 
 impl HoardConfig {
@@ -27,6 +28,7 @@ impl HoardConfig {
             default_namespace: String::from("default"),
             config_home_path: Some(hoard_home_path.clone()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
+            query_prefix: String::from("  >")
         }
     }
 
@@ -41,6 +43,7 @@ impl HoardConfig {
             default_namespace,
             config_home_path: self.config_home_path,
             trove_home_path: self.trove_home_path,
+            query_prefix: self.query_prefix,
         }
     }
 }

@@ -1,10 +1,11 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
+use super::super::config::HoardConfig;
 use super::event::{Config, Event, Events};
 use std::collections::HashSet;
 use std::io::stdout;
 use std::time::Duration;
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
@@ -13,14 +14,18 @@ use tui::{
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Terminal,
 };
+struct State {
+    input: String,
+}
 
-pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::error::Error>> {
+pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
 
+    let mut app_state = State{input:String::from("")};
+
     let stdout = stdout().into_raw_mode()?;
-    let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
@@ -84,18 +89,19 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
 
             let commands_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
+                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
                 .split(chunks[1]);
             let command_detail_chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
+                .constraints([Constraint::Length(3), Constraint::Percentage(60), Constraint::Length(3)].as_ref())
                 .split(commands_chunks[1]);
-            let (commands, command, tags, description) =
-                render_commands(filetered_trove_commands.clone(), &command_list_state);
+            let (commands, command, tags, description, input) =
+                render_commands(filetered_trove_commands.clone(), &command_list_state, &app_state, config);
             rect.render_stateful_widget(commands, commands_chunks[0], &mut command_list_state);
             rect.render_widget(tags, command_detail_chunks[0]);
             rect.render_widget(description, command_detail_chunks[1]);
-            rect.render_widget(command, chunks[2]);
+            rect.render_widget(command, command_detail_chunks[2]);
+            rect.render_widget(input, chunks[2]);
         })?;
 
         match events.next()? {
@@ -106,7 +112,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                     break;
                 }
                 // Switch namespace
-                Key::Right | Key::Char('h') | Key::Ctrl('p') => {
+                Key::Right | Key::Ctrl('h')=> {
                     if let Some(selected) = namespace_tab_state.selected() {
                         let amount_ns = namespace_tabs.clone().len();
                         if selected > 0 {
@@ -124,7 +130,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         command_list_state.select(Some(0));
                     }
                 }
-                Key::Left | Key::Char('l') | Key::Ctrl('n') => {
+                Key::Left | Key::Ctrl('l')=> {
                     if let Some(selected) = namespace_tab_state.selected() {
                         let amount_ns = namespace_tabs.clone().len();
                         if selected >= amount_ns - 1 {
@@ -143,7 +149,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                     }
                 }
                 // Switch command
-                Key::Up | Key::Char('k') | Key::Char('p') => {
+                Key::Up | Key::Ctrl('y') | Key::Ctrl('p') => {
                     if let Some(selected) = command_list_state.selected() {
                         let amount_commands = filetered_trove_commands.clone().len();
                         if selected > 0 {
@@ -153,7 +159,7 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         }
                     }
                 }
-                Key::Down | Key::Char('j') | Key::Char('n') => {
+                Key::Down | Key::Ctrl('.') | Key::Ctrl('n') => {
                     if let Some(selected) = command_list_state.selected() {
                         let amount_commands = filetered_trove_commands.clone().len();
                         if selected >= amount_commands - 1 {
@@ -176,6 +182,13 @@ pub fn run(trove: &mut CommandTrove) -> Result<Option<String>, Box<dyn std::erro
                         .clone();
                     terminal.show_cursor()?;
                     return Ok(Some(selected_command.command));
+                }
+                // Handle query input
+                Key::Backspace => {
+                    app_state.input.pop();
+                }
+                Key::Char(c) => {
+                    app_state.input.push(c);
                 }
                 _ => {}
             },
@@ -210,7 +223,9 @@ fn update_filtered_trove_commands(
 fn render_commands<'a>(
     commands_list: Vec<HoardCommand>,
     command_list_state: &ListState,
-) -> (List<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>) {
+    app: &State,
+    config: &HoardConfig,
+) -> (List<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>, Paragraph<'a>) {
     let commands = Block::default()
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::White))
@@ -276,6 +291,11 @@ fn render_commands<'a>(
                 .title(" Description ")
                 .border_type(BorderType::Plain),
         );
+    
+    let mut query_string = config.query_prefix.clone();
+    query_string.push_str(&app.input.clone()[..]);
+    let input = Paragraph::new(query_string)
+        .block(Block::default().borders(Borders::ALL).title(" Query "));
 
-    (list, command, tags, description)
+    (list, command, tags, description, input)
 }

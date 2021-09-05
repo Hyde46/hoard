@@ -88,7 +88,7 @@ impl Hoard {
                 } else if sub_m.is_present("simple") {
                     self.trove.print_trove();
                 } else {
-                    match commands_gui::run(&mut self.trove) {
+                    match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                         Ok(selected_command) => {
                             // Is set if a command is selected in GUI
                             if let Some(command) = selected_command {

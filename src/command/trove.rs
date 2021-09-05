@@ -68,14 +68,6 @@ impl CommandTrove {
         }
     }
 
-    pub fn get_filtered_commands(&self, namespace_filter: String) -> Vec<HoardCommand> {
-        self.commands
-            .clone()
-            .into_iter()
-            .filter(|command| namespace_filter == command.namespace.clone())
-            .collect()
-    }
-
     pub fn is_empty(&self) -> bool {
         self.commands.is_empty()
     }
