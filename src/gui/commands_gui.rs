@@ -142,14 +142,15 @@ pub fn run(
                         } else {
                             namespace_tab_state.select(Some(amount_ns - 1));
                         }
-                        update_filtered_trove_commands(
-                            &namespace_tabs,
-                            &namespace_tab_state,
-                            &mut app_state,
-                            &trove,
-                        );
-
-                        apply_search(&mut app_state, trove.commands.clone());
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                         let new_selection = if app_state.commands.is_empty() {
                             0
                         } else {
@@ -166,14 +167,15 @@ pub fn run(
                         } else {
                             namespace_tab_state.select(Some(selected + 1));
                         }
-                        update_filtered_trove_commands(
-                            &namespace_tabs,
-                            &namespace_tab_state,
-                            &mut app_state,
-                            &trove,
-                        );
-
-                        apply_search(&mut app_state, trove.commands.clone());
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                         let new_selection = if app_state.commands.is_empty() {
                             0
                         } else {
@@ -228,11 +230,27 @@ pub fn run(
                 // Handle query input
                 Key::Backspace => {
                     app_state.input.pop();
-                    apply_search(&mut app_state, trove.commands.clone());
+                    let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                 }
                 Key::Char(c) => {
                     app_state.input.push(c);
-                    apply_search(&mut app_state, trove.commands.clone());
+                    let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                 }
                 _ => {}
             },
@@ -242,13 +260,13 @@ pub fn run(
     Ok(None)
 }
 
-fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>) {
+fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: String) {
     let query_term = &app.input[..];
     app.commands = all_commands
         .clone()
         .into_iter()
         .filter(|c| {
-            c.name.contains(query_term)
+            (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
                 || c.tags_as_string().contains(query_term)
                 || c.command.contains(query_term)
@@ -256,29 +274,9 @@ fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>) {
                     .clone()
                     .unwrap_or_default()
                     .contains(query_term)
+            ) &&
+            c.namespace.clone() == selected_tab || selected_tab == "All"
         })
-        .collect();
-}
-
-fn update_filtered_trove_commands(
-    namespace_tabs: &[String],
-    namespace_tab_state: &ListState,
-    state: &mut State,
-    trove: &&mut CommandTrove,
-) {
-    let selected_tab = namespace_tabs
-        .get(
-            namespace_tab_state
-                .selected()
-                .expect("Always a namespace selected"),
-        )
-        .expect("Always a tab selected")
-        .clone();
-    state.commands = trove
-        .commands
-        .clone()
-        .into_iter()
-        .filter(|command| command.namespace == selected_tab || selected_tab == "All")
         .collect();
 }
 
