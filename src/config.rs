@@ -28,7 +28,7 @@ impl HoardConfig {
             default_namespace: String::from("default"),
             config_home_path: Some(hoard_home_path.clone()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
-            query_prefix: String::from("  >")
+            query_prefix: String::from("  >"),
         }
     }
 
