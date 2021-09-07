@@ -61,17 +61,17 @@ source src/shell/hoard.zsh
 
 ## Usage
 
-####Save a new command
+#### Save a new command
 ```
 hoard new
 ```
 
-####Delete a command
+#### Delete a command
 ```
 hoard delete <name>
 ```
 
-####Search through command trove
+#### Search through command trove
 ```
 <Ctrl-h>
 ```
