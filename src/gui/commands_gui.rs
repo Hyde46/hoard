@@ -78,7 +78,7 @@ pub fn run(
                     )])
                 })
                 .collect();
-            
+
             let tabs = Tabs::new(menu)
                 .select(
                     namespace_tab_state
@@ -233,25 +233,25 @@ pub fn run(
                 Key::Backspace => {
                     app_state.input.pop();
                     let selected_tab = namespace_tabs
-                            .get(
-                                namespace_tab_state
-                                    .selected()
-                                    .expect("Always a namespace selected"),
-                            )
-                            .expect("Always a tab selected")
-                            .clone();
+                        .get(
+                            namespace_tab_state
+                                .selected()
+                                .expect("Always a namespace selected"),
+                        )
+                        .expect("Always a tab selected")
+                        .clone();
                     apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                 }
                 Key::Char(c) => {
                     app_state.input.push(c);
                     let selected_tab = namespace_tabs
-                            .get(
-                                namespace_tab_state
-                                    .selected()
-                                    .expect("Always a namespace selected"),
-                            )
-                            .expect("Always a tab selected")
-                            .clone();
+                        .get(
+                            namespace_tab_state
+                                .selected()
+                                .expect("Always a namespace selected"),
+                        )
+                        .expect("Always a tab selected")
+                        .clone();
                     apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                 }
                 _ => {}
@@ -275,9 +275,8 @@ fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: 
                 || c.description
                     .clone()
                     .unwrap_or_default()
-                    .contains(query_term)
-            ) &&
-            (c.namespace.clone() == selected_tab || selected_tab == "All")
+                    .contains(query_term))
+                && (c.namespace.clone() == selected_tab || selected_tab == "All")
         })
         .collect();
 }
