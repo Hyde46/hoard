@@ -14,6 +14,8 @@ use tui::{
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Terminal,
 };
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 struct State {
     input: String,
     commands: Vec<HoardCommand>,
@@ -76,7 +78,7 @@ pub fn run(
                     )])
                 })
                 .collect();
-
+            
             let tabs = Tabs::new(menu)
                 .select(
                     namespace_tab_state
@@ -370,11 +372,12 @@ fn render_commands<'a>(
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
+    let query_title = format!(" hoard v{} ", VERSION);
     let input = Paragraph::new(query_string).block(
         Block::default()
             .style(Style::default().fg(Color::Rgb(242, 229, 188)))
             .borders(Borders::ALL)
-            .title(" Query "),
+            .title(query_title),
     );
 
     (list, command, tags, description, input)
