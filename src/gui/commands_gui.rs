@@ -275,7 +275,7 @@ fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: 
                     .unwrap_or_default()
                     .contains(query_term)
             ) &&
-            c.namespace.clone() == selected_tab || selected_tab == "All"
+            (c.namespace.clone() == selected_tab || selected_tab == "All")
         })
         .collect();
 }
