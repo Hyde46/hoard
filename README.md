@@ -1,4 +1,22 @@
 # hoard
+> A command organizer utility written in rust
+
+![Example usage](img/hoard_example.gif)
+
+#### What is a command organizer?
+A command organizer lets you save commands that you often use, but are too complicated to remember.
+For every **hoarded** command, `hoard` saves
+- name
+- tags
+- description
+- namespace where it lives in
+- the command itself
+
+If you get lost in your massive command history, and can't find for example a specific `docker` command out of thousand `docker` commands you've already ran,
+just **hoard** it. With a **name** and **description** it will be much easier to find again. When you look for that command again a month later, take a look at your **hoarded** commands.
+
+
+`hoard` is **not** supposed to replace shell history finder like `fzf` `atuin` or similar utilities. It rather should be used in conjunction with them.
 
 ## Install
 
@@ -11,13 +29,53 @@ toolchain, then you can run:
 cargo build --release
 ```
 
-Find the binaries in `target/release/hoard`
-Move it to wherever you need it
+Find the binaries in `./target/release/hoard`
+Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 
+### Deb package
+
+First install `hoard` by running
+```
+dpkg-deb --build hoard_0.2.0-beta/
+```
 
 ### Homebrew
 
 ```
 brew tap Hypde46/hoard
 brew install hoard
+```
+
+### Install Shell plugin
+Install `hoard` as a plugin to enable autocomplete.
+Depending on your shell, run one of the following commands.
+To keep it installed for your next shell session, add the `source` command with an absolute path to your `.bashrc` or copy-paste the plugins content to your `.bashrc`.
+#### bash
+```
+source src/shell/hoard.bash
+```
+#### zsh
+```
+source src/shell/hoard.zsh
+```
+
+## Usage
+
+####Save a new command
+```
+hoard new
+```
+
+####Delete a command
+```
+hoard delete <name>
+```
+
+####Search through command trove
+```
+<Ctrl-h>
+```
+Or alternatively, if not installed as a plugin, the interactive search can still be performed, though without autocomplete. This assumes the user to copy the command by mouse from the UI
+```
+hoard list
 ```

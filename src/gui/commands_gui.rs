@@ -1,15 +1,13 @@
 use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
-use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode},
-};
-use std::io;
-use std::sync::mpsc;
-use std::thread;
-use std::time::{Duration, Instant};
+use super::super::config::HoardConfig;
+use super::event::{Config, Event, Events};
+use std::collections::HashSet;
+use std::io::stdout;
+use std::time::Duration;
+use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
-    backend::CrosstermBackend,
+    backend::TermionBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
@@ -17,69 +15,44 @@ use tui::{
     Terminal,
 };
 
-enum Event<I> {
-    Input(I),
-    Tick,
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+struct State {
+    input: String,
+    commands: Vec<HoardCommand>,
 }
 
-#[allow(dead_code)]
-#[derive(Copy, Clone, Debug)]
-enum MenuItem {
-    List,
-    Search,
-    Add,
-    Delete,
-    Quit,
-}
-
-impl From<MenuItem> for usize {
-    fn from(input: MenuItem) -> usize {
-        match input {
-            MenuItem::List => 0,
-            MenuItem::Search => 1,
-            MenuItem::Add => 2,
-            MenuItem::Delete => 3,
-            MenuItem::Quit => 4,
-        }
-    }
-}
-
-pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
-    enable_raw_mode().expect("Cant run in raw mode");
-
-    let (tx, rx) = mpsc::channel();
-    let tick_rate = Duration::from_millis(200);
-
-    thread::spawn(move || {
-        let mut last_tick = Instant::now();
-        loop {
-            let timeout = tick_rate
-                .checked_sub(last_tick.elapsed())
-                .unwrap_or_else(|| Duration::from_secs(0));
-
-            if event::poll(timeout).expect("poll works") {
-                if let CEvent::Key(key) = event::read().expect("can read events") {
-                    tx.send(Event::Input(key)).expect("can send events");
-                }
-            }
-
-            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
-                last_tick = Instant::now();
-            }
-        }
+pub fn run(
+    trove: &mut CommandTrove,
+    config: &HoardConfig,
+) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let events = Events::with_config(Config {
+        tick_rate: Duration::from_millis(200),
     });
 
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
+    let mut app_state = State {
+        input: String::from(""),
+        commands: trove.commands.clone(),
+    };
+
+    let stdout = stdout().into_raw_mode()?;
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
     //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
-    let menu_titles = vec!["List", "Quit"];
-    let active_menu_item = MenuItem::List;
+    let mut namespace_tabs: Vec<String> = trove
+        .commands
+        .iter()
+        .map(|command| command.namespace.clone())
+        .collect::<HashSet<String>>()
+        .into_iter()
+        .collect();
+    namespace_tabs.insert(0, String::from("All"));
     let mut command_list_state = ListState::default();
     command_list_state.select(Some(0));
-
+    let mut namespace_tab_state = ListState::default();
+    namespace_tab_state.select(Some(0));
     loop {
         // Draw GUI
         terminal.draw(|rect| {
@@ -96,93 +69,223 @@ pub fn run(trove: &mut CommandTrove) -> Result<(), Box<dyn std::error::Error>> {
                     .as_ref(),
                 )
                 .split(size);
-            let menu = menu_titles
+            let menu = namespace_tabs
                 .iter()
                 .map(|t| {
-                    let (first, rest) = t.split_at(1);
-                    Spans::from(vec![
-                        Span::styled(
-                            first,
-                            Style::default()
-                                .fg(Color::Yellow)
-                                .add_modifier(Modifier::UNDERLINED),
-                        ),
-                        Span::styled(rest, Style::default().fg(Color::White)),
-                    ])
+                    Spans::from(vec![Span::styled(
+                        t,
+                        Style::default().fg(Color::Rgb(242, 229, 188)),
+                    )])
                 })
                 .collect();
 
             let tabs = Tabs::new(menu)
-                .select(active_menu_item.into())
-                .block(Block::default().title("Hoard Menu").borders(Borders::ALL))
-                .style(Style::default().fg(Color::White))
-                .highlight_style(Style::default().fg(Color::Yellow))
+                .select(
+                    namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .block(
+                    Block::default()
+                        .title(" Hoard Namespace ")
+                        .borders(Borders::ALL),
+                )
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+                .highlight_style(
+                    Style::default()
+                        .fg(Color::Rgb(181, 118, 20))
+                        .add_modifier(Modifier::UNDERLINED),
+                )
                 .divider(Span::raw("|"));
 
             rect.render_widget(tabs, chunks[0]);
 
             let commands_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
+                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
                 .split(chunks[1]);
             let command_detail_chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(
                     [
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(40),
+                        Constraint::Length(3),
+                        Constraint::Percentage(60),
+                        Constraint::Length(3),
                     ]
                     .as_ref(),
                 )
                 .split(commands_chunks[1]);
-            let (commands, command, namespace, tags, description) =
-                render_commands(trove.commands.clone(), &command_list_state);
+            let (commands, command, tags, description, input) = render_commands(
+                app_state.commands.clone(),
+                &mut command_list_state,
+                &app_state,
+                config,
+            );
             rect.render_stateful_widget(commands, commands_chunks[0], &mut command_list_state);
-            rect.render_widget(namespace, command_detail_chunks[0]);
-            rect.render_widget(tags, command_detail_chunks[1]);
-            rect.render_widget(description, command_detail_chunks[2]);
-            rect.render_widget(command, chunks[2]);
+            rect.render_widget(tags, command_detail_chunks[0]);
+            rect.render_widget(description, command_detail_chunks[1]);
+            rect.render_widget(command, command_detail_chunks[2]);
+            rect.render_widget(input, chunks[2]);
         })?;
 
-        match rx.recv()? {
-            Event::Input(event) => match event.code {
-                KeyCode::Char('q') => {
-                    disable_raw_mode()?;
+        match events.next()? {
+            Event::Input(key) => match key {
+                // Quit command
+                Key::Esc | Key::Ctrl('c') | Key::Ctrl('d') | Key::Ctrl('g') => {
                     terminal.show_cursor()?;
                     break;
                 }
-                KeyCode::Down => {
-                    if let Some(selected) = command_list_state.selected() {
-                        let amount_commands = trove.commands.clone().len();
-                        if selected >= amount_commands - 1 {
-                            command_list_state.select(Some(0));
+                // Switch namespace
+                Key::Left | Key::Ctrl('h') => {
+                    if let Some(selected) = namespace_tab_state.selected() {
+                        let amount_ns = namespace_tabs.clone().len();
+                        if selected > 0 {
+                            namespace_tab_state.select(Some(selected - 1));
                         } else {
-                            command_list_state.select(Some(selected + 1));
+                            namespace_tab_state.select(Some(amount_ns - 1));
+                        }
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
+                        let new_selection = if app_state.commands.is_empty() {
+                            0
+                        } else {
+                            app_state.commands.len() - 1
+                        };
+                        command_list_state.select(Some(new_selection));
+                    }
+                }
+                Key::Right | Key::Ctrl('l') => {
+                    if let Some(selected) = namespace_tab_state.selected() {
+                        let amount_ns = namespace_tabs.clone().len();
+                        if selected >= amount_ns - 1 {
+                            namespace_tab_state.select(Some(0));
+                        } else {
+                            namespace_tab_state.select(Some(selected + 1));
+                        }
+                        let selected_tab = namespace_tabs
+                            .get(
+                                namespace_tab_state
+                                    .selected()
+                                    .expect("Always a namespace selected"),
+                            )
+                            .expect("Always a tab selected")
+                            .clone();
+                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
+                        let new_selection = if app_state.commands.is_empty() {
+                            0
+                        } else {
+                            app_state.commands.len() - 1
+                        };
+                        command_list_state.select(Some(new_selection));
+                    }
+                }
+                // Switch command
+                Key::Up | Key::Ctrl('y') | Key::Ctrl('p') => {
+                    if !app_state.commands.is_empty() {
+                        if let Some(selected) = command_list_state.selected() {
+                            let amount_commands = app_state.commands.clone().len();
+                            if selected > 0 {
+                                command_list_state.select(Some(selected - 1));
+                            } else {
+                                command_list_state.select(Some(amount_commands - 1));
+                            }
                         }
                     }
                 }
-                KeyCode::Up => {
-                    if let Some(selected) = command_list_state.selected() {
-                        let amount_commands = trove.commands.clone().len();
-                        if selected > 0 {
-                            command_list_state.select(Some(selected - 1));
-                        } else {
-                            command_list_state.select(Some(amount_commands - 1));
+                Key::Down | Key::Ctrl('.') | Key::Ctrl('n') => {
+                    if !app_state.commands.is_empty() {
+                        if let Some(selected) = command_list_state.selected() {
+                            let amount_commands = app_state.commands.clone().len();
+                            if selected >= amount_commands - 1 {
+                                command_list_state.select(Some(0));
+                            } else {
+                                command_list_state.select(Some(selected + 1));
+                            }
                         }
                     }
+                }
+                // Select command
+                Key::Char('\n') => {
+                    if app_state.commands.is_empty() {
+                        return Ok(None);
+                    }
+                    let selected_command = app_state
+                        .commands
+                        .clone()
+                        .get(
+                            command_list_state
+                                .selected()
+                                .expect("there is always a selected command"),
+                        )
+                        .expect("exists")
+                        .clone();
+                    terminal.show_cursor()?;
+                    return Ok(Some(selected_command.command));
+                }
+                // Handle query input
+                Key::Backspace => {
+                    app_state.input.pop();
+                    let selected_tab = namespace_tabs
+                        .get(
+                            namespace_tab_state
+                                .selected()
+                                .expect("Always a namespace selected"),
+                        )
+                        .expect("Always a tab selected")
+                        .clone();
+                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
+                }
+                Key::Char(c) => {
+                    app_state.input.push(c);
+                    let selected_tab = namespace_tabs
+                        .get(
+                            namespace_tab_state
+                                .selected()
+                                .expect("Always a namespace selected"),
+                        )
+                        .expect("Always a tab selected")
+                        .clone();
+                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
                 }
                 _ => {}
             },
             Event::Tick => {}
         }
     }
-    Ok(())
+    Ok(None)
+}
+
+fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: String) {
+    let query_term = &app.input[..];
+    app.commands = all_commands
+        .clone()
+        .into_iter()
+        .filter(|c| {
+            (c.name.contains(query_term)
+                || c.namespace.contains(query_term)
+                || c.tags_as_string().contains(query_term)
+                || c.command.contains(query_term)
+                || c.description
+                    .clone()
+                    .unwrap_or_default()
+                    .contains(query_term))
+                && (c.namespace.clone() == selected_tab || selected_tab == "All")
+        })
+        .collect();
 }
 
 fn render_commands<'a>(
     commands_list: Vec<HoardCommand>,
-    command_list_state: &ListState,
+    command_list_state: &mut ListState,
+    app: &State,
+    config: &HoardConfig,
 ) -> (
     List<'a>,
     Paragraph<'a>,
@@ -192,8 +295,8 @@ fn render_commands<'a>(
 ) {
     let commands = Block::default()
         .borders(Borders::ALL)
-        .style(Style::default().fg(Color::White))
-        .title("Commands")
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+        .title(" Commands ")
         .border_type(BorderType::Plain);
 
     let items: Vec<_> = commands_list
@@ -206,66 +309,75 @@ fn render_commands<'a>(
         })
         .collect();
 
-    let selected_command = commands_list
+    let selected_command: HoardCommand = commands_list
         .get(
             command_list_state
                 .selected()
                 .expect("there is always a selected command"),
         )
-        .expect("exists")
+        .get_or_insert(&HoardCommand::default())
         .clone();
+
+    if selected_command.name.is_empty() {
+        // If somehow the selection is past the last index, set it to the last element
+        let new_selection = if commands_list.is_empty() {
+            0
+        } else {
+            commands_list.len() - 1
+        };
+        command_list_state.select(Some(new_selection));
+    }
 
     let list = List::new(items).block(commands).highlight_style(
         Style::default()
-            .bg(Color::Yellow)
-            .fg(Color::Black)
+            .bg(Color::Rgb(181, 118, 20))
+            .fg(Color::Rgb(50, 48, 47))
             .add_modifier(Modifier::BOLD),
     );
 
     let command = Paragraph::new(selected_command.command.clone())
-        .style(Style::default().fg(Color::LightCyan))
+        .style(Style::default().fg(Color::Rgb(181, 118, 20)))
         .alignment(Alignment::Center)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .title("Hoarded command")
-                .border_type(BorderType::Plain),
-        );
-
-    let namespace = Paragraph::new(selected_command.namespace.clone())
-        .style(Style::default().fg(Color::White))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .title("Namespace")
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+                .title(" Hoarded command ")
                 .border_type(BorderType::Plain),
         );
 
     let tags = Paragraph::new(selected_command.tags_as_string())
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
         .alignment(Alignment::Left)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .title("Tags")
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+                .title(" Tags ")
                 .border_type(BorderType::Plain),
         );
 
     let description = Paragraph::new(selected_command.description.unwrap_or_default())
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Rgb(242, 229, 188)))
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .title("Description")
+                .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+                .title(" Description ")
                 .border_type(BorderType::Plain),
         );
 
-    (list, command, namespace, tags, description)
+    let mut query_string = config.query_prefix.clone();
+    query_string.push_str(&app.input.clone()[..]);
+    let query_title = format!(" hoard v{} ", VERSION);
+    let input = Paragraph::new(query_string).block(
+        Block::default()
+            .style(Style::default().fg(Color::Rgb(242, 229, 188)))
+            .borders(Borders::ALL)
+            .title(query_title),
+    );
+
+    (list, command, tags, description, input)
 }
