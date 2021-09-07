@@ -79,3 +79,28 @@ Or alternatively, if not installed as a plugin, the interactive search can still
 ```
 hoard list
 ```
+
+Next item in command list
+```
+<Ctrl-N> / <Down-Arrow>
+```
+Previous item in command list
+```
+<Ctrl-P> / <Ctrl-Y> / <Up-Arrow>
+```
+Next namespace tab
+```
+<Ctrl-L> / <Right-Arrow>
+```
+Previous namespace tab
+```
+<Ctrl-H> / <Left-Arrow>
+```
+Select command
+```
+<Enter>
+```
+Quit
+```
+<Esc> / <Ctrl-D> / <Ctrl-C> / <Ctrl-G>
+```
