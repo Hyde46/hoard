@@ -36,7 +36,7 @@ Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 
 Install `hoard` by running
 ```
-LATEST_RELEASER=0.2.0-beta ./install.sh
+LATEST_RELEASE=0.2.0-beta ./install.sh
 ```
 Only Ubuntu based distributions with a bash or zsh shell are supported at the moment
 
