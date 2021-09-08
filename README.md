@@ -32,12 +32,13 @@ cargo build --release
 Find the binaries in `./target/release/hoard`
 Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 
-### Deb package
+### Linux
 
-First install `hoard` by running
+Install `hoard` by running
 ```
-dpkg-deb --build hoard_0.2.0-beta/
+LATEST_RELEASER=0.2.0-beta ./install.sh
 ```
+Only Ubuntu based distributions with a bash or zsh shell are supported at the moment
 
 ### Homebrew
 
