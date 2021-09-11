@@ -15,7 +15,11 @@ use hoard::Hoard;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    let command = Hoard::default().with_config(None).load_trove().start().await;
+    let command = Hoard::default()
+        .with_config(None)
+        .load_trove()
+        .start()
+        .await;
     match command {
         // Prints to stdout for autocomplete functionality
         Ok((command, is_autocomplete)) => {

@@ -22,15 +22,11 @@ struct State {
     commands: Vec<HoardCommand>,
     command_list_state: ListState,
     namespace_tab_state: ListState,
-    should_exit: bool
+    should_exit: bool,
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn run(
-    trove: &mut CommandTrove,
-    config: &HoardConfig,
-) -> Result<String> {
-    
+pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
@@ -138,7 +134,9 @@ pub fn run(
         })?;
 
         if let Event::Input(input) = events.next()? {
-            if let Some(output) = key_handler(input, &mut app_state, &trove.commands, &namespace_tabs) {
+            if let Some(output) =
+                key_handler(input, &mut app_state, &trove.commands, &namespace_tabs)
+            {
                 terminal.show_cursor()?;
                 return Ok(output);
             }
@@ -147,7 +145,12 @@ pub fn run(
 }
 
 #[allow(clippy::too_many_lines, clippy::ptr_arg)]
-fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>, namespace_tabs: &Vec<String>) -> Option<String> {
+fn key_handler(
+    input: Key,
+    app: &mut State,
+    trove_commands: &Vec<HoardCommand>,
+    namespace_tabs: &Vec<String>,
+) -> Option<String> {
     match input {
         // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
@@ -165,8 +168,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
                 }
                 let selected_tab = namespace_tabs
                     .get(
-                        app
-                            .namespace_tab_state
+                        app.namespace_tab_state
                             .selected()
                             .expect("Always a namespace selected"),
                     )
@@ -192,8 +194,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
                 }
                 let selected_tab = namespace_tabs
                     .get(
-                        app
-                            .namespace_tab_state
+                        app.namespace_tab_state
                             .selected()
                             .expect("Always a namespace selected"),
                     )
@@ -210,16 +211,14 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
             None
         }
         // Switch command
-        Key::Up | Key::Ctrl('y' | 'p' ) => {
+        Key::Up | Key::Ctrl('y' | 'p') => {
             if !app.commands.is_empty() {
                 if let Some(selected) = app.command_list_state.selected() {
                     let amount_commands = app.commands.clone().len();
                     if selected > 0 {
                         app.command_list_state.select(Some(selected - 1));
                     } else {
-                        app
-                            .command_list_state
-                            .select(Some(amount_commands - 1));
+                        app.command_list_state.select(Some(amount_commands - 1));
                     }
                 }
             }
@@ -247,8 +246,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
                 .commands
                 .clone()
                 .get(
-                    app
-                        .command_list_state
+                    app.command_list_state
                         .selected()
                         .expect("there is always a selected command"),
                 )
@@ -261,8 +259,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
             app.input.pop();
             let selected_tab = namespace_tabs
                 .get(
-                    app
-                        .namespace_tab_state
+                    app.namespace_tab_state
                         .selected()
                         .expect("Always a namespace selected"),
                 )
@@ -275,8 +272,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
             app.input.push(c);
             let selected_tab = namespace_tabs
                 .get(
-                    app
-                        .namespace_tab_state
+                    app.namespace_tab_state
                         .selected()
                         .expect("Always a namespace selected"),
                 )
@@ -285,7 +281,7 @@ fn key_handler (input: Key, app: &mut State, trove_commands: &Vec<HoardCommand>,
             apply_search(app, trove_commands, &selected_tab);
             None
         }
-        _ => {None}
+        _ => None,
     }
 }
 
