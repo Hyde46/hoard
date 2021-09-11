@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic, clippy::nursery)]
+
 extern crate serde_yaml;
 
 #[macro_use]
@@ -10,8 +12,14 @@ mod config;
 mod gui;
 mod hoard;
 use hoard::Hoard;
-fn main() -> io::Result<()> {
-    let command = Hoard::default().with_config(None).load_trove().start();
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let command = Hoard::default()
+        .with_config(None)
+        .load_trove()
+        .start()
+        .await;
     match command {
         // Prints to stdout for autocomplete functionality
         Ok((command, is_autocomplete)) => {

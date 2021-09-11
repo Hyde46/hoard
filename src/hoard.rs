@@ -16,7 +16,7 @@ pub struct Hoard {
 
 impl Default for Hoard {
     fn default() -> Self {
-        Hoard {
+        Self {
             config: None,
             trove: CommandTrove::default(),
         }
@@ -60,7 +60,7 @@ impl Hoard {
         };
     }
 
-    pub fn start(&mut self) -> Result<(String, bool), serde_yaml::Error> {
+    pub async fn start(&mut self) -> Result<(String, bool), serde_yaml::Error> {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
         let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
@@ -91,9 +91,9 @@ impl Hoard {
                     match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                         Ok(selected_command) => {
                             // Is set if a command is selected in GUI
-                            if let Some(command) = selected_command {
+                            if !selected_command.is_empty() {
                                 //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
-                                autocomplete_command = command;
+                                autocomplete_command = selected_command;
                             }
                         }
                         Err(error) => {
@@ -108,7 +108,7 @@ impl Hoard {
                     let command_result = self.trove.pick_command(command_name.into());
                     match command_result {
                         Ok(c) => {
-                            println!("{}", c.command)
+                            println!("{}", c.command);
                         }
                         Err(e) => eprintln!("{}", e),
                     }

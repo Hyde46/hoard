@@ -2,6 +2,7 @@ use super::super::command::hoard_command::HoardCommand;
 use super::super::command::trove::CommandTrove;
 use super::super::config::HoardConfig;
 use super::event::{Config, Event, Events};
+use eyre::Result;
 use std::collections::HashSet;
 use std::io::stdout;
 use std::time::Duration;
@@ -20,13 +21,12 @@ struct State {
     input: String,
     commands: Vec<HoardCommand>,
     command_list_state: ListState,
-    namespace_tab_state: ListState
+    namespace_tab_state: ListState,
+    should_exit: bool,
 }
 
-pub fn run(
-    trove: &mut CommandTrove,
-    config: &HoardConfig,
-) -> Result<Option<String>, Box<dyn std::error::Error>> {
+#[allow(clippy::too_many_lines)]
+pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
@@ -35,7 +35,8 @@ pub fn run(
         input: String::from(""),
         commands: trove.commands.clone(),
         command_list_state: ListState::default(),
-        namespace_tab_state: ListState::default()
+        namespace_tab_state: ListState::default(),
+        should_exit: false,
     };
 
     app_state.command_list_state.select(Some(0));
@@ -84,7 +85,8 @@ pub fn run(
 
             let tabs = Tabs::new(menu)
                 .select(
-                    app_state.namespace_tab_state
+                    app_state
+                        .namespace_tab_state
                         .selected()
                         .expect("Always a namespace selected"),
                 )
@@ -118,153 +120,173 @@ pub fn run(
                     .as_ref(),
                 )
                 .split(commands_chunks[1]);
-            let (commands, command, tags, description, input) = render_commands(
-                app_state.commands.clone(),
-                &mut app_state,
-                config,
+            let (commands, command, tags_widget, description, input) =
+                render_commands(&app_state.commands.clone(), &mut app_state, config);
+            rect.render_stateful_widget(
+                commands,
+                commands_chunks[0],
+                &mut app_state.command_list_state,
             );
-            rect.render_stateful_widget(commands, commands_chunks[0], &mut app_state.command_list_state);
-            rect.render_widget(tags, command_detail_chunks[0]);
+            rect.render_widget(tags_widget, command_detail_chunks[0]);
             rect.render_widget(description, command_detail_chunks[1]);
             rect.render_widget(command, command_detail_chunks[2]);
             rect.render_widget(input, chunks[2]);
         })?;
 
-        match events.next()? {
-            Event::Input(key) => match key {
-                // Quit command
-                Key::Esc | Key::Ctrl('c') | Key::Ctrl('d') | Key::Ctrl('g') => {
-                    terminal.show_cursor()?;
-                    break;
-                }
-                // Switch namespace
-                Key::Left | Key::Ctrl('h') => {
-                    if let Some(selected) = app_state.namespace_tab_state.selected() {
-                        let amount_ns = namespace_tabs.clone().len();
-                        if selected > 0 {
-                            app_state.namespace_tab_state.select(Some(selected - 1));
-                        } else {
-                            app_state.namespace_tab_state.select(Some(amount_ns - 1));
-                        }
-                        let selected_tab = namespace_tabs
-                            .get(
-                                app_state.namespace_tab_state
-                                    .selected()
-                                    .expect("Always a namespace selected"),
-                            )
-                            .expect("Always a tab selected")
-                            .clone();
-                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
-                        let new_selection = if app_state.commands.is_empty() {
-                            0
-                        } else {
-                            app_state.commands.len() - 1
-                        };
-                        app_state.command_list_state.select(Some(new_selection));
-                    }
-                }
-                Key::Right | Key::Ctrl('l') => {
-                    if let Some(selected) = app_state.namespace_tab_state.selected() {
-                        let amount_ns = namespace_tabs.clone().len();
-                        if selected >= amount_ns - 1 {
-                            app_state.namespace_tab_state.select(Some(0));
-                        } else {
-                            app_state.namespace_tab_state.select(Some(selected + 1));
-                        }
-                        let selected_tab = namespace_tabs
-                            .get(
-                                app_state.namespace_tab_state
-                                    .selected()
-                                    .expect("Always a namespace selected"),
-                            )
-                            .expect("Always a tab selected")
-                            .clone();
-                        apply_search(&mut app_state, trove.commands.clone(), selected_tab);
-                        let new_selection = if app_state.commands.is_empty() {
-                            0
-                        } else {
-                            app_state.commands.len() - 1
-                        };
-                        app_state.command_list_state.select(Some(new_selection));
-                    }
-                }
-                // Switch command
-                Key::Up | Key::Ctrl('y') | Key::Ctrl('p') => {
-                    if !app_state.commands.is_empty() {
-                        if let Some(selected) = app_state.command_list_state.selected() {
-                            let amount_commands = app_state.commands.clone().len();
-                            if selected > 0 {
-                                app_state.command_list_state.select(Some(selected - 1));
-                            } else {
-                                app_state.command_list_state.select(Some(amount_commands - 1));
-                            }
-                        }
-                    }
-                }
-                Key::Down | Key::Ctrl('.') | Key::Ctrl('n') => {
-                    if !app_state.commands.is_empty() {
-                        if let Some(selected) = app_state.command_list_state.selected() {
-                            let amount_commands = app_state.commands.clone().len();
-                            if selected >= amount_commands - 1 {
-                                app_state.command_list_state.select(Some(0));
-                            } else {
-                                app_state.command_list_state.select(Some(selected + 1));
-                            }
-                        }
-                    }
-                }
-                // Select command
-                Key::Char('\n') => {
-                    if app_state.commands.is_empty() {
-                        return Ok(None);
-                    }
-                    let selected_command = app_state
-                        .commands
-                        .clone()
-                        .get(
-                            app_state.command_list_state
-                                .selected()
-                                .expect("there is always a selected command"),
-                        )
-                        .expect("exists")
-                        .clone();
-                    terminal.show_cursor()?;
-                    return Ok(Some(selected_command.command));
-                }
-                // Handle query input
-                Key::Backspace => {
-                    app_state.input.pop();
-                    let selected_tab = namespace_tabs
-                        .get(
-                            app_state.namespace_tab_state
-                                .selected()
-                                .expect("Always a namespace selected"),
-                        )
-                        .expect("Always a tab selected")
-                        .clone();
-                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
-                }
-                Key::Char(c) => {
-                    app_state.input.push(c);
-                    let selected_tab = namespace_tabs
-                        .get(
-                            app_state.namespace_tab_state
-                                .selected()
-                                .expect("Always a namespace selected"),
-                        )
-                        .expect("Always a tab selected")
-                        .clone();
-                    apply_search(&mut app_state, trove.commands.clone(), selected_tab);
-                }
-                _ => {}
-            },
-            Event::Tick => {}
+        if let Event::Input(input) = events.next()? {
+            if let Some(output) =
+                key_handler(input, &mut app_state, &trove.commands, &namespace_tabs)
+            {
+                terminal.show_cursor()?;
+                return Ok(output);
+            }
         }
     }
-    Ok(None)
 }
 
-fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: String) {
+#[allow(clippy::too_many_lines, clippy::ptr_arg)]
+fn key_handler(
+    input: Key,
+    app: &mut State,
+    trove_commands: &Vec<HoardCommand>,
+    namespace_tabs: &Vec<String>,
+) -> Option<String> {
+    match input {
+        // Quit command
+        Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+            app.should_exit = true;
+            Some(String::from(""))
+        }
+        // Switch namespace
+        Key::Left | Key::Ctrl('h') => {
+            if let Some(selected) = app.namespace_tab_state.selected() {
+                let amount_ns = namespace_tabs.clone().len();
+                if selected > 0 {
+                    app.namespace_tab_state.select(Some(selected - 1));
+                } else {
+                    app.namespace_tab_state.select(Some(amount_ns - 1));
+                }
+                let selected_tab = namespace_tabs
+                    .get(
+                        app.namespace_tab_state
+                            .selected()
+                            .expect("Always a namespace selected"),
+                    )
+                    .expect("Always a tab selected")
+                    .clone();
+                apply_search(app, trove_commands, &selected_tab);
+                let new_selection = if app.commands.is_empty() {
+                    0
+                } else {
+                    app.commands.len() - 1
+                };
+                app.command_list_state.select(Some(new_selection));
+            }
+            None
+        }
+        Key::Right | Key::Ctrl('l') => {
+            if let Some(selected) = app.namespace_tab_state.selected() {
+                let amount_ns = namespace_tabs.clone().len();
+                if selected >= amount_ns - 1 {
+                    app.namespace_tab_state.select(Some(0));
+                } else {
+                    app.namespace_tab_state.select(Some(selected + 1));
+                }
+                let selected_tab = namespace_tabs
+                    .get(
+                        app.namespace_tab_state
+                            .selected()
+                            .expect("Always a namespace selected"),
+                    )
+                    .expect("Always a tab selected")
+                    .clone();
+                apply_search(app, trove_commands, &selected_tab);
+                let new_selection = if app.commands.is_empty() {
+                    0
+                } else {
+                    app.commands.len() - 1
+                };
+                app.command_list_state.select(Some(new_selection));
+            }
+            None
+        }
+        // Switch command
+        Key::Up | Key::Ctrl('y' | 'p') => {
+            if !app.commands.is_empty() {
+                if let Some(selected) = app.command_list_state.selected() {
+                    let amount_commands = app.commands.clone().len();
+                    if selected > 0 {
+                        app.command_list_state.select(Some(selected - 1));
+                    } else {
+                        app.command_list_state.select(Some(amount_commands - 1));
+                    }
+                }
+            }
+            None
+        }
+        Key::Down | Key::Ctrl('.' | 'n') => {
+            if !app.commands.is_empty() {
+                if let Some(selected) = app.command_list_state.selected() {
+                    let amount_commands = app.commands.clone().len();
+                    if selected >= amount_commands - 1 {
+                        app.command_list_state.select(Some(0));
+                    } else {
+                        app.command_list_state.select(Some(selected + 1));
+                    }
+                }
+            }
+            None
+        }
+        // Select command
+        Key::Char('\n') => {
+            if app.commands.is_empty() {
+                return Some(String::from(""));
+            }
+            let selected_command = app
+                .commands
+                .clone()
+                .get(
+                    app.command_list_state
+                        .selected()
+                        .expect("there is always a selected command"),
+                )
+                .expect("exists")
+                .clone();
+            Some(selected_command.command)
+        }
+        // Handle query input
+        Key::Backspace => {
+            app.input.pop();
+            let selected_tab = namespace_tabs
+                .get(
+                    app.namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .expect("Always a tab selected")
+                .clone();
+            apply_search(app, trove_commands, &selected_tab);
+            None
+        }
+        Key::Char(c) => {
+            app.input.push(c);
+            let selected_tab = namespace_tabs
+                .get(
+                    app.namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .expect("Always a tab selected")
+                .clone();
+            apply_search(app, trove_commands, &selected_tab);
+            None
+        }
+        _ => None,
+    }
+}
+
+#[allow(clippy::ptr_arg)]
+fn apply_search(app: &mut State, all_commands: &Vec<HoardCommand>, selected_tab: &str) {
     let query_term = &app.input[..];
     app.commands = all_commands
         .clone()
@@ -278,13 +300,13 @@ fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: 
                     .clone()
                     .unwrap_or_default()
                     .contains(query_term))
-                && (c.namespace.clone() == selected_tab || selected_tab == "All")
+                && (c.namespace.clone() == *selected_tab || selected_tab == "All")
         })
         .collect();
 }
 
 fn render_commands<'a>(
-    commands_list: Vec<HoardCommand>,
+    commands_list: &[HoardCommand],
     app: &mut State,
     config: &HoardConfig,
 ) -> (
