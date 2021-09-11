@@ -19,6 +19,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 struct State {
     input: String,
     commands: Vec<HoardCommand>,
+    command_list_state: ListState,
+    namespace_tab_state: ListState
 }
 
 pub fn run(
@@ -32,7 +34,12 @@ pub fn run(
     let mut app_state = State {
         input: String::from(""),
         commands: trove.commands.clone(),
+        command_list_state: ListState::default(),
+        namespace_tab_state: ListState::default()
     };
+
+    app_state.command_list_state.select(Some(0));
+    app_state.namespace_tab_state.select(Some(0));
 
     let stdout = stdout().into_raw_mode()?;
     let stdout = AlternateScreen::from(stdout);
@@ -49,10 +56,6 @@ pub fn run(
         .into_iter()
         .collect();
     namespace_tabs.insert(0, String::from("All"));
-    let mut command_list_state = ListState::default();
-    command_list_state.select(Some(0));
-    let mut namespace_tab_state = ListState::default();
-    namespace_tab_state.select(Some(0));
     loop {
         // Draw GUI
         terminal.draw(|rect| {
@@ -81,7 +84,7 @@ pub fn run(
 
             let tabs = Tabs::new(menu)
                 .select(
-                    namespace_tab_state
+                    app_state.namespace_tab_state
                         .selected()
                         .expect("Always a namespace selected"),
                 )
@@ -117,11 +120,10 @@ pub fn run(
                 .split(commands_chunks[1]);
             let (commands, command, tags, description, input) = render_commands(
                 app_state.commands.clone(),
-                &mut command_list_state,
-                &app_state,
+                &mut app_state,
                 config,
             );
-            rect.render_stateful_widget(commands, commands_chunks[0], &mut command_list_state);
+            rect.render_stateful_widget(commands, commands_chunks[0], &mut app_state.command_list_state);
             rect.render_widget(tags, command_detail_chunks[0]);
             rect.render_widget(description, command_detail_chunks[1]);
             rect.render_widget(command, command_detail_chunks[2]);
@@ -137,16 +139,16 @@ pub fn run(
                 }
                 // Switch namespace
                 Key::Left | Key::Ctrl('h') => {
-                    if let Some(selected) = namespace_tab_state.selected() {
+                    if let Some(selected) = app_state.namespace_tab_state.selected() {
                         let amount_ns = namespace_tabs.clone().len();
                         if selected > 0 {
-                            namespace_tab_state.select(Some(selected - 1));
+                            app_state.namespace_tab_state.select(Some(selected - 1));
                         } else {
-                            namespace_tab_state.select(Some(amount_ns - 1));
+                            app_state.namespace_tab_state.select(Some(amount_ns - 1));
                         }
                         let selected_tab = namespace_tabs
                             .get(
-                                namespace_tab_state
+                                app_state.namespace_tab_state
                                     .selected()
                                     .expect("Always a namespace selected"),
                             )
@@ -158,20 +160,20 @@ pub fn run(
                         } else {
                             app_state.commands.len() - 1
                         };
-                        command_list_state.select(Some(new_selection));
+                        app_state.command_list_state.select(Some(new_selection));
                     }
                 }
                 Key::Right | Key::Ctrl('l') => {
-                    if let Some(selected) = namespace_tab_state.selected() {
+                    if let Some(selected) = app_state.namespace_tab_state.selected() {
                         let amount_ns = namespace_tabs.clone().len();
                         if selected >= amount_ns - 1 {
-                            namespace_tab_state.select(Some(0));
+                            app_state.namespace_tab_state.select(Some(0));
                         } else {
-                            namespace_tab_state.select(Some(selected + 1));
+                            app_state.namespace_tab_state.select(Some(selected + 1));
                         }
                         let selected_tab = namespace_tabs
                             .get(
-                                namespace_tab_state
+                                app_state.namespace_tab_state
                                     .selected()
                                     .expect("Always a namespace selected"),
                             )
@@ -183,30 +185,30 @@ pub fn run(
                         } else {
                             app_state.commands.len() - 1
                         };
-                        command_list_state.select(Some(new_selection));
+                        app_state.command_list_state.select(Some(new_selection));
                     }
                 }
                 // Switch command
                 Key::Up | Key::Ctrl('y') | Key::Ctrl('p') => {
                     if !app_state.commands.is_empty() {
-                        if let Some(selected) = command_list_state.selected() {
+                        if let Some(selected) = app_state.command_list_state.selected() {
                             let amount_commands = app_state.commands.clone().len();
                             if selected > 0 {
-                                command_list_state.select(Some(selected - 1));
+                                app_state.command_list_state.select(Some(selected - 1));
                             } else {
-                                command_list_state.select(Some(amount_commands - 1));
+                                app_state.command_list_state.select(Some(amount_commands - 1));
                             }
                         }
                     }
                 }
                 Key::Down | Key::Ctrl('.') | Key::Ctrl('n') => {
                     if !app_state.commands.is_empty() {
-                        if let Some(selected) = command_list_state.selected() {
+                        if let Some(selected) = app_state.command_list_state.selected() {
                             let amount_commands = app_state.commands.clone().len();
                             if selected >= amount_commands - 1 {
-                                command_list_state.select(Some(0));
+                                app_state.command_list_state.select(Some(0));
                             } else {
-                                command_list_state.select(Some(selected + 1));
+                                app_state.command_list_state.select(Some(selected + 1));
                             }
                         }
                     }
@@ -220,7 +222,7 @@ pub fn run(
                         .commands
                         .clone()
                         .get(
-                            command_list_state
+                            app_state.command_list_state
                                 .selected()
                                 .expect("there is always a selected command"),
                         )
@@ -234,7 +236,7 @@ pub fn run(
                     app_state.input.pop();
                     let selected_tab = namespace_tabs
                         .get(
-                            namespace_tab_state
+                            app_state.namespace_tab_state
                                 .selected()
                                 .expect("Always a namespace selected"),
                         )
@@ -246,7 +248,7 @@ pub fn run(
                     app_state.input.push(c);
                     let selected_tab = namespace_tabs
                         .get(
-                            namespace_tab_state
+                            app_state.namespace_tab_state
                                 .selected()
                                 .expect("Always a namespace selected"),
                         )
@@ -283,8 +285,7 @@ fn apply_search(app: &mut State, all_commands: Vec<HoardCommand>, selected_tab: 
 
 fn render_commands<'a>(
     commands_list: Vec<HoardCommand>,
-    command_list_state: &mut ListState,
-    app: &State,
+    app: &mut State,
     config: &HoardConfig,
 ) -> (
     List<'a>,
@@ -311,7 +312,7 @@ fn render_commands<'a>(
 
     let selected_command: HoardCommand = commands_list
         .get(
-            command_list_state
+            app.command_list_state
                 .selected()
                 .expect("there is always a selected command"),
         )
@@ -325,7 +326,7 @@ fn render_commands<'a>(
         } else {
             commands_list.len() - 1
         };
-        command_list_state.select(Some(new_selection));
+        app.command_list_state.select(Some(new_selection));
     }
 
     let list = List::new(items).block(commands).highlight_style(
