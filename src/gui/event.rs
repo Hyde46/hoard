@@ -26,8 +26,8 @@ pub struct Config {
 }
 
 impl Default for Config {
-    fn default() -> Config {
-        Config {
+    fn default() -> Self {
+        Self {
             tick_rate: Duration::from_millis(250),
         }
     }
@@ -35,12 +35,12 @@ impl Default for Config {
 
 impl Events {
     #[allow(dead_code)]
-    pub fn new() -> Events {
-        Events::with_config(Config::default())
+    pub fn new() -> Self {
+        Self::with_config(Config::default())
     }
 
     #[allow(clippy::manual_flatten)]
-    pub fn with_config(config: Config) -> Events {
+    pub fn with_config(config: Config) -> Self {
         let (tx, rx) = mpsc::channel();
         let input_handle = {
             let tx = tx.clone();
@@ -65,7 +65,7 @@ impl Events {
                 thread::sleep(config.tick_rate);
             })
         };
-        Events {
+        Self {
             rx,
             input_handle,
             tick_handle,
