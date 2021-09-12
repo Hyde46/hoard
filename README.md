@@ -40,6 +40,10 @@ LATEST_RELEASE=0.1.0 ./install.sh
 ```
 Only Ubuntu based distributions with a bash or zsh shell are supported at the moment
 
+### MacOS
+
+No codesign in place yet. You have to build it from source
+
 ### Homebrew
 
 ```
