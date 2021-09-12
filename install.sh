@@ -44,38 +44,53 @@ __hoard_install_ubuntu(){
 
 __hoard_install_mac(){
     echo "MacOS detected."
-    echo "Not yet supported, please install hoard from source"
+    echo "Not yet supported, please install hoard from source with cargo"
+}
+
+__hoard_detect_os(){
+
+    case "$OSTYPE" in
+        linux*) __hoard_install_ubuntu ;;
+        #linux*) __hoard_install_linux ;;
+        darwin*) __hoard_install_mac ;;
+        #*)        __hoard_install_unsupported ;;
+    esac
 }
 
 # Set default installation location
 HOARD_TARGET_INSTALLATION_DIR="${HOARD_TARGET_INSTALLATION_DIR:-"/usr/local/bin"}/hoard"
 
-## Ask user if they want to install from source
-echo "Do you wish to install hoard from source with cargo?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) __hoard_install_with_cargo ; break;;
-        No ) exit;;
+
+PS3='How do you wish to install hoard:  '
+foods=("From Source with cargo" "OS-Specifc" "Not at all, bye")
+select fav in "${foods[@]}"; do
+    case $fav in
+        "From Source with cargo")
+            __hoard_install_with_cargo
+            break
+            ;;
+        "OS-Specifc")
+            __hoard_detect_os
+            break
+            ;;
+	"Not at all, bye")
+        echo "Bye!"
+	    break
+	    ;;
+        *) echo "invalid option $REPLY";;
     esac
 done
 
-case "$OSTYPE" in
-    #linux*) __hoard_install_ubuntu ;;
-    #linux*) __hoard_install_linux ;;
-    #darwin*) __hoard_install_mac ;;
-    #*)        __hoard_install_unsupported ;;
-esac
-
-
-
-#SHELL=$(ps -o comm= -p $$)
-#if [ "$SHELL" == "zsh" ]; then
-#    echo 'Detected zsh shell'
-#    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc
-#elif [ "$SHELL" == "bash" ]; then
-#    echo 'Detected bash shell'
-#    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.bash >> ~/.bashrc
-#else
-#    echo "$SHELL installation not implemented yet"
-#fi
-#echo 'source your .bashrc and press <Ctrl-H> to get started with the interactive hoard UI'
+SHELL=$(ps -o comm= -p $$)
+if [ "$SHELL" == "zsh" ]; then
+    echo 'Detected zsh shell'
+    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc
+elif [ "$SHELL" == "bash" ]; then
+    echo 'Detected bash shell'
+    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.bash >> ~/.bashrc
+else
+    echo "$SHELL installation not implemented yet"
+    echo "Plese create an issue on github to get this sorted out"
+    echo "https://github.com/Hyde46/hoard/issues/new?title=Unsupported%20shell%20detected%20$SHELL&body=$SHELL%20is%20not%20supported.%20Please%20take%20a%20look"
+fi
+echo 'source your .bashrc and press <Ctrl-H> to get started with the interactive hoard UI'
