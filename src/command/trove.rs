@@ -17,7 +17,7 @@ pub struct CommandTrove {
 impl Default for CommandTrove {
     fn default() -> Self {
         Self {
-            version: String::from("0.1.0"),
+            version: String::from("0.1.1"),
             commands: Vec::new(),
         }
     }
