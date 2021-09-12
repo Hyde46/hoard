@@ -12,7 +12,7 @@ command organizer
 hoard setup
 https://github.com/hyde46/hoard
 
-Please create an issue if you encounter any issues!
+Please create an issue if you encounter any problems!
 
 ===============================================================================
 
