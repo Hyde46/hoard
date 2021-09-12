@@ -32,6 +32,6 @@ if [[ -z $HOARD_NOBIND ]]; then
 	bindkey '^h' _hoard_list_widget
 
 	# depends on terminal mode
-	bindkey '^[[A' _hoard_list_widget
-	bindkey '^[OA' _hoard_list_widget
+	#bindkey '^[[A' _hoard_list_widget
+	#bindkey '^[OA' _hoard_list_widget
 fi
