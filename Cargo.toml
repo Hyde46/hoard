@@ -1,9 +1,30 @@
 [package]
-name = "hoard"
+name = "hoard-rs"
 version = "0.1.0"
 edition = "2018"
 readme = "README.md"
 license = "MIT"
+authors = ["Denis Heid"]
+description = "hoard - cli command organizer written in Rust"
+homepage = "https://github.com/Hyde46/hoard"
+repository = "https://github.com/Hyde46/hoard"
+
+[package.metadata.deb]
+maintainer = "Denis Heid"
+copyright = "2021, Denis Heid"
+license-file = ["LICENSE"]
+depends = "$auto"
+section = "utility"
+
+[package.metadata.rpm]
+package = "atuin"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[[bin]]
+name = "hoard"
+path = "src/main.rs"
 
 [dependencies]
 # Command lien argument parser
