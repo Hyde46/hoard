@@ -161,7 +161,11 @@ impl Parsable for HoardCommand {
         // "$ hoard test -t" was run
         // Expects comma seperated tags
         if let Some(tags) = matches.value_of("tags") {
-            new_command.tags = Some(tags.split(',').map(std::string::ToString::to_string).collect());
+            new_command.tags = Some(
+                tags.split(',')
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
         }
         if let Some(c) = matches.value_of("command") {
             // TODO: some validation for when we have it
