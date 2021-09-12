@@ -7,6 +7,7 @@ use std::{fs, path::Path, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommandTrove {
     pub version: String,
@@ -15,7 +16,7 @@ pub struct CommandTrove {
 
 impl Default for CommandTrove {
     fn default() -> Self {
-        CommandTrove {
+        Self {
             version: String::from("0.1.0"),
             commands: Vec::new(),
         }
@@ -27,15 +28,15 @@ impl CommandTrove {
             Some(p) => {
                 if p.exists() {
                     let f = std::fs::File::open(p).ok().unwrap();
-                    serde_yaml::from_reader::<_, CommandTrove>(f).unwrap()
+                    serde_yaml::from_reader::<_, Self>(f).unwrap()
                 } else {
                     info!("[DEBUG] No trove file found at {:?}", p);
-                    CommandTrove::default()
+                    Self::default()
                 }
             }
             None => {
                 info!("[DEBUG] No trove path available. Creating new trove file");
-                CommandTrove::default()
+                Self::default()
             }
         }
     }
@@ -49,17 +50,16 @@ impl CommandTrove {
         self.commands.push(new_command);
     }
 
-    pub fn remove_command(&mut self, name: String) -> Result<(), anyhow::Error> {
+    pub fn remove_command(&mut self, name: &str) -> Result<(), anyhow::Error> {
         let command_position = self.commands.iter().position(|x| x.name == name);
         if command_position.is_none() {
             return Err(anyhow!("Command not found [{}]", name));
-        } else {
-            self.commands.retain(|x| *x.name != name);
-            Ok(())
         }
+        self.commands.retain(|x| &*x.name != name);
+        Ok(())
     }
 
-    pub fn pick_command(&self, name: String) -> Result<HoardCommand> {
+    pub fn pick_command(&self, name: &str) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {
             Ok(command.clone())

@@ -1,5 +1,4 @@
 use crossbeam_channel::unbounded;
-use std::io;
 use std::thread;
 use std::time::Duration;
 
