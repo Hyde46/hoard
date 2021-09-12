@@ -25,8 +25,15 @@ __hoard_install_with_cargo(){
     if ! command -v cargo &> /dev/null
     then
         echo "cargo not found"
-        echo "Please visit https://rustup.rs/ install rust, then run the installer again"
-        exit
+		if command -v rustup &> /dev/null
+		then
+			echo "rustup was found, but cargo wasn't. Something is up with your installtion"
+			exit 1
+		fi
+
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q
+
+		echo "rustup installed! Attempting cargo install"
     fi
 
     cargo install hoard-rs
