@@ -1,5 +1,5 @@
+use crossbeam_channel::unbounded;
 use std::io;
-use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
@@ -15,9 +15,7 @@ pub enum Event<I> {
 /// type is handled in its own thread and returned to a common `Receiver`
 #[allow(dead_code)]
 pub struct Events {
-    rx: mpsc::Receiver<Event<Key>>,
-    input_handle: thread::JoinHandle<()>,
-    tick_handle: thread::JoinHandle<()>,
+    rx: crossbeam_channel::Receiver<Event<Key>>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -41,38 +39,32 @@ impl Events {
 
     #[allow(clippy::manual_flatten)]
     pub fn with_config(config: Config) -> Self {
-        let (tx, rx) = mpsc::channel();
-        let input_handle = {
+        let (tx, rx) = unbounded();
+
+        {
             let tx = tx.clone();
             thread::spawn(move || {
-                let stdin = io::stdin();
-                for evt in stdin.keys() {
-                    if let Ok(key) = evt {
-                        if let Err(err) = tx.send(Event::Input(key)) {
-                            eprintln!("{}", err);
-                            return;
-                        }
+                let tty = termion::get_tty().expect("Could not find tty session");
+                for key in tty.keys().flatten() {
+                    if let Err(err) = tx.send(Event::Input(key)) {
+                        eprintln!("{}", err);
+                        return;
                     }
                 }
             })
         };
-        let tick_handle = {
-            thread::spawn(move || loop {
-                if let Err(err) = tx.send(Event::Tick) {
-                    eprintln!("{}", err);
-                    break;
-                }
-                thread::sleep(config.tick_rate);
-            })
-        };
-        Self {
-            rx,
-            input_handle,
-            tick_handle,
-        }
+
+        thread::spawn(move || loop {
+            if let Err(err) = tx.send(Event::Tick) {
+                eprintln!("{}", err);
+                break;
+            }
+            thread::sleep(config.tick_rate);
+        });
+        Self { rx }
     }
 
-    pub fn next(&self) -> Result<Event<Key>, mpsc::RecvError> {
+    pub fn next(&self) -> Result<Event<Key>, crossbeam_channel::RecvError> {
         self.rx.recv()
     }
 }

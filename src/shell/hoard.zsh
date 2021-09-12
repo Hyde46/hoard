@@ -10,11 +10,12 @@
 autoload -U add-zsh-hook
 
 _hoard_list(){
-	emulate -L zsh
+	emulate -LR zsh
 	zle -I
 
 	echoti rmkx
     # Similar to bash plugin in hoard.bash
+	# output=$(RUST_LOG=error hoard --autocomplete list 3>&1 1>&2 2>&3)
 	output=$(RUST_LOG=error hoard --autocomplete list 3>&1 1>&2 2>&3)
 	echoti smkx
 
