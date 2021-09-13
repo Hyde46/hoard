@@ -56,12 +56,14 @@ __hoard_install_mac(){
 
 __hoard_detect_os(){
 
-    case "$OSTYPE" in
-        linux*) __hoard_install_ubuntu ;;
-        #linux*) __hoard_install_linux ;;
-        darwin*) __hoard_install_mac ;;
-        #*)        __hoard_install_unsupported ;;
-    esac
+    echo "Packaged version is out of date, please install hoard from source with cargo"
+    exit
+    #case "$OSTYPE" in
+    #    linux*) __hoard_install_ubuntu ;;
+    #    #linux*) __hoard_install_linux ;;
+    #    darwin*) __hoard_install_mac ;;
+    #    #*)        __hoard_install_unsupported ;;
+    #esac
 }
 
 # Set default installation location
