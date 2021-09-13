@@ -1,5 +1,5 @@
 name: hoard
-version: "0.1.2"
+version: "0.1.3"
 settings:
   - ArgRequiredElseHelp
 args:

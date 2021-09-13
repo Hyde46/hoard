@@ -5,18 +5,15 @@ extern crate serde_yaml;
 #[macro_use]
 extern crate prettytable;
 
-use std::io;
-
 mod command;
 mod config;
 mod gui;
 mod hoard;
 use hoard::Hoard;
 
-fn main() -> io::Result<()> {
+fn main() {
     let (command, is_autocomplete) = Hoard::default().with_config(None).load_trove().start();
     if is_autocomplete {
-        eprintln!("{}", command.clone());
+        eprintln!("{}", command.clone().trim());
     }
-    Ok(())
 }
