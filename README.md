@@ -20,7 +20,7 @@ just **hoard** it. With a **name** and **description** it will be much easier to
 
 `hoard` is **not** supposed to replace shell history finder like `fzf` `atuin` or similar utilities. It rather should be used in conjunction with them.
 
-## Install
+## 📦 Install
 
 ### From source
 
@@ -73,7 +73,7 @@ source src/shell/hoard.bash
 source src/shell/hoard.zsh
 ```
 
-## Usage
+## 🤸 Usage
 
 #### Save a new command
 
