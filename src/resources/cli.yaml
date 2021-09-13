@@ -80,5 +80,10 @@ subcommands:
             long: name
             short: n
             help: Name of the command
-            required: true
+            takes_value: true
+        - namespace:
+            long: namespace
+            short: s
+            help: Removes all commands of a namespace
+            conflicts_with: name
             takes_value: true

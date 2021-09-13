@@ -59,6 +59,15 @@ impl CommandTrove {
         Ok(())
     }
 
+    pub fn remove_namespace_commands(&mut self, namespace: &str) -> Result<(), anyhow::Error> {
+        let command_position = self.commands.iter().position(|x| x.namespace == namespace);
+        if command_position.is_none() {
+            return Err(anyhow!("No Commands found in namespace [{}]", namespace));
+        }
+        self.commands.retain(|x| &*x.namespace != namespace);
+        Ok(())
+    }
+
     pub fn pick_command(&self, name: &str) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {

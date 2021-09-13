@@ -105,7 +105,7 @@ impl Hoard {
             // Load command by name into clipboard, if available
             ("pick", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self.trove.pick_command(command_name.into());
+                    let command_result = self.trove.pick_command(command_name);
                     match command_result {
                         Ok(c) => {
                             println!("{}", c.command);
@@ -117,7 +117,7 @@ impl Hoard {
             // removes command from trove with a name supplied by input
             ("remove", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self.trove.remove_command(command_name.into());
+                    let command_result = self.trove.remove_command(command_name);
                     match command_result {
                         Ok(_) => {
                             println!("Removed [{}]", command_name);
@@ -125,6 +125,17 @@ impl Hoard {
                         Err(e) => eprintln!("{}", e),
                     }
                     self.save_trove();
+                } else if let Some(namespace) = sub_m.value_of("namespace") {
+                    let command_result = self.trove.remove_namespace_commands(namespace);
+                    match command_result {
+                        Ok(_) => {
+                            println!("Removed all commands of namespace [{}]", namespace);
+                        }
+                        Err(e) => eprintln!("{}", e),
+                    }
+                    self.save_trove();
+                } else {
+                    println!("No arguments provided!");
                 }
             }
             // Load command by name
