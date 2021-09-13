@@ -60,7 +60,7 @@ impl Hoard {
         };
     }
 
-    pub async fn start(&mut self) -> Result<(String, bool), serde_yaml::Error> {
+    pub fn start(&mut self) -> (String, bool) {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
         let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
@@ -133,7 +133,6 @@ impl Hoard {
             }
             _ => {}
         }
-
-        Ok((autocomplete_command, matches.is_present("autocomplete")))
+        (autocomplete_command, matches.is_present("autocomplete"))
     }
 }
