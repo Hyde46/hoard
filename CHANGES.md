@@ -6,8 +6,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.4
 
 - Can now delete all commands in a specific namespace `hoard remove --namespace <name>`
-- Add `fish` shell autocomplete support
-- Add `fish` installer script
+- Add 🐟 `fish` shell autocomplete support
+- Add 🐟 `fish` installer script
 
 ## 0.1.3
 
