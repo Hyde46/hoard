@@ -73,6 +73,12 @@ source src/shell/hoard.bash
 source src/shell/hoard.zsh
 ```
 
+#### fish
+
+```
+source src/shell/hoard.fish
+```
+
 ## 🤸 Usage
 
 #### Save a new command
