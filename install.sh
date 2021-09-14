@@ -36,7 +36,6 @@ __hoard_install_with_cargo(){
 		echo "rustup installed! Attempting cargo install"
     fi
 
-    cargo install hoard-rs
 }
 
 __hoard_install_ubuntu(){
@@ -63,10 +62,6 @@ __hoard_detect_os(){
         #*)        __hoard_install_unsupported ;;
     esac
 }
-
-# Set default installation location
-HOARD_TARGET_INSTALLATION_DIR="${HOARD_TARGET_INSTALLATION_DIR:-"/usr/local/bin"}/hoard"
-
 
 PS3='How do you wish to install hoard:  '
 foods=("From Source with cargo" "OS-Specifc" "Not at all, bye")
