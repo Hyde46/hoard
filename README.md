@@ -1,6 +1,6 @@
-# hoard
+#  hoard 
 
-> A command organizer utility written in rust
+> A command organizer utility tool to hoard all your precious commands 💎🐉
 
 ![Example usage](img/hoard_example.gif)
 
