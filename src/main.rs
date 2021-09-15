@@ -5,6 +5,8 @@ extern crate serde_yaml;
 #[macro_use]
 extern crate prettytable;
 
+extern crate array_tool;
+
 mod command;
 mod config;
 mod gui;

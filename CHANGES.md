@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 0.2.0 WIP
+
 ## 0.1.4
 
 - Can now delete all commands in a specific namespace `hoard remove --namespace <name>`
