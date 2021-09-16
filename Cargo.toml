@@ -37,7 +37,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
 anyhow = "1.0.38"
-dirs = "3.0.1"
+dirs = "4.0.0"
 log = "0.4"
 eyre = "0.6"
 simple_logger = "1.11.0"
