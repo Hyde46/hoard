@@ -39,6 +39,7 @@ impl Hoard {
         self
     }
 
+
     pub fn load_trove(&mut self) -> &mut Self {
         match &self.config {
             Some(config) => {
@@ -142,6 +143,17 @@ impl Hoard {
             // Load command by name
             ("copy", Some(_sub_m)) => {
                 println!("Not yet implemented");
+            }
+            ("import", Some(sub_m)) => {
+                //TODO: At somepoint make distinction based on whats being supplied
+                // import by URL
+                if let Some(url_string) = sub_m.value_of("url") {
+
+                }
+                // import by file
+                if let Some(file_path) = sub_m.value_of("file") {
+
+                }
             }
             _ => {}
         }

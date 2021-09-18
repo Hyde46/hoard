@@ -87,3 +87,18 @@ subcommands:
             help: Removes all commands of a namespace
             conflicts_with: name
             takes_value: true
+  - import:
+      short: i
+      about: Import a trove file
+      help: Import a trove file
+      args:
+          - url:
+              long: url
+              short: u
+              help: URL to .trove file to import
+              takes_value: true
+          - file: 
+              long: file
+              short: f
+              help: Path to .trove file to import
+              takes_value: true

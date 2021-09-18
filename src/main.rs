@@ -18,4 +18,4 @@ fn main() {
     if is_autocomplete {
         eprintln!("{}", command.clone().trim());
     }
-}
+
