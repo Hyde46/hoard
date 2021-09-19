@@ -111,6 +111,13 @@ Or alternatively, if not installed as a plugin, the interactive search can still
 hoard list
 ```
 
+Import other trove files from `trove.yml` or urls pointing to a trove.yml file
+
+```
+hoard import --file /path/to/trove.yml
+hoard import --url https://file.trove.com/trove.yml
+```
+
 Next item in command list
 
 ```
