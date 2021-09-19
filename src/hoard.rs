@@ -7,6 +7,7 @@ use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 use super::gui::commands_gui;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct Hoard {
@@ -63,19 +64,20 @@ impl Hoard {
     pub fn start(&mut self) -> (String, bool) {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
-        let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
 
         let mut autocomplete_command = String::from("");
 
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
+                let all_namespaces = self.trove.get_namespaces();
+                let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
                 let new_command = HoardCommand::default()
                     .with_command_string_input()
                     .with_name_input()
                     .with_description_input()
                     .with_tags_input()
-                    .with_namespace_input(default_namespace);
+                    .with_namespace_input(default_namespace, all_namespaces);
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
@@ -142,8 +144,39 @@ impl Hoard {
             ("copy", Some(_sub_m)) => {
                 println!("Not yet implemented");
             }
+            ("import", Some(sub_m)) => {
+                //TODO: At somepoint make distinction based on whats being supplied
+                // import by URL
+                if let Some(url_string) = sub_m.value_of("url") {
+                    match reqwest_trove(url_string) {
+                        Ok(trove_string) => {
+                            let imported_trove =
+                                CommandTrove::load_trove_from_string(&trove_string[..]);
+                            self.trove.merge_trove(imported_trove);
+                            self.save_trove();
+                        }
+                        Err(e) => {
+                            println!("Could not import trove from url: {:?}", e);
+                        }
+                    }
+                }
+                // import by file
+                if let Some(file_path) = sub_m.value_of("file") {
+                    //TODO If <name,namespace> has a conflict, ask for a new namespace or name
+                    let imported_trove =
+                        CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
+                    self.trove.merge_trove(imported_trove);
+                    self.save_trove();
+                }
+            }
             _ => {}
         }
         (autocomplete_command, matches.is_present("autocomplete"))
     }
+}
+
+#[tokio::main]
+async fn reqwest_trove(url_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url_path).await?.text().await?;
+    Ok(resp)
 }
