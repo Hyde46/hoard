@@ -3,11 +3,11 @@ use log::info;
 
 use crate::config::load_or_build_config;
 
-use std::path::PathBuf;
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 use super::gui::commands_gui;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct Hoard {
@@ -39,7 +39,6 @@ impl Hoard {
         };
         self
     }
-
 
     pub fn load_trove(&mut self) -> &mut Self {
         match &self.config {
@@ -151,18 +150,22 @@ impl Hoard {
                 if let Some(url_string) = sub_m.value_of("url") {
                     match reqwest_trove(url_string) {
                         Ok(trove_string) => {
-                            let imported_trove = CommandTrove::load_trove_from_string(&trove_string[..]);
+                            let imported_trove =
+                                CommandTrove::load_trove_from_string(&trove_string[..]);
                             self.trove.merge_trove(imported_trove);
                             self.save_trove();
                         }
-                        Err(e) => {println!("Could not import trove from url: {:?}",e);}
+                        Err(e) => {
+                            println!("Could not import trove from url: {:?}", e);
+                        }
                     }
                 }
                 // import by file
                 if let Some(file_path) = sub_m.value_of("file") {
                     //TODO If <name,namespace> has a conflict, ask for a new namespace or name
-                    let imported_trove = CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
-                    self.trove.merge_trove(imported_trove); 
+                    let imported_trove =
+                        CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
+                    self.trove.merge_trove(imported_trove);
                     self.save_trove();
                 }
             }

@@ -36,9 +36,9 @@ impl CommandTrove {
                         Ok(trove) => trove,
                         Err(e) => {
                             println!("The supplied trove file is invalid!");
-                            println!("{:?}",e);
+                            println!("{:?}", e);
                             Self::default()
-                         }
+                        }
                     }
                 } else {
                     info!("[DEBUG] No trove file found at {:?}", p);
@@ -58,7 +58,7 @@ impl CommandTrove {
             Ok(trove) => trove,
             Err(e) => {
                 println!("The supplied trove file is invalid!");
-                println!("{:?}",e);
+                println!("{:?}", e);
                 Self::default()
             }
         }
@@ -115,7 +115,10 @@ impl CommandTrove {
     }
 
     pub fn merge_trove(&mut self, other: CommandTrove) {
-        other.commands.iter().for_each(|c| self.add_command(c.clone()))
+        other
+            .commands
+            .iter()
+            .for_each(|c| self.add_command(c.clone()))
     }
 
     pub fn print_trove(&self) {
