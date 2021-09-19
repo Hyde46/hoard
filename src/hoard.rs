@@ -3,6 +3,7 @@ use log::info;
 
 use crate::config::load_or_build_config;
 
+use std::path::PathBuf;
 use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
@@ -148,15 +149,31 @@ impl Hoard {
                 //TODO: At somepoint make distinction based on whats being supplied
                 // import by URL
                 if let Some(url_string) = sub_m.value_of("url") {
-
+                    match reqwest_trove(url_string) {
+                        Ok(trove_string) => {
+                            let imported_trove = CommandTrove::load_trove_from_string(&trove_string[..]);
+                            self.trove.merge_trove(imported_trove);
+                            self.save_trove();
+                        }
+                        Err(e) => {println!("Could not import trove from url: {:?}",e);}
+                    }
                 }
                 // import by file
                 if let Some(file_path) = sub_m.value_of("file") {
-
+                    //TODO If <name,namespace> has a conflict, ask for a new namespace or name
+                    let imported_trove = CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
+                    self.trove.merge_trove(imported_trove); 
+                    self.save_trove();
                 }
             }
             _ => {}
         }
         (autocomplete_command, matches.is_present("autocomplete"))
     }
+}
+
+#[tokio::main]
+async fn reqwest_trove(url_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url_path).await?.text().await?;
+    Ok(resp)
 }

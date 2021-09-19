@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## 0.2.0 WIP
+- Import other trove files `hoard import --file /path/to/trove.yml`
+- Import trove files from url `hoard import --url https://this.trove.com/trove.yml`
 
 ## 0.1.4
 

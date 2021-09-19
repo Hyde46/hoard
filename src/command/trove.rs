@@ -8,6 +8,8 @@ use std::{fs, path::Path, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
 
+const CARGO_VERION: &str = env!("CARGO_PKG_VERSION");
+
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommandTrove {
@@ -18,7 +20,7 @@ pub struct CommandTrove {
 impl Default for CommandTrove {
     fn default() -> Self {
         Self {
-            version: String::from("0.1.4"),
+            version: String::from(CARGO_VERION),
             commands: Vec::new(),
         }
     }
@@ -29,7 +31,15 @@ impl CommandTrove {
             Some(p) => {
                 if p.exists() {
                     let f = std::fs::File::open(p).ok().unwrap();
-                    serde_yaml::from_reader::<_, Self>(f).unwrap()
+                    let parsed_trove = serde_yaml::from_reader::<_, Self>(f);
+                    match parsed_trove {
+                        Ok(trove) => trove,
+                        Err(e) => {
+                            println!("The supplied trove file is invalid!");
+                            println!("{:?}",e);
+                            Self::default()
+                         }
+                    }
                 } else {
                     info!("[DEBUG] No trove file found at {:?}", p);
                     Self::default()
@@ -37,6 +47,18 @@ impl CommandTrove {
             }
             None => {
                 info!("[DEBUG] No trove path available. Creating new trove file");
+                Self::default()
+            }
+        }
+    }
+
+    pub fn load_trove_from_string(trove_string: &str) -> Self {
+        let parsed_trove = serde_yaml::from_str::<Self>(trove_string);
+        match parsed_trove {
+            Ok(trove) => trove,
+            Err(e) => {
+                println!("The supplied trove file is invalid!");
+                println!("{:?}",e);
                 Self::default()
             }
         }
@@ -90,6 +112,10 @@ impl CommandTrove {
             .unique()
             .into_iter()
             .collect()
+    }
+
+    pub fn merge_trove(&mut self, other: CommandTrove) {
+        other.commands.iter().for_each(|c| self.add_command(c.clone()))
     }
 
     pub fn print_trove(&self) {
