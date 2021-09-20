@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use dialoguer::{theme::ColorfulTheme, Input, Select};
+use dialoguer::{theme::ColorfulTheme, Input};
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
 }
@@ -92,10 +92,7 @@ impl HoardCommand {
         self.with_tags_raw(&tags)
     }
 
-    pub fn with_namespace_input(
-        self,
-        default_namespace: String,
-    ) -> Self {
+    pub fn with_namespace_input(self, default_namespace: String) -> Self {
         let namespace = Input::with_theme(&ColorfulTheme::default())
             .default(default_namespace)
             .with_prompt("Namespace of the command")

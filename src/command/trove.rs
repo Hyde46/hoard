@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use array_tool::vec::Uniq;
 use log::info;
 use prettytable::{color, Attr, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
@@ -102,16 +101,6 @@ impl CommandTrove {
 
     pub fn is_empty(&self) -> bool {
         self.commands.is_empty()
-    }
-
-    pub fn get_namespaces(&self) -> Vec<String> {
-        self.commands
-            .iter()
-            .map(|c| c.namespace.clone())
-            .collect::<Vec<String>>()
-            .unique()
-            .into_iter()
-            .collect()
     }
 
     pub fn merge_trove(&mut self, other: CommandTrove) {
