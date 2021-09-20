@@ -39,13 +39,13 @@ Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 Install `hoard` by running
 
 ```
-LATEST_RELEASE=0.1.4 ./install.sh
+LATEST_RELEASE=0.1.5 ./install.sh
 ```
 
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=0.1.4 ./install.fish
+LATEST_RELEASE=0.1.5 ./install.fish
 ```
 
 Only Ubuntu based distributions with a bash or zsh shell are supported at the moment

@@ -40,7 +40,7 @@ __hoard_install_with_cargo(){
 
 __hoard_install_ubuntu(){
 	echo "Ubuntu detected"
-	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v$LATEST_VERSION/hoard_${LATEST_VERSION}.deb"
+	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v0.1.5/hoard_0.1.5.deb"
 
 	TEMP_DEB="$(mktemp)" &&
 	wget -O "$TEMP_DEB" "$ARTIFACT_URL"
