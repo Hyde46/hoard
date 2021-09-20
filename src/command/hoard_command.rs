@@ -95,25 +95,16 @@ impl HoardCommand {
     pub fn with_namespace_input(
         self,
         default_namespace: String,
-        all_namespaces: Vec<String>,
     ) -> Self {
-        let selections = &[
-            "Ice Cream",
-            "Vanilla Cupcake",
-            "Chocolate Muffin",
-            "A Pile of sweet, sweet mustard",
-        ];
-        let selection = Select::with_theme(&ColorfulTheme::default())
-            .default(0)
+        let namespace = Input::with_theme(&ColorfulTheme::default())
+            .default(default_namespace)
             .with_prompt("Namespace of the command")
-            .items(&selections[..])
-            .interact_opt()
+            .interact_text()
             .unwrap();
 
-        let namespace = all_namespaces.get(selection.unwrap()).unwrap();
         Self {
             name: self.name,
-            namespace: namespace.clone(),
+            namespace,
             tags: self.tags,
             command: self.command,
             description: self.description,

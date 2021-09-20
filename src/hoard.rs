@@ -70,14 +70,13 @@ impl Hoard {
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
-                let all_namespaces = self.trove.get_namespaces();
                 let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
                 let new_command = HoardCommand::default()
                     .with_command_string_input()
                     .with_name_input()
                     .with_description_input()
                     .with_tags_input()
-                    .with_namespace_input(default_namespace, all_namespaces);
+                    .with_namespace_input(default_namespace);
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
