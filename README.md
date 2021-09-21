@@ -39,7 +39,7 @@ Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 Install `hoard` by running
 
 ```
-LATEST_RELEASE=0.1.5 ./install.sh
+./install.sh
 ```
 
 If you are running `fish` shell
