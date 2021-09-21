@@ -52,14 +52,7 @@ Only Ubuntu based distributions with a bash or zsh shell are supported at the mo
 
 ### MacOS
 
-No codesign in place yet. You have to build it from source
-
-### Homebrew
-
-```
-brew tap Hypde46/hoard
-brew install hoard
-```
+No codesign in place yet. You have to build it from source with the installer 
 
 ### Install Shell plugin
 
