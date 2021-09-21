@@ -83,16 +83,7 @@ select fav in "${foods[@]}"; do
     esac
 done
 
-SHELL=$(ps -o comm= -p $$)
-if [ "$SHELL" == "zsh" ]; then
-    echo 'Detected zsh shell'
-    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc
-elif [ "$SHELL" == "bash" ]; then
-    echo 'Detected bash shell'
-    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.bash >> ~/.bashrc
-else
-    echo "$SHELL installation not implemented yet"
-    echo "Plese create an issue on github to get this sorted out"
-    echo "https://github.com/Hyde46/hoard/issues/new?title=Unsupported%20shell%20detected%20$SHELL&body=$SHELL%20is%20not%20supported.%20Please%20take%20a%20look"
-fi
-echo 'source your .bashrc and press <Ctrl-H> to get started with the interactive hoard UI'
+# TODO: Properly check which shell is installed
+curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc
+curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.bash >> ~/.bashrc
+echo 'source your .bashrc/.zshrc and press <Ctrl-H> to get started with the interactive hoard UI'
