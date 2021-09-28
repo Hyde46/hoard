@@ -50,10 +50,11 @@ LATEST_RELEASE=0.1.5 ./install.fish
 
 Only Ubuntu based distributions with a bash or zsh shell are supported at the moment
 
-### MacOS
-
-No codesign in place yet. You have to build it from source with the installer 
-
+### Brew
+```
+brew tap Hyde46/hoard
+brew install hoard
+```
 ### Install Shell plugin
 
 Install `hoard` as a plugin to enable autocomplete.
