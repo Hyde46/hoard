@@ -90,7 +90,19 @@ hoard new
 #### Delete a command
 
 ```
-hoard delete <name>
+hoard delete --name <name>
+```
+
+#### Delete all commands in a namespace
+
+```
+hoard delete --namespace <namespace_name>
+```
+
+#### Edit a command
+
+```
+hoard edit --name <name>
 ```
 
 #### Search through command trove
