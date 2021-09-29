@@ -72,11 +72,11 @@ impl Hoard {
             ("new", Some(_sub_m)) => {
                 let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
                 let new_command = HoardCommand::default()
-                    .with_command_string_input()
-                    .with_name_input()
-                    .with_description_input()
-                    .with_tags_input()
-                    .with_namespace_input(default_namespace);
+                    .with_command_string_input(None)
+                    .with_name_input(None)
+                    .with_description_input(None)
+                    .with_tags_input(None)
+                    .with_namespace_input(Some(default_namespace));
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
@@ -166,6 +166,27 @@ impl Hoard {
                         CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
                     self.trove.merge_trove(imported_trove);
                     self.save_trove();
+                }
+            }
+            ("edit", Some(sub_m)) => {
+                if let Some(command_name) = sub_m.value_of("name") {
+                    println!("Editing {:?}", command_name);
+                    let command_to_edit = self.trove.pick_command(command_name);
+                    match command_to_edit {
+                        Ok(c) => {
+                            println!("{}", c.command);
+                            let new_command = HoardCommand::default()
+                                .with_command_string_input(Some(c.command.clone()))
+                                .with_name_input(Some(c.name.clone()))
+                                .with_description_input(c.description.clone())
+                                .with_tags_input(Some(c.tags_as_string()))
+                                .with_namespace_input(Some(c.namespace));
+                            self.trove.remove_command(command_name).ok();
+                            self.trove.add_command(new_command);
+                            self.save_trove();
+                        }
+                        Err(_e) => eprintln!("Could not find command {} to edit", command_name),
+                    }
                 }
             }
             _ => {}

@@ -1,5 +1,5 @@
 name: hoard
-version: "0.1.5"
+version: "0.1.6"
 settings:
   - ArgRequiredElseHelp
 args:
@@ -101,4 +101,14 @@ subcommands:
               long: file
               short: f
               help: Path to .trove file to import
+              takes_value: true
+  - edit:
+      short: e
+      help: Edit a command
+      args:
+          - name:
+              long: name
+              short: n
+              help: Name of the command to edit
+              required: true
               takes_value: true

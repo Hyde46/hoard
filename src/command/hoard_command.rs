@@ -44,8 +44,9 @@ impl HoardCommand {
             .join(",")
     }
 
-    pub fn with_command_string_input(self) -> Self {
+    pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
         let command_string: String = Input::with_theme(&ColorfulTheme::default())
+            .default(default_value.unwrap_or(String::from("")))
             .with_prompt("Command to hoard")
             .interact_text()
             .unwrap();
@@ -75,8 +76,9 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_tags_input(self) -> Self {
+    pub fn with_tags_input(self, default_value: Option<String>) -> Self {
         let tags: String = Input::with_theme(&ColorfulTheme::default())
+            .default(default_value.unwrap_or(String::from("")))
             .with_prompt("Give your command tags ( comma separated )")
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
@@ -92,9 +94,9 @@ impl HoardCommand {
         self.with_tags_raw(&tags)
     }
 
-    pub fn with_namespace_input(self, default_namespace: String) -> Self {
+    pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
         let namespace = Input::with_theme(&ColorfulTheme::default())
-            .default(default_namespace)
+            .default(default_namespace.unwrap_or(String::from("")))
             .with_prompt("Namespace of the command")
             .interact_text()
             .unwrap();
@@ -108,8 +110,9 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_name_input(self) -> Self {
+    pub fn with_name_input(self, default_value: Option<String>) -> Self {
         let name: String = Input::with_theme(&ColorfulTheme::default())
+            .default(default_value.unwrap_or(String::from("")))
             .with_prompt("Name your command")
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
@@ -131,8 +134,9 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_description_input(self) -> Self {
+    pub fn with_description_input(self, default_value: Option<String>) -> Self {
         let description_string: String = Input::with_theme(&ColorfulTheme::default())
+            .default(default_value.unwrap_or(String::from("")))
             .with_prompt("Describe what the command does")
             .interact_text()
             .unwrap();
