@@ -124,6 +124,8 @@ hoard import --file /path/to/trove.yml
 hoard import --url https://file.trove.com/trove.yml
 ```
 
+### Hoard list shortcuts 
+
 Next item in command list
 
 ```
