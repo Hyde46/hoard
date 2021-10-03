@@ -48,8 +48,6 @@ If you are running `fish` shell
 LATEST_RELEASE=0.1.5 ./install.fish
 ```
 
-Only Ubuntu based distributions with a bash or zsh shell are supported at the moment
-
 ### Brew on MacOS
 ```
 brew tap Hyde46/hoard
