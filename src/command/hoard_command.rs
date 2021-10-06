@@ -113,7 +113,12 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+    fn with_name_input_prompt(
+        self,
+        default_value: Option<String>,
+        trove: &CommandTrove,
+        prompt_string: String,
+    ) -> Self {
         let mut command_names = trove
             .commands
             .iter()
@@ -121,7 +126,7 @@ impl HoardCommand {
 
         let name: String = Input::with_theme(&ColorfulTheme::default())
             .default(default_value.unwrap_or(String::from("")))
-            .with_prompt("Name your command")
+            .with_prompt(prompt_string)
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
                     if input.contains(' ') {
@@ -142,6 +147,22 @@ impl HoardCommand {
             command: self.command,
             description: self.description,
         }
+    }
+
+    pub fn with_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        self.with_name_input_prompt(default_value, trove, "Name your command".to_string())
+    }
+
+    pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        let command = self.command.clone();
+        self.with_name_input_prompt(
+            default_value,
+            trove,
+            format!(
+                "A command with same name already exists. Enter a alternate name for command `{}`",
+                command
+            ),
+        )
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {

@@ -68,7 +68,19 @@ impl CommandTrove {
         fs::write(path, s).expect("Unable to write config file");
     }
 
+    fn check_name_collision(&self, command: &HoardCommand) -> bool {
+        self.commands
+            .iter()
+            .filter(|&c| c.namespace == command.namespace)
+            .any(|c| c.name == command.name)
+    }
+
     pub fn add_command(&mut self, new_command: HoardCommand) {
+        let new_command = if self.check_name_collision(&new_command) {
+            new_command.with_alt_name_input(None, &self)
+        } else {
+            new_command
+        };
         self.commands.push(new_command);
     }
 
