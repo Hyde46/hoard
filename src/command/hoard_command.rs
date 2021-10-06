@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use dialoguer::{theme::ColorfulTheme, Input};
+
+use super::trove::CommandTrove;
+
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
 }
@@ -110,7 +113,12 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_name_input(self, default_value: Option<String>) -> Self {
+    pub fn with_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        let mut command_names = trove
+            .commands
+            .iter()
+            .filter(|x| x.namespace == self.namespace);
+
         let name: String = Input::with_theme(&ColorfulTheme::default())
             .default(default_value.unwrap_or(String::from("")))
             .with_prompt("Name your command")
@@ -118,6 +126,8 @@ impl HoardCommand {
                 move |input: &String| -> Result<(), &str> {
                     if input.contains(' ') {
                         Err("The name cant contain whitespaces")
+                    } else if command_names.any(|x| x.name == input.to_string()) {
+                        Err("A command with same name exists. Input a different name")
                     } else {
                         Ok(())
                     }

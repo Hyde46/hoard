@@ -73,10 +73,10 @@ impl Hoard {
                 let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
                 let new_command = HoardCommand::default()
                     .with_command_string_input(None)
-                    .with_name_input(None)
+                    .with_namespace_input(Some(default_namespace))
+                    .with_name_input(None, &self.trove)
                     .with_description_input(None)
-                    .with_tags_input(None)
-                    .with_namespace_input(Some(default_namespace));
+                    .with_tags_input(None);
                 self.trove.add_command(new_command);
                 self.save_trove();
             }
@@ -177,7 +177,7 @@ impl Hoard {
                             println!("{}", c.command);
                             let new_command = HoardCommand::default()
                                 .with_command_string_input(Some(c.command.clone()))
-                                .with_name_input(Some(c.name.clone()))
+                                .with_name_input(Some(c.name.clone()), &self.trove)
                                 .with_description_input(c.description.clone())
                                 .with_tags_input(Some(c.tags_as_string()))
                                 .with_namespace_input(Some(c.namespace));
