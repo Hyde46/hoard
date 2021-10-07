@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.1.7
+- 🔧 Fix empty defaults for command field inputs
+
 ## 0.1.6
 - Edit commands with `hoard edit --name <command_name>`
 - Ask user for new command name if a collision is detected on creating a new command and importing troves. Name + namespace have to be unique.

@@ -48,11 +48,19 @@ impl HoardCommand {
     }
 
     pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
-        let command_string: String = Input::with_theme(&ColorfulTheme::default())
-            .default(default_value.unwrap_or(String::from("")))
-            .with_prompt("Command to hoard")
-            .interact_text()
-            .unwrap();
+        let command_string: String;
+        if let Some(val) = default_value {
+            command_string = Input::with_theme(&ColorfulTheme::default())
+                .default(val)
+                .with_prompt("Command to hoard")
+                .interact_text()
+                .unwrap();
+        } else {
+            command_string = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Command to hoard")
+                .interact_text()
+                .unwrap();
+        }
         Self {
             name: self.name,
             namespace: self.namespace,
@@ -80,30 +88,54 @@ impl HoardCommand {
     }
 
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
-        let tags: String = Input::with_theme(&ColorfulTheme::default())
-            .default(default_value.unwrap_or(String::from("")))
-            .with_prompt("Give your command tags ( comma separated )")
-            .validate_with({
-                move |input: &String| -> Result<(), &str> {
-                    if input.contains(' ') {
-                        Err("Tags cant contain whitespaces")
-                    } else {
-                        Ok(())
+        let tags: String;
+        if let Some(val) = default_value {
+            tags = Input::with_theme(&ColorfulTheme::default())
+                .default(val)
+                .with_prompt("Give your command tags ( comma separated )")
+                .validate_with({
+                    move |input: &String| -> Result<(), &str> {
+                        if input.contains(' ') {
+                            Err("Tags cant contain whitespaces")
+                        } else {
+                            Ok(())
+                        }
                     }
-                }
-            })
-            .interact_text()
-            .unwrap();
+                })
+                .interact_text()
+                .unwrap();
+        } else {
+            tags = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Give your command tags ( comma separated )")
+                .validate_with({
+                    move |input: &String| -> Result<(), &str> {
+                        if input.contains(' ') {
+                            Err("Tags cant contain whitespaces")
+                        } else {
+                            Ok(())
+                        }
+                    }
+                })
+                .interact_text()
+                .unwrap();
+        }
         self.with_tags_raw(&tags)
     }
 
     pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
-        let namespace = Input::with_theme(&ColorfulTheme::default())
-            .default(default_namespace.unwrap_or(String::from("")))
-            .with_prompt("Namespace of the command")
-            .interact_text()
-            .unwrap();
-
+        let namespace: String;
+        if let Some(val) = default_namespace {
+            namespace = Input::with_theme(&ColorfulTheme::default())
+                .default(val)
+                .with_prompt("Namespace of the command")
+                .interact_text()
+                .unwrap();
+        } else {
+            namespace = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Namespace of the command")
+                .interact_text()
+                .unwrap();
+        }
         Self {
             name: self.name,
             namespace,
@@ -122,26 +154,49 @@ impl HoardCommand {
         let command_names = trove.commands.clone();
         let namespace = self.namespace.clone();
 
-        let name: String = Input::with_theme(&ColorfulTheme::default())
-            .default(default_value.unwrap_or(String::from("")))
-            .with_prompt(prompt_string)
-            .validate_with({
-                move |input: &String| -> Result<(), &str> {
-                    if input.contains(' ') {
-                        Err("The name cant contain whitespaces")
-                    } else if command_names
-                        .iter()
-                        .filter(|x| x.namespace == namespace)
-                        .any(|x| x.name == input.to_string())
-                    {
-                        Err("A command with same name exists in the this namespace. Input a different name")
-                    } else {
-                        Ok(())
+        let name: String;
+        if let Some(val) = default_value {
+            name = Input::with_theme(&ColorfulTheme::default())
+                .default(val)
+                .with_prompt(prompt_string)
+                .validate_with({
+                    move |input: &String| -> Result<(), &str> {
+                        if input.contains(' ') {
+                            Err("The name cant contain whitespaces")
+                        } else if command_names
+                            .iter()
+                            .filter(|x| x.namespace == namespace)
+                            .any(|x| x.name == input.to_string())
+                        {
+                            Err("A command with same name exists in the this namespace. Input a different name")
+                        } else {
+                            Ok(())
+                        }
                     }
-                }
-            })
-            .interact_text()
-            .unwrap();
+                })
+                .interact_text()
+                .unwrap();
+        } else {
+            name = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt(prompt_string)
+                .validate_with({
+                    move |input: &String| -> Result<(), &str> {
+                        if input.contains(' ') {
+                            Err("The name cant contain whitespaces")
+                        } else if command_names
+                            .iter()
+                            .filter(|x| x.namespace == namespace)
+                            .any(|x| x.name == input.to_string())
+                        {
+                            Err("A command with same name exists in the this namespace. Input a different name")
+                        } else {
+                            Ok(())
+                        }
+                    }
+                })
+                .interact_text()
+                .unwrap();
+        }
         Self {
             name,
             namespace: self.namespace,
@@ -172,11 +227,19 @@ impl HoardCommand {
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
-        let description_string: String = Input::with_theme(&ColorfulTheme::default())
-            .default(default_value.unwrap_or(String::from("")))
-            .with_prompt("Describe what the command does")
-            .interact_text()
-            .unwrap();
+        let description_string: String;
+        if let Some(val) = default_value {
+            description_string = Input::with_theme(&ColorfulTheme::default())
+                .default(val)
+                .with_prompt("Describe what the command does")
+                .interact_text()
+                .unwrap();
+        } else {
+            description_string = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Describe what the command does")
+                .interact_text()
+                .unwrap();
+        }
         Self {
             name: self.name,
             namespace: self.namespace,
