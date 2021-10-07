@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use dialoguer::{theme::ColorfulTheme, Input};
+
+use super::trove::CommandTrove;
+
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
 }
@@ -110,14 +113,28 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_name_input(self, default_value: Option<String>) -> Self {
+    fn with_name_input_prompt(
+        self,
+        default_value: Option<String>,
+        trove: &CommandTrove,
+        prompt_string: String,
+    ) -> Self {
+        let command_names = trove.commands.clone();
+        let namespace = self.namespace.clone();
+
         let name: String = Input::with_theme(&ColorfulTheme::default())
             .default(default_value.unwrap_or(String::from("")))
-            .with_prompt("Name your command")
+            .with_prompt(prompt_string)
             .validate_with({
                 move |input: &String| -> Result<(), &str> {
                     if input.contains(' ') {
                         Err("The name cant contain whitespaces")
+                    } else if command_names
+                        .iter()
+                        .filter(|x| x.namespace == namespace)
+                        .any(|x| x.name == input.to_string())
+                    {
+                        Err("A command with same name exists in the this namespace. Input a different name")
                     } else {
                         Ok(())
                     }
@@ -132,6 +149,26 @@ impl HoardCommand {
             command: self.command,
             description: self.description,
         }
+    }
+
+    pub fn with_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        self.with_name_input_prompt(default_value, trove, "Name your command".to_string())
+    }
+
+    pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        let name = self.name.clone();
+        let command = self.command.clone();
+        let namespace = self.namespace.clone();
+        self.with_name_input_prompt(
+            default_value,
+            trove,
+            format!(
+                "A command with same name already exists in the namespace '{}'. Enter an alternate name for '{}' with command `{}`",
+                namespace,
+                name,
+                command
+            ),
+        )
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
