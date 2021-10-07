@@ -45,7 +45,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=0.1.6 ./install.fish
+LATEST_RELEASE=0.1.7 ./install.fish
 ```
 
 ### Brew on MacOS
