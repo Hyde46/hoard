@@ -119,10 +119,8 @@ impl HoardCommand {
         trove: &CommandTrove,
         prompt_string: String,
     ) -> Self {
-        let mut command_names = trove
-            .commands
-            .iter()
-            .filter(|x| x.namespace == self.namespace);
+        let command_names = trove.commands.clone();
+        let namespace = self.namespace.clone();
 
         let name: String = Input::with_theme(&ColorfulTheme::default())
             .default(default_value.unwrap_or(String::from("")))
@@ -131,8 +129,12 @@ impl HoardCommand {
                 move |input: &String| -> Result<(), &str> {
                     if input.contains(' ') {
                         Err("The name cant contain whitespaces")
-                    } else if command_names.any(|x| x.name == input.to_string()) {
-                        Err("A command with same name exists. Input a different name")
+                    } else if command_names
+                        .iter()
+                        .filter(|x| x.namespace == namespace)
+                        .any(|x| x.name == input.to_string())
+                    {
+                        Err("A command with same name exists in the this namespace. Input a different name")
                     } else {
                         Ok(())
                     }
@@ -155,11 +157,13 @@ impl HoardCommand {
 
     pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
         let command = self.command.clone();
+        let namespace = self.namespace.clone();
         self.with_name_input_prompt(
             default_value,
             trove,
             format!(
-                "A command with same name already exists. Enter a alternate name for command `{}`",
+                "A command with same name already exists in the namespace '{}'. Enter an alternate name for command `{}`",
+                namespace,
                 command
             ),
         )
