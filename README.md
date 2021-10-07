@@ -20,6 +20,14 @@ just **hoard** it. With a **name** and **description** it will be much easier to
 
 `hoard` is **not** supposed to replace shell history finder like `fzf` `atuin` or similar utilities. It rather should be used in conjunction with them.
 
+## :love_letter: Table of contents
+
+- [📦 Install](#install)
+- [🤸 Usage](#usage)
+- [:zap: Shortcuts](#shortcuts)
+
+<a name="install"/>
+
 ## 📦 Install
 
 ### From source
@@ -76,6 +84,7 @@ source src/shell/hoard.zsh
 ```
 source src/shell/hoard.fish
 ```
+<a name="usage"/>
 
 ## 🤸 Usage
 
@@ -121,8 +130,9 @@ Import other trove files from `trove.yml` or urls pointing to a trove.yml file
 hoard import --file /path/to/trove.yml
 hoard import --url https://file.trove.com/trove.yml
 ```
+<a name="shortcuts"/>
 
-### Hoard list shortcuts 
+## :zap: Hoard list shortcuts 
 
 Next item in command list
 
