@@ -156,14 +156,16 @@ impl HoardCommand {
     }
 
     pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+        let name = self.name.clone();
         let command = self.command.clone();
         let namespace = self.namespace.clone();
         self.with_name_input_prompt(
             default_value,
             trove,
             format!(
-                "A command with same name already exists in the namespace '{}'. Enter an alternate name for command `{}`",
+                "A command with same name already exists in the namespace '{}'. Enter an alternate name for '{}' with command `{}`",
                 namespace,
+                name,
                 command
             ),
         )
