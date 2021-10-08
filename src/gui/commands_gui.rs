@@ -360,7 +360,8 @@ fn render_commands<'a>(
 
     let command = Paragraph::new(selected_command.command.clone())
         .style(Style::default().fg(Color::Rgb(181, 118, 20)))
-        .alignment(Alignment::Center)
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
