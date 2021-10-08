@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.1.8
+- Wrap command text in UI ( By @qb60 )
+- Left align command text in UI ( By @qb60 )
+
 ## 0.1.7
 - 🔧 Fix empty defaults for command field inputs
 
