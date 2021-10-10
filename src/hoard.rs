@@ -1,5 +1,7 @@
 use clap::{load_yaml, App};
 use log::info;
+use reqwest::Url;
+use url::ParseError;
 
 use crate::config::load_or_build_config;
 
@@ -144,28 +146,32 @@ impl Hoard {
                 println!("Not yet implemented");
             }
             ("import", Some(sub_m)) => {
-                //TODO: At somepoint make distinction based on whats being supplied
-                // import by URL
-                if let Some(url_string) = sub_m.value_of("url") {
-                    match reqwest_trove(url_string) {
-                        Ok(trove_string) => {
-                            let imported_trove =
-                                CommandTrove::load_trove_from_string(&trove_string[..]);
-                            self.trove.merge_trove(imported_trove);
-                            self.save_trove();
-                        }
-                        Err(e) => {
-                            println!("Could not import trove from url: {:?}", e);
+                if let Some(path) = sub_m.value_of("uri") {
+                    match Url::parse(path) {
+                        Ok(url) => match reqwest_trove(url) {
+                            Ok(trove_string) => {
+                                let imported_trove =
+                                    CommandTrove::load_trove_from_string(&trove_string[..]);
+                                self.trove.merge_trove(imported_trove);
+                                self.save_trove();
+                            }
+                            Err(e) => {
+                                println!("Could not import trove from url: {:?}", e);
+                            }
+                        },
+                        Err(err) => {
+                            if let ParseError::RelativeUrlWithoutBase = err {
+                                let imported_trove =
+                                    CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
+                                self.trove.merge_trove(imported_trove);
+                                self.save_trove();
+                            } else {
+                                eprintln!("Not a valid URL or file path");
+                            }
                         }
                     }
-                }
-                // import by file
-                if let Some(file_path) = sub_m.value_of("file") {
-                    //TODO If <name,namespace> has a conflict, ask for a new namespace or name
-                    let imported_trove =
-                        CommandTrove::load_trove_file(&Some(PathBuf::from(file_path)));
-                    self.trove.merge_trove(imported_trove);
-                    self.save_trove();
+                } else {
+                    println!("No arguments provided");
                 }
             }
             ("edit", Some(sub_m)) => {
@@ -196,7 +202,7 @@ impl Hoard {
 }
 
 #[tokio::main]
-async fn reqwest_trove(url_path: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let resp = reqwest::get(url_path).await?.text().await?;
+async fn reqwest_trove(url: Url) -> Result<String, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url).await?.text().await?;
     Ok(resp)
 }
