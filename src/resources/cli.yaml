@@ -100,6 +100,14 @@ subcommands:
           - uri:
               help: URL or path to .trove file to import
               index: 1
+  - export:
+      visible_alias: x
+      about: Export a trove file
+      help: Export a trove file
+      args:
+          - path:
+              help: path to where to trove file should be save to
+              index: 1
   - edit:
       visible_alias: e
       help: Edit a command

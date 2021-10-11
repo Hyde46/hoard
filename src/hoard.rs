@@ -9,7 +9,7 @@ use super::command::hoard_command::HoardCommand;
 use super::command::trove::CommandTrove;
 use super::config::HoardConfig;
 use super::gui::commands_gui;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Hoard {
@@ -54,11 +54,14 @@ impl Hoard {
         self
     }
 
-    pub fn save_trove(&self) {
+    pub fn save_trove(&self, path: Option<&Path>) {
         match &self.config {
-            Some(config) => self
-                .trove
-                .save_trove_file(config.trove_home_path.as_ref().unwrap()),
+            Some(config) => {
+                let path_to_save = path.unwrap_or(config.trove_home_path.as_ref().unwrap());
+                self
+                    .trove
+                    .save_trove_file(path_to_save)
+            },
             None => info!("[DEBUG] No command config loaded"),
         };
     }
@@ -80,7 +83,7 @@ impl Hoard {
                     .with_description_input(None)
                     .with_tags_input(None);
                 self.trove.add_command(new_command);
-                self.save_trove();
+                self.save_trove(None);
             }
             // Fuzzy search through trove
             ("search", Some(_sub_m)) => {}
@@ -127,7 +130,7 @@ impl Hoard {
                         }
                         Err(e) => eprintln!("{}", e),
                     }
-                    self.save_trove();
+                    self.save_trove(None);
                 }else {
                     println!("No name provided!");
                 }
@@ -141,7 +144,7 @@ impl Hoard {
                         }
                         Err(e) => eprintln!("{}", e),
                     }
-                    self.save_trove();
+                    self.save_trove(None);
                 } else {
                     println!("No namespace provided!")
                 }
@@ -158,7 +161,7 @@ impl Hoard {
                                 let imported_trove =
                                     CommandTrove::load_trove_from_string(&trove_string[..]);
                                 self.trove.merge_trove(imported_trove);
-                                self.save_trove();
+                                self.save_trove(None);
                             }
                             Err(e) => {
                                 println!("Could not import trove from url: {:?}", e);
@@ -169,7 +172,7 @@ impl Hoard {
                                 let imported_trove =
                                     CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
                                 self.trove.merge_trove(imported_trove);
-                                self.save_trove();
+                                self.save_trove(None);
                             } else {
                                 eprintln!("Not a valid URL or file path");
                             }
@@ -177,6 +180,18 @@ impl Hoard {
                     }
                 } else {
                     println!("No arguments provided");
+                }
+            }
+            ("export", Some(sub_m)) => {
+                if let Some(path) = sub_m.value_of("path") {
+                    let target_path = PathBuf::from(path);
+                    if target_path.file_name().is_some() {
+                        self.save_trove(Some(&target_path));
+                    } else {
+                        println!("No valid path with filename provided.");
+                    }
+                } else {
+                    println!("No path provided.");
                 }
             }
             ("edit", Some(sub_m)) => {
@@ -194,7 +209,7 @@ impl Hoard {
                                 .with_namespace_input(Some(c.namespace));
                             self.trove.remove_command(command_name).ok();
                             self.trove.add_command(new_command);
-                            self.save_trove();
+                            self.save_trove(None);
                         }
                         Err(_e) => eprintln!("Could not find command {} to edit", command_name),
                     }
