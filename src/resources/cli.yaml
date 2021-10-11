@@ -92,16 +92,9 @@ subcommands:
       about: Import a trove file
       help: Import a trove file
       args:
-          - url:
-              long: url
-              short: u
-              help: URL to .trove file to import
-              takes_value: true
-          - file: 
-              long: file
-              short: f
-              help: Path to .trove file to import
-              takes_value: true
+          - uri:
+              help: URL or path to .trove file to import
+              index: 1
   - edit:
       short: e
       help: Edit a command
