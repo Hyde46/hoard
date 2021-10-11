@@ -16,6 +16,7 @@ subcommands:
   - new:
       about: Save new command
       help: Save new command
+      visible_alias: n
       args:
         - name:
             long: name
@@ -48,7 +49,7 @@ subcommands:
             help: Description of what the command does
             takes_value: true
   - list:
-      short: l
+      visible_alias: l
       about: List commands saved in trove
       help: List commands saved in trove
       args:
@@ -57,11 +58,11 @@ subcommands:
             short: s
             help: Show simplified table of hoarded commands
   - copy:
-      short: c
+      visible_alias: c
       about: Copy command to clipboard based on command name
       help: Copy command to clipboard based on command name
   - pick:
-      short: p
+      visible_alias: p
       about: Pick a command of the trove and print it
       help: Pick a command of the trove and print it
       args:
@@ -71,8 +72,9 @@ subcommands:
             help: Name of the command
             required: true
             takes_value: true
+            index: 1
   - remove:
-      short: r
+      visible_alias: r
       about: Removes a command of the trove
       help: Removes a command of the trove
       args:
@@ -81,6 +83,7 @@ subcommands:
             short: n
             help: Name of the command
             takes_value: true
+            index: 1
         - namespace:
             long: namespace
             short: s
@@ -88,15 +91,23 @@ subcommands:
             conflicts_with: name
             takes_value: true
   - import:
-      short: i
+      visible_alias: i
       about: Import a trove file
       help: Import a trove file
       args:
           - uri:
               help: URL or path to .trove file to import
               index: 1
+  - export:
+      visible_alias: x
+      about: Export a trove file
+      help: Export a trove file
+      args:
+          - path:
+              help: Path to where the exported trove file should be saved to
+              index: 1
   - edit:
-      short: e
+      visible_alias: e
       help: Edit a command
       args:
           - name:
