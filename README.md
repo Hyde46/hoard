@@ -108,7 +108,7 @@ hoard remove_namespace <namespace_name>
 #### Edit a command
 
 ```
-hoard edit --name <name>
+hoard edit <name>
 ```
 
 #### Search through command trove

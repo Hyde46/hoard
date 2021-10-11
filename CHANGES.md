@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - When picking a command not as a shell plugin, the command will be printed to the console
 - `hoard pick` does not require `--name` argument anymore. To print a command run `hoard pick <name>`
 - `hoard remove` does not require `--name` argument anymore. To remove a command run `hoard remove <name>`
+- `hoard edit` does not require `--name` argument anymore. To remove a command run `hoard edit <name>`
 
 ## 0.1.7
 - 🔧 Fix empty defaults for command field inputs

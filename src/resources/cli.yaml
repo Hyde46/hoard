@@ -110,3 +110,4 @@ subcommands:
               help: Name of the command to edit
               required: true
               takes_value: true
+              index: 1
