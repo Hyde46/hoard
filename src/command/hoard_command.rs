@@ -255,12 +255,10 @@ impl Parsable for HoardCommand {
         let mut new_command = Self::default();
 
         if let Some(n) = matches.value_of("name") {
-            // TODO: some name validation for when we have it
             new_command.name = n.to_string();
         }
         // Defaults to 'default' namespace
         if let Some(ns) = matches.value_of("namespace") {
-            // TODO: some validation for when we have it
             new_command.namespace = ns.to_string();
         }
         // "$ hoard test -t" was run
@@ -273,7 +271,6 @@ impl Parsable for HoardCommand {
             );
         }
         if let Some(c) = matches.value_of("command") {
-            // TODO: some validation for when we have it
             new_command.command = c.to_string();
         }
         new_command
