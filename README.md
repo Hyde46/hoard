@@ -123,7 +123,7 @@ Or alternatively, if not installed as a plugin, the interactive search can still
 hoard list
 ```
 
-Import other trove files from `trove.yml` or urls pointing to a trove.yml file
+#### Import other trove files from `trove.yml` or urls pointing to a trove.yml file
 
 ```
 hoard import /path/to/trove.yml
@@ -133,7 +133,7 @@ or
 hoard import https://troves.com/new_trove.yml
 ```
 
-Export trove file
+#### Export trove file
 ```
 hoard export /path/to/exported/trove.yml
 ```
