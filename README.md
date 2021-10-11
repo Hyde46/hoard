@@ -85,8 +85,7 @@ source src/shell/hoard.zsh
 source src/shell/hoard.fish
 ```
 <a name="usage"/>
-
-## 🤸 Usage
+ 🤸 Usage
 
 #### Save a new command
 
@@ -97,13 +96,13 @@ hoard new
 #### Delete a command
 
 ```
-hoard delete --name <name>
+hoard remove <name>
 ```
 
 #### Delete all commands in a namespace
 
 ```
-hoard delete --namespace <namespace_name>
+hoard remove_namespace <namespace_name>
 ```
 
 #### Edit a command
