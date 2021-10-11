@@ -133,6 +133,11 @@ or
 hoard import https://troves.com/new_trove.yml
 ```
 
+Export trove file
+```
+hoard export /path/to/exported/trove.yml
+```
+
 <a name="shortcuts"/>
 
 ## :zap: Hoard list shortcuts 
