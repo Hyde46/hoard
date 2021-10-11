@@ -58,10 +58,8 @@ impl Hoard {
         match &self.config {
             Some(config) => {
                 let path_to_save = path.unwrap_or(config.trove_home_path.as_ref().unwrap());
-                self
-                    .trove
-                    .save_trove_file(path_to_save)
-            },
+                self.trove.save_trove_file(path_to_save)
+            }
             None => info!("[DEBUG] No command config loaded"),
         };
     }
@@ -131,7 +129,7 @@ impl Hoard {
                         Err(e) => eprintln!("{}", e),
                     }
                     self.save_trove(None);
-                }else {
+                } else {
                     println!("No name provided!");
                 }
             }
