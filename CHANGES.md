@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.2.0
+## 0.1.8
 - Wrap command text in UI
 - Left align command text in UI
 - combine import url/path into one argument. Use `hoard import <path/url>`
