@@ -128,7 +128,12 @@ impl Hoard {
                         Err(e) => eprintln!("{}", e),
                     }
                     self.save_trove();
-                } else if let Some(namespace) = sub_m.value_of("namespace") {
+                }else {
+                    println!("No name provided!");
+                }
+            }
+            ("remove_namespace", Some(sub_m)) => {
+                if let Some(namespace) = sub_m.value_of("namespace") {
                     let command_result = self.trove.remove_namespace_commands(namespace);
                     match command_result {
                         Ok(_) => {
@@ -138,7 +143,7 @@ impl Hoard {
                     }
                     self.save_trove();
                 } else {
-                    println!("No arguments provided!");
+                    println!("No namespace provided!")
                 }
             }
             // Load command by name

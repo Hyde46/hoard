@@ -84,11 +84,13 @@ subcommands:
             help: Name of the command
             takes_value: true
             index: 1
+  - remove_namespace:
+      about: Remove all commands of a namespace
+      help: Remove all commands of a namespace
+      args: 
         - namespace:
-            long: namespace
-            short: s
-            help: Removes all commands of a namespace
-            conflicts_with: name
+            index: 1
+            help: Namespace to remove
             takes_value: true
   - import:
       visible_alias: i
@@ -97,14 +99,6 @@ subcommands:
       args:
           - uri:
               help: URL or path to .trove file to import
-              index: 1
-  - export:
-      visible_alias: x
-      about: Export a trove file
-      help: Export a trove file
-      args:
-          - path:
-              help: Path to where the exported trove file should be saved to
               index: 1
   - edit:
       visible_alias: e

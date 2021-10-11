@@ -127,9 +127,13 @@ hoard list
 Import other trove files from `trove.yml` or urls pointing to a trove.yml file
 
 ```
-hoard import --file /path/to/trove.yml
-hoard import --url https://file.trove.com/trove.yml
+hoard import /path/to/trove.yml
 ```
+or
+```
+hoard import https://troves.com/new_trove.yml
+```
+
 <a name="shortcuts"/>
 
 ## :zap: Hoard list shortcuts 
