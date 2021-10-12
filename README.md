@@ -85,7 +85,8 @@ source src/shell/hoard.zsh
 source src/shell/hoard.fish
 ```
 <a name="usage"/>
- 🤸 Usage
+
+## 🤸 Usage
 
 #### Save a new command
 
