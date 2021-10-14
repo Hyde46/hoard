@@ -6,7 +6,7 @@
 
 #### What is a command organizer?
 
-A command organizer lets you save commands that you often use, but are too complicated to remember.
+A command organizer lets you save commands that you often use, but are too complicated or long to remember.
 For every **hoarded** command, `hoard` saves
 
 - name
