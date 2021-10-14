@@ -10,7 +10,7 @@
 autoload -U add-zsh-hook
 
 _hoard_list(){
-	emulate -LR zsh
+	emulate -L zsh
 	zle -I
 
 	echoti rmkx
