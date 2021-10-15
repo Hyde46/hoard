@@ -59,7 +59,7 @@ impl Hoard {
         match &self.config {
             Some(config) => {
                 let path_to_save = path.unwrap_or(config.trove_home_path.as_ref().unwrap());
-                self.trove.save_trove_file(path_to_save)
+                self.trove.save_trove_file(path_to_save);
             }
             None => info!("[DEBUG] No command config loaded"),
         };
@@ -116,6 +116,7 @@ impl Hoard {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn start(&mut self) -> (String, bool) {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
@@ -196,7 +197,7 @@ impl Hoard {
                     }
                     self.save_trove(None);
                 } else {
-                    println!("No namespace provided!")
+                    println!("No namespace provided!");
                 }
             }
             // Load command by name
@@ -210,7 +211,7 @@ impl Hoard {
                             Ok(trove_string) => {
                                 let imported_trove =
                                     CommandTrove::load_trove_from_string(&trove_string[..]);
-                                self.trove.merge_trove(imported_trove);
+                                self.trove.merge_trove(&imported_trove);
                                 self.save_trove(None);
                             }
                             Err(e) => {
@@ -221,7 +222,7 @@ impl Hoard {
                             if let ParseError::RelativeUrlWithoutBase = err {
                                 let imported_trove =
                                     CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
-                                self.trove.merge_trove(imported_trove);
+                                self.trove.merge_trove(&imported_trove);
                                 self.save_trove(None);
                             } else {
                                 eprintln!("Not a valid URL or file path");

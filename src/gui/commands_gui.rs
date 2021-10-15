@@ -165,9 +165,8 @@ fn key_handler(
                             .selected()
                             .expect("Always a namespace selected"),
                     )
-                    .expect("Always a tab selected")
-                    .clone();
-                apply_search(app, trove_commands, &selected_tab);
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
                 let new_selection = if app.commands.is_empty() {
                     0
                 } else {
@@ -191,9 +190,8 @@ fn key_handler(
                             .selected()
                             .expect("Always a namespace selected"),
                     )
-                    .expect("Always a tab selected")
-                    .clone();
-                apply_search(app, trove_commands, &selected_tab);
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
                 let new_selection = if app.commands.is_empty() {
                     0
                 } else {
@@ -256,9 +254,8 @@ fn key_handler(
                         .selected()
                         .expect("Always a namespace selected"),
                 )
-                .expect("Always a tab selected")
-                .clone();
-            apply_search(app, trove_commands, &selected_tab);
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         Key::Char(c) => {
@@ -269,9 +266,8 @@ fn key_handler(
                         .selected()
                         .expect("Always a namespace selected"),
                 )
-                .expect("Always a tab selected")
-                .clone();
-            apply_search(app, trove_commands, &selected_tab);
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         _ => None,

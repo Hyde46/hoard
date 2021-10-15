@@ -8,7 +8,7 @@ use std::{fs, path::Path, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
 
-const CARGO_VERION: &str = env!("CARGO_PKG_VERSION");
+const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,7 +20,7 @@ pub struct CommandTrove {
 impl Default for CommandTrove {
     fn default() -> Self {
         Self {
-            version: String::from(CARGO_VERION),
+            version: String::from(CARGO_VERSION),
             commands: Vec::new(),
         }
     }
@@ -78,7 +78,7 @@ impl CommandTrove {
 
     pub fn add_command(&mut self, new_command: HoardCommand) {
         let new_command = if self.check_name_collision(&new_command) {
-            new_command.with_alt_name_input(None, &self)
+            new_command.with_alt_name_input(None, self)
         } else {
             new_command
         };
@@ -129,11 +129,11 @@ impl CommandTrove {
         self.commands.is_empty()
     }
 
-    pub fn merge_trove(&mut self, other: CommandTrove) {
+    pub fn merge_trove(&mut self, other: &Self) {
         other
             .commands
             .iter()
-            .for_each(|c| self.add_command(c.clone()))
+            .for_each(|c| self.add_command(c.clone()));
     }
 
     pub fn print_trove(&self) {
