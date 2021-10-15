@@ -3,6 +3,7 @@ use log::info;
 use prettytable::{color, Attr, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
 use super::hoard_command::HoardCommand;
@@ -102,6 +103,19 @@ impl CommandTrove {
         Ok(())
     }
 
+    pub fn namespaces(&self) -> Vec<&str> {
+        let mut namespaces: Vec<_> = self
+            .commands
+            .iter()
+            .map(|command| command.namespace.as_str())
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+
+        namespaces.sort_unstable();
+        namespaces
+    }
+
     pub fn pick_command(&self, name: &str) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {
@@ -165,5 +179,36 @@ mod test_commands {
         let command = HoardCommand::default();
         trove.add_command(command);
         assert!(!trove.is_empty());
+    }
+
+    #[test]
+    fn trove_namespaces() {
+        let namespace1 = "NAMESPACE1";
+        let namespace2 = "NAMESPACE2";
+
+        let command1 = HoardCommand {
+            name: "name1".to_string(),
+            namespace: namespace1.to_string(),
+            ..HoardCommand::default()
+        };
+
+        let command2 = HoardCommand {
+            name: "name2".to_string(),
+            namespace: namespace2.to_string(),
+            ..HoardCommand::default()
+        };
+
+        let command3 = HoardCommand {
+            name: "name3".to_string(),
+            namespace: namespace1.to_string(),
+            ..HoardCommand::default()
+        };
+
+        let mut trove = CommandTrove::default();
+        trove.add_command(command1);
+        trove.add_command(command2);
+        trove.add_command(command3);
+
+        assert_eq!(vec![namespace1, namespace2], trove.namespaces());
     }
 }
