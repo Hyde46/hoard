@@ -73,7 +73,7 @@ impl Hoard {
 
                 let selected_namespaces = prompt_multiselect_options(
                     "Export specific namespaces?",
-                    "Namespaces to export",
+                    "Namespaces to export ( Space to select )",
                     &namespaces,
                     |namespace| *namespace,
                 );
@@ -92,7 +92,7 @@ impl Hoard {
 
                 let selected_commands = prompt_multiselect_options(
                     "Export specific commands?",
-                    "Commands to export",
+                    "Commands to export ( Space to select )",
                     &commands,
                     |command| command.name.as_str(),
                 );
