@@ -16,8 +16,8 @@ use hoard::Hoard;
 fn main() {
     let (command, is_autocomplete) = Hoard::default().with_config(None).load_trove().start();
     if is_autocomplete {
-        eprintln!("{}", command.clone().trim());
+        eprintln!("{}", command.trim());
     } else {
-        println!("{}", command.clone().trim());
+        println!("{}", command.trim());
     }
 }

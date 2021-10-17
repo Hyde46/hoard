@@ -2,3 +2,4 @@
 pub mod commands_gui;
 pub mod event;
 pub mod prompts;
+pub mod theme;

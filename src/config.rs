@@ -1,11 +1,13 @@
 use anyhow::{anyhow, Error, Result};
-use dialoguer::{theme::ColorfulTheme, Input};
+use dialoguer::Input;
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
+
+use crate::gui::theme::HoardTheme;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const HOARD_HOMEDIR: &str = ".config/.hoard";
@@ -34,7 +36,7 @@ impl HoardConfig {
     }
 
     pub fn with_default_namespace(self) -> Self {
-        let default_namespace: String = Input::with_theme(&ColorfulTheme::default())
+        let default_namespace: String = Input::with_theme(&HoardTheme::default())
             .with_prompt("This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.")
             .default(String::from("default"))
             .interact_text()

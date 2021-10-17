@@ -1,7 +1,7 @@
-use super::super::command::hoard_command::HoardCommand;
-use super::super::command::trove::CommandTrove;
-use super::super::config::HoardConfig;
-use super::event::{Config, Event, Events};
+use crate::command::hoard_command::HoardCommand;
+use crate::command::trove::CommandTrove;
+use crate::config::HoardConfig;
+use crate::gui::event::{Config, Event, Events};
 use eyre::Result;
 use std::io::stdout;
 use std::time::Duration;

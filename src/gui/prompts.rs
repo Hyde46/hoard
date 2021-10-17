@@ -1,6 +1,5 @@
-use dialoguer::theme::ColorfulTheme;
+use crate::gui::theme::HoardTheme;
 use dialoguer::{MultiSelect, Select};
-
 pub enum Confirmation {
     Yes,
     No,
@@ -20,7 +19,7 @@ where
     let options_texts: Vec<S> = options.iter().map(text_extractor).collect();
 
     if let Confirmation::Yes = prompt_yes_or_no(question) {
-        let selected_indices = MultiSelect::with_theme(&ColorfulTheme::default())
+        let selected_indices = MultiSelect::with_theme(&HoardTheme::default())
             .with_prompt(selection_prompt)
             .items(&options_texts)
             .interact()
@@ -35,7 +34,7 @@ where
 pub fn prompt_yes_or_no(text: &str) -> Confirmation {
     const YES_ANSWER: usize = 0;
 
-    let answer = Select::with_theme(&ColorfulTheme::default())
+    let answer = Select::with_theme(&HoardTheme::default())
         .with_prompt(text)
         .items(&["Yes", "No"])
         .default(YES_ANSWER)

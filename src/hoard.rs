@@ -5,10 +5,10 @@ use url::ParseError;
 
 use crate::config::load_or_build_config;
 
-use super::command::hoard_command::HoardCommand;
-use super::command::trove::CommandTrove;
-use super::config::HoardConfig;
-use super::gui::commands_gui;
+use crate::command::hoard_command::HoardCommand;
+use crate::command::trove::CommandTrove;
+use crate::config::HoardConfig;
+use crate::gui::commands_gui;
 use crate::gui::prompts::prompt_multiselect_options;
 use std::path::{Path, PathBuf};
 
@@ -58,7 +58,7 @@ impl Hoard {
     pub fn save_trove(&self, path: Option<&Path>) {
         match &self.config {
             Some(config) => {
-                let path_to_save = path.unwrap_or(config.trove_home_path.as_ref().unwrap());
+                let path_to_save = path.unwrap_or_else(|| config.trove_home_path.as_ref().unwrap());
                 self.trove.save_trove_file(path_to_save);
             }
             None => info!("[DEBUG] No command config loaded"),

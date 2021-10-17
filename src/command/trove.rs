@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
-use super::hoard_command::HoardCommand;
+use crate::command::hoard_command::HoardCommand;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
