@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.1.9
+- ✨ Advanced export allowing subset of namespaces or commands to be exported
+- 🐛 Fix bug where selecting a command when running `hoard` as a `zsh` plugin produces gibberish rendered text in the terminal 
+
 ## 0.1.8
 - Wrap command text in UI
 - Left align command text in UI
