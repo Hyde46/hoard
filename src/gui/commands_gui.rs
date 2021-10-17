@@ -3,7 +3,6 @@ use super::super::command::trove::CommandTrove;
 use super::super::config::HoardConfig;
 use super::event::{Config, Event, Events};
 use eyre::Result;
-use std::collections::HashSet;
 use std::io::stdout;
 use std::time::Duration;
 use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
@@ -49,14 +48,8 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
     terminal.clear()?;
 
     //let menu_titles = vec!["List", "Search", "Add", "Delete", "Quit"];
-    let mut namespace_tabs: Vec<String> = trove
-        .commands
-        .iter()
-        .map(|command| command.namespace.clone())
-        .collect::<HashSet<String>>()
-        .into_iter()
-        .collect();
-    namespace_tabs.insert(0, String::from("All"));
+    let mut namespace_tabs: Vec<&str> = trove.namespaces();
+    namespace_tabs.insert(0, "All");
     loop {
         // Draw GUI
         terminal.draw(|rect| {
@@ -77,7 +70,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
                 .iter()
                 .map(|t| {
                     Spans::from(vec![Span::styled(
-                        t,
+                        *t,
                         Style::default().fg(Color::Rgb(242, 229, 188)),
                     )])
                 })
@@ -149,7 +142,7 @@ fn key_handler(
     input: Key,
     app: &mut State,
     trove_commands: &Vec<HoardCommand>,
-    namespace_tabs: &Vec<String>,
+    namespace_tabs: &Vec<&str>,
 ) -> Option<String> {
     match input {
         // Quit command
@@ -172,9 +165,8 @@ fn key_handler(
                             .selected()
                             .expect("Always a namespace selected"),
                     )
-                    .expect("Always a tab selected")
-                    .clone();
-                apply_search(app, trove_commands, &selected_tab);
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
                 let new_selection = if app.commands.is_empty() {
                     0
                 } else {
@@ -198,9 +190,8 @@ fn key_handler(
                             .selected()
                             .expect("Always a namespace selected"),
                     )
-                    .expect("Always a tab selected")
-                    .clone();
-                apply_search(app, trove_commands, &selected_tab);
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
                 let new_selection = if app.commands.is_empty() {
                     0
                 } else {
@@ -263,9 +254,8 @@ fn key_handler(
                         .selected()
                         .expect("Always a namespace selected"),
                 )
-                .expect("Always a tab selected")
-                .clone();
-            apply_search(app, trove_commands, &selected_tab);
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         Key::Char(c) => {
@@ -276,9 +266,8 @@ fn key_handler(
                         .selected()
                         .expect("Always a namespace selected"),
                 )
-                .expect("Always a tab selected")
-                .clone();
-            apply_search(app, trove_commands, &selected_tab);
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         _ => None,
