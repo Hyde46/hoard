@@ -20,7 +20,7 @@ pub struct CommandTrove {
 impl Default for CommandTrove {
     fn default() -> Self {
         Self {
-            version: String::from(CARGO_VERSION),
+            version: CARGO_VERSION.to_string(),
             commands: Vec::new(),
         }
     }
@@ -155,7 +155,7 @@ impl CommandTrove {
                 // description
                 Cell::new(&c.description.as_ref().unwrap()[..]),
                 // tags
-                Cell::new(&c.tags.as_ref().unwrap_or(&vec![String::from("")]).join(",")[..]),
+                Cell::new(&c.tags.as_ref().unwrap_or(&vec!["".to_string()]).join(",")[..]),
             ]));
         });
         // Print the table to stdout

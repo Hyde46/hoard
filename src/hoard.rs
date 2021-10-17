@@ -121,7 +121,7 @@ impl Hoard {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
 
-        let mut autocomplete_command = String::from("");
+        let mut autocomplete_command = "".to_string();
 
         match matches.subcommand() {
             // Create new command and save it it in trove

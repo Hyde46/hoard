@@ -19,10 +19,10 @@ pub struct HoardCommand {
 impl HoardCommand {
     pub fn default() -> Self {
         Self {
-            name: String::from(""),
-            namespace: String::from(""),
+            name: "".to_string(),
+            namespace: "".to_string(),
             tags: None,
-            command: String::from(""),
+            command: "".to_string(),
             description: None,
         }
     }
@@ -42,7 +42,7 @@ impl HoardCommand {
     pub fn tags_as_string(&self) -> String {
         self.tags
             .as_ref()
-            .unwrap_or(&vec![String::from("")])
+            .unwrap_or(&vec!["".to_string()])
             .join(",")
     }
 
@@ -77,7 +77,7 @@ impl HoardCommand {
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
         let tag_validator = move |input: &String| -> Result<(), String> {
             if input.contains(' ') {
-                Err(String::from("Tags cant contain whitespaces"))
+                Err("Tags cant contain whitespaces".to_string())
             } else {
                 Ok(())
             }
@@ -111,15 +111,16 @@ impl HoardCommand {
         let command_names = trove.commands.clone();
         let validator = move |input: &String| -> Result<(), String> {
             if input.contains(' ') {
-                Err(String::from("The name cant contain whitespaces"))
+                Err("The name cant contain whitespaces".to_string())
             } else if command_names
                 .iter()
                 .filter(|x| x.namespace == namespace)
                 .any(|x| x.name == *input)
             {
-                Err(String::from(
-                    "A command with same name exists in the this namespace. Input a different name",
-                ))
+                Err(
+                    "A command with same name exists in the this namespace. Input a different name"
+                        .to_string(),
+                )
             } else {
                 Ok(())
             }
@@ -222,7 +223,7 @@ mod test_commands {
     #[test]
     fn parse_single_tag() {
         let command = HoardCommand::default().with_tags_raw("foo");
-        let expected = Some(vec![String::from("foo")]);
+        let expected = Some(vec!["foo".to_string()]);
         assert_eq!(expected, command.tags);
     }
 
@@ -236,14 +237,14 @@ mod test_commands {
     #[test]
     fn parse_multiple_tags() {
         let command = HoardCommand::default().with_tags_raw("foo,bar");
-        let expected = Some(vec![String::from("foo"), String::from("bar")]);
+        let expected = Some(vec!["foo".to_string(), "bar".to_string()]);
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_whitespace_in_tags() {
         let command = HoardCommand::default().with_tags_raw("foo, bar");
-        let expected = Some(vec![String::from("foo"), String::from("bar")]);
+        let expected = Some(vec!["foo".to_string(), "bar".to_string()]);
         assert_eq!(expected, command.tags);
     }
 }

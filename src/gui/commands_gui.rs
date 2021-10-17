@@ -31,7 +31,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
     });
 
     let mut app_state = State {
-        input: String::from(""),
+        input: "".to_string(),
         commands: trove.commands.clone(),
         command_list_state: ListState::default(),
         namespace_tab_state: ListState::default(),
@@ -148,7 +148,7 @@ fn key_handler(
         // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
             app.should_exit = true;
-            Some(String::from(""))
+            Some("".to_string())
         }
         // Switch namespace
         Key::Left | Key::Ctrl('h') => {
@@ -231,7 +231,7 @@ fn key_handler(
         // Select command
         Key::Char('\n') => {
             if app.commands.is_empty() {
-                return Some(String::from(""));
+                return Some("".to_string());
             }
             let selected_command = app
                 .commands

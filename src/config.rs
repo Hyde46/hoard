@@ -26,17 +26,17 @@ impl HoardConfig {
     pub fn new(hoard_home_path: &Path) -> Self {
         Self {
             version: VERSION.to_string(),
-            default_namespace: String::from("default"),
+            default_namespace: "default".to_string(),
             config_home_path: Some(hoard_home_path.to_path_buf()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
-            query_prefix: String::from("  >"),
+            query_prefix: "  >".to_string(),
         }
     }
 
     pub fn with_default_namespace(self) -> Self {
         let default_namespace = prompt_input(
             "This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.",
-            Some(String::from("default"))
+            Some("default".to_string())
         );
         Self {
             version: self.version,
