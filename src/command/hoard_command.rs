@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use dialoguer::Input;
-
 use crate::command::trove::CommandTrove;
-use crate::gui::theme::HoardTheme;
+use crate::gui::prompts::{prompt_input, prompt_input_validate};
 
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
@@ -49,19 +47,7 @@ impl HoardCommand {
     }
 
     pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
-        let command_string: String;
-        if let Some(val) = default_value {
-            command_string = Input::with_theme(&HoardTheme::default())
-                .default(val)
-                .with_prompt("Command to hoard")
-                .interact_text()
-                .unwrap();
-        } else {
-            command_string = Input::with_theme(&HoardTheme::default())
-                .with_prompt("Command to hoard")
-                .interact_text()
-                .unwrap();
-        }
+        let command_string: String = prompt_input("Command to hoard", default_value);
         Self {
             name: self.name,
             namespace: self.namespace,
@@ -89,54 +75,23 @@ impl HoardCommand {
     }
 
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
-        let tags: String;
-        if let Some(val) = default_value {
-            tags = Input::with_theme(&HoardTheme::default())
-                .default(val)
-                .with_prompt("Give your command tags ( comma separated )")
-                .validate_with({
-                    move |input: &String| -> Result<(), &str> {
-                        if input.contains(' ') {
-                            Err("Tags cant contain whitespaces")
-                        } else {
-                            Ok(())
-                        }
-                    }
-                })
-                .interact_text()
-                .unwrap();
-        } else {
-            tags = Input::with_theme(&HoardTheme::default())
-                .with_prompt("Give your command tags ( comma separated )")
-                .validate_with({
-                    move |input: &String| -> Result<(), &str> {
-                        if input.contains(' ') {
-                            Err("Tags cant contain whitespaces")
-                        } else {
-                            Ok(())
-                        }
-                    }
-                })
-                .interact_text()
-                .unwrap();
-        }
+        let tag_validator = move |input: &String| -> Result<(), String> {
+            if input.contains(' ') {
+                Err(String::from("Tags cant contain whitespaces"))
+            } else {
+                Ok(())
+            }
+        };
+        let tags: String = prompt_input_validate(
+            "Give your command some tags ( comma seperated )",
+            default_value,
+            Some(tag_validator),
+        );
         self.with_tags_raw(&tags)
     }
 
     pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
-        let namespace: String;
-        if let Some(val) = default_namespace {
-            namespace = Input::with_theme(&HoardTheme::default())
-                .default(val)
-                .with_prompt("Namespace of the command")
-                .interact_text()
-                .unwrap();
-        } else {
-            namespace = Input::with_theme(&HoardTheme::default())
-                .with_prompt("Namespace of the command")
-                .interact_text()
-                .unwrap();
-        }
+        let namespace: String = prompt_input("Namespace of the command", default_namespace);
         Self {
             name: self.name,
             namespace,
@@ -150,54 +105,26 @@ impl HoardCommand {
         self,
         default_value: Option<String>,
         trove: &CommandTrove,
-        prompt_string: String,
+        prompt_string: &str,
     ) -> Self {
-        let command_names = trove.commands.clone();
         let namespace = self.namespace.clone();
-
-        let name: String;
-        if let Some(val) = default_value {
-            name = Input::with_theme(&HoardTheme::default())
-                .default(val)
-                .with_prompt(prompt_string)
-                .validate_with({
-                    move |input: &String| -> Result<(), &str> {
-                        if input.contains(' ') {
-                            Err("The name cant contain whitespaces")
-                        } else if command_names
-                            .iter()
-                            .filter(|x| x.namespace == namespace)
-                            .any(|x| x.name == *input)
-                        {
-                            Err("A command with same name exists in the this namespace. Input a different name")
-                        } else {
-                            Ok(())
-                        }
-                    }
-                })
-                .interact_text()
-                .unwrap();
-        } else {
-            name = Input::with_theme(&HoardTheme::default())
-                .with_prompt(prompt_string)
-                .validate_with({
-                    move |input: &String| -> Result<(), &str> {
-                        if input.contains(' ') {
-                            Err("The name cant contain whitespaces")
-                        } else if command_names
-                            .iter()
-                            .filter(|x| x.namespace == namespace)
-                            .any(|x| x.name == *input)
-                        {
-                            Err("A command with same name exists in the this namespace. Input a different name")
-                        } else {
-                            Ok(())
-                        }
-                    }
-                })
-                .interact_text()
-                .unwrap();
-        }
+        let command_names = trove.commands.clone();
+        let validator = move |input: &String| -> Result<(), String> {
+            if input.contains(' ') {
+                Err(String::from("The name cant contain whitespaces"))
+            } else if command_names
+                .iter()
+                .filter(|x| x.namespace == namespace)
+                .any(|x| x.name == *input)
+            {
+                Err(String::from(
+                    "A command with same name exists in the this namespace. Input a different name",
+                ))
+            } else {
+                Ok(())
+            }
+        };
+        let name = prompt_input_validate(prompt_string, default_value, Some(validator));
         Self {
             name,
             namespace: self.namespace,
@@ -208,7 +135,7 @@ impl HoardCommand {
     }
 
     pub fn with_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
-        self.with_name_input_prompt(default_value, trove, "Name your command".to_string())
+        self.with_name_input_prompt(default_value, trove, "Name your command")
     }
 
     pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
@@ -218,7 +145,7 @@ impl HoardCommand {
         self.with_name_input_prompt(
             default_value,
             trove,
-            format!(
+            &format!(
                 "A command with same name already exists in the namespace '{}'. Enter an alternate name for '{}' with command `{}`",
                 namespace,
                 name,
@@ -228,19 +155,8 @@ impl HoardCommand {
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
-        let description_string: String;
-        if let Some(val) = default_value {
-            description_string = Input::with_theme(&HoardTheme::default())
-                .default(val)
-                .with_prompt("Describe what the command does")
-                .interact_text()
-                .unwrap();
-        } else {
-            description_string = Input::with_theme(&HoardTheme::default())
-                .with_prompt("Describe what the command does")
-                .interact_text()
-                .unwrap();
-        }
+        let description_string: String =
+            prompt_input("Describe what the command does", default_value);
         Self {
             name: self.name,
             namespace: self.namespace,

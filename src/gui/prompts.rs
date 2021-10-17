@@ -1,5 +1,5 @@
 use crate::gui::theme::HoardTheme;
-use dialoguer::{MultiSelect, Select};
+use dialoguer::{Input, MultiSelect, Select};
 pub enum Confirmation {
     Yes,
     No,
@@ -46,6 +46,36 @@ pub fn prompt_yes_or_no(text: &str) -> Confirmation {
     } else {
         Confirmation::No
     }
+}
+
+pub fn prompt_input(text: &str, default_value: Option<String>) -> String {
+    // Just calls `prompt_input_validate` to not keep on typing `None` for the validator
+    prompt_input_validate(
+        text,
+        default_value,
+        None::<Box<dyn FnMut(&String) -> Result<(), String>>>,
+    )
+}
+
+pub fn prompt_input_validate<F>(
+    text: &str,
+    default_value: Option<String>,
+    validator: Option<F>,
+) -> String
+where
+    F: FnMut(&String) -> Result<(), String>,
+{
+    let theme = HoardTheme::default();
+    let mut input: Input<String> = Input::with_theme(&theme);
+    // Add default value to input prompt
+    if let Some(val) = default_value {
+        input.default(val);
+    }
+    // Add validator if any
+    if let Some(val) = validator {
+        input.validate_with(val);
+    }
+    input.with_prompt(text).interact_text().unwrap()
 }
 
 fn take_elements_by_indices<T>(elements: &[T], indices: &[usize]) -> Vec<T>
