@@ -1,14 +1,15 @@
-use clap::{load_yaml, App};
+use clap::{load_yaml, App, ArgMatches};
 use log::info;
 use reqwest::Url;
 use url::ParseError;
 
 use crate::config::load_or_build_config;
 
-use super::command::hoard_command::HoardCommand;
-use super::command::trove::CommandTrove;
-use super::config::HoardConfig;
-use super::gui::commands_gui;
+use crate::command::hoard_command::HoardCommand;
+use crate::command::trove::CommandTrove;
+use crate::config::HoardConfig;
+use crate::gui::commands_gui;
+use crate::gui::prompts::prompt_multiselect_options;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -57,13 +58,65 @@ impl Hoard {
     pub fn save_trove(&self, path: Option<&Path>) {
         match &self.config {
             Some(config) => {
-                let path_to_save = path.unwrap_or(config.trove_home_path.as_ref().unwrap());
-                self.trove.save_trove_file(path_to_save)
+                let path_to_save = path.unwrap_or_else(|| config.trove_home_path.as_ref().unwrap());
+                self.trove.save_trove_file(path_to_save);
             }
             None => info!("[DEBUG] No command config loaded"),
         };
     }
 
+    fn export_command(&self, arguments: &ArgMatches) {
+        if let Some(path) = arguments.value_of("path") {
+            let target_path = PathBuf::from(path);
+            if target_path.file_name().is_some() {
+                let namespaces = self.trove.namespaces();
+
+                let selected_namespaces = prompt_multiselect_options(
+                    "Export specific namespaces?",
+                    "Namespaces to export",
+                    &namespaces,
+                    |namespace| *namespace,
+                );
+
+                if selected_namespaces.is_empty() {
+                    println!("Nothing selected");
+                    return;
+                }
+
+                let commands = self
+                    .trove
+                    .commands
+                    .iter()
+                    .filter(|command| selected_namespaces.contains(&command.namespace.as_str()))
+                    .collect::<Vec<_>>();
+
+                let selected_commands = prompt_multiselect_options(
+                    "Export specific commands?",
+                    "Commands to export",
+                    &commands,
+                    |command| command.name.as_str(),
+                );
+
+                if selected_commands.is_empty() {
+                    println!("Nothing selected");
+                    return;
+                }
+
+                let mut trove_for_export = CommandTrove::default();
+                for command in selected_commands {
+                    trove_for_export.add_command(command.clone());
+                }
+
+                trove_for_export.save_trove_file(&target_path);
+            } else {
+                println!("No valid path with filename provided.");
+            }
+        } else {
+            println!("No path provided.");
+        }
+    }
+
+    #[allow(clippy::too_many_lines)]
     pub fn start(&mut self) -> (String, bool) {
         let yaml = load_yaml!("resources/cli.yaml");
         let matches = App::from(yaml).get_matches();
@@ -144,7 +197,7 @@ impl Hoard {
                     }
                     self.save_trove(None);
                 } else {
-                    println!("No namespace provided!")
+                    println!("No namespace provided!");
                 }
             }
             // Load command by name
@@ -158,7 +211,7 @@ impl Hoard {
                             Ok(trove_string) => {
                                 let imported_trove =
                                     CommandTrove::load_trove_from_string(&trove_string[..]);
-                                self.trove.merge_trove(imported_trove);
+                                self.trove.merge_trove(&imported_trove);
                                 self.save_trove(None);
                             }
                             Err(e) => {
@@ -169,7 +222,7 @@ impl Hoard {
                             if let ParseError::RelativeUrlWithoutBase = err {
                                 let imported_trove =
                                     CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
-                                self.trove.merge_trove(imported_trove);
+                                self.trove.merge_trove(&imported_trove);
                                 self.save_trove(None);
                             } else {
                                 eprintln!("Not a valid URL or file path");
@@ -181,16 +234,7 @@ impl Hoard {
                 }
             }
             ("export", Some(sub_m)) => {
-                if let Some(path) = sub_m.value_of("path") {
-                    let target_path = PathBuf::from(path);
-                    if target_path.file_name().is_some() {
-                        self.save_trove(Some(&target_path));
-                    } else {
-                        println!("No valid path with filename provided.");
-                    }
-                } else {
-                    println!("No path provided.");
-                }
+                self.export_command(sub_m);
             }
             ("edit", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {

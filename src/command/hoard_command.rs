@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use dialoguer::{theme::ColorfulTheme, Input};
+use dialoguer::Input;
 
-use super::trove::CommandTrove;
+use crate::command::trove::CommandTrove;
+use crate::gui::theme::HoardTheme;
 
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
@@ -50,13 +51,13 @@ impl HoardCommand {
     pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
         let command_string: String;
         if let Some(val) = default_value {
-            command_string = Input::with_theme(&ColorfulTheme::default())
+            command_string = Input::with_theme(&HoardTheme::default())
                 .default(val)
                 .with_prompt("Command to hoard")
                 .interact_text()
                 .unwrap();
         } else {
-            command_string = Input::with_theme(&ColorfulTheme::default())
+            command_string = Input::with_theme(&HoardTheme::default())
                 .with_prompt("Command to hoard")
                 .interact_text()
                 .unwrap();
@@ -90,7 +91,7 @@ impl HoardCommand {
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
         let tags: String;
         if let Some(val) = default_value {
-            tags = Input::with_theme(&ColorfulTheme::default())
+            tags = Input::with_theme(&HoardTheme::default())
                 .default(val)
                 .with_prompt("Give your command tags ( comma separated )")
                 .validate_with({
@@ -105,7 +106,7 @@ impl HoardCommand {
                 .interact_text()
                 .unwrap();
         } else {
-            tags = Input::with_theme(&ColorfulTheme::default())
+            tags = Input::with_theme(&HoardTheme::default())
                 .with_prompt("Give your command tags ( comma separated )")
                 .validate_with({
                     move |input: &String| -> Result<(), &str> {
@@ -125,13 +126,13 @@ impl HoardCommand {
     pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
         let namespace: String;
         if let Some(val) = default_namespace {
-            namespace = Input::with_theme(&ColorfulTheme::default())
+            namespace = Input::with_theme(&HoardTheme::default())
                 .default(val)
                 .with_prompt("Namespace of the command")
                 .interact_text()
                 .unwrap();
         } else {
-            namespace = Input::with_theme(&ColorfulTheme::default())
+            namespace = Input::with_theme(&HoardTheme::default())
                 .with_prompt("Namespace of the command")
                 .interact_text()
                 .unwrap();
@@ -156,7 +157,7 @@ impl HoardCommand {
 
         let name: String;
         if let Some(val) = default_value {
-            name = Input::with_theme(&ColorfulTheme::default())
+            name = Input::with_theme(&HoardTheme::default())
                 .default(val)
                 .with_prompt(prompt_string)
                 .validate_with({
@@ -166,7 +167,7 @@ impl HoardCommand {
                         } else if command_names
                             .iter()
                             .filter(|x| x.namespace == namespace)
-                            .any(|x| x.name == input.to_string())
+                            .any(|x| x.name == *input)
                         {
                             Err("A command with same name exists in the this namespace. Input a different name")
                         } else {
@@ -177,7 +178,7 @@ impl HoardCommand {
                 .interact_text()
                 .unwrap();
         } else {
-            name = Input::with_theme(&ColorfulTheme::default())
+            name = Input::with_theme(&HoardTheme::default())
                 .with_prompt(prompt_string)
                 .validate_with({
                     move |input: &String| -> Result<(), &str> {
@@ -186,7 +187,7 @@ impl HoardCommand {
                         } else if command_names
                             .iter()
                             .filter(|x| x.namespace == namespace)
-                            .any(|x| x.name == input.to_string())
+                            .any(|x| x.name == *input)
                         {
                             Err("A command with same name exists in the this namespace. Input a different name")
                         } else {
@@ -229,13 +230,13 @@ impl HoardCommand {
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
         let description_string: String;
         if let Some(val) = default_value {
-            description_string = Input::with_theme(&ColorfulTheme::default())
+            description_string = Input::with_theme(&HoardTheme::default())
                 .default(val)
                 .with_prompt("Describe what the command does")
                 .interact_text()
                 .unwrap();
         } else {
-            description_string = Input::with_theme(&ColorfulTheme::default())
+            description_string = Input::with_theme(&HoardTheme::default())
                 .with_prompt("Describe what the command does")
                 .interact_text()
                 .unwrap();
