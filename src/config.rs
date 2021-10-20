@@ -21,7 +21,10 @@ pub struct HoardConfig {
     pub trove_home_path: Option<PathBuf>,
     pub query_prefix: String,
     // Color settings
-    pub primary_color: Option<(u8, u8, u8)>
+    pub primary_color: Option<(u8, u8, u8)>,
+    pub secondary_color: Option<(u8, u8, u8)>,
+    pub tertiary_color: Option<(u8, u8, u8)>,
+    pub command_color: Option<(u8, u8, u8)>
 }
 
 impl HoardConfig {
@@ -32,7 +35,10 @@ impl HoardConfig {
             config_home_path: Some(hoard_home_path.to_path_buf()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
             query_prefix: "  >".to_string(),
-            primary_color: Some((242, 229, 188))
+            primary_color: Some(HoardConfig::default_colors(0)),
+            secondary_color: Some(HoardConfig::default_colors(1)),
+            tertiary_color: Some(HoardConfig::default_colors(2)),
+            command_color: Some(HoardConfig::default_colors(3))
         }
     }
 
@@ -47,14 +53,21 @@ impl HoardConfig {
             config_home_path: self.config_home_path,
             trove_home_path: self.trove_home_path,
             query_prefix: self.query_prefix,
-            primary_color: self.primary_color
+            primary_color: self.primary_color,
+            secondary_color: self.secondary_color,
+            tertiary_color: self.tertiary_color,
+            command_color: self.command_color
         }
     }
 
-    fn default_primary_color() -> (u8, u8, u8) {
-        (242, 229, 188)
+    fn default_colors(color_level: u8) -> (u8, u8, u8) {
+        match color_level {
+            0 => (242, 229, 118),
+            1 => (181, 118, 20),
+            2 => (50, 48, 47),
+            _ => (181, 118, 20)
+        }
     }
-
 }
 
 /// Loads hoard config file at $HOME/.hoard/config.yml.
@@ -103,7 +116,19 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
         let mut loaded_config: HoardConfig = serde_yaml::from_reader::<_, HoardConfig>(f)?;
         let mut is_config_dirty = false;
         if loaded_config.primary_color.is_none() {
-            loaded_config.primary_color = Some(HoardConfig::default_primary_color()); 
+            loaded_config.primary_color = Some(HoardConfig::default_colors(0)); 
+            is_config_dirty = true;
+        }
+        if loaded_config.secondary_color.is_none() {
+            loaded_config.secondary_color = Some(HoardConfig::default_colors(1)); 
+            is_config_dirty = true;
+        }
+        if loaded_config.tertiary_color.is_none() {
+            loaded_config.tertiary_color = Some(HoardConfig::default_colors(2)); 
+            is_config_dirty = true;
+        }
+        if loaded_config.command_color.is_none() {
+            loaded_config.command_color = Some(HoardConfig::default_colors(3)); 
             is_config_dirty = true;
         }
         if loaded_config.trove_home_path.is_none() {

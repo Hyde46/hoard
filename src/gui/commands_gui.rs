@@ -343,13 +343,13 @@ fn render_commands<'a>(
 
     let list = List::new(items).block(commands).highlight_style(
         Style::default()
-            .bg(Color::Rgb(181, 118, 20))
-            .fg(Color::Rgb(50, 48, 47))
+            .bg(Color::Rgb(config.secondary_color.unwrap().0, config.secondary_color.unwrap().1, config.secondary_color.unwrap().2))
+            .fg(Color::Rgb(config.tertiary_color.unwrap().0, config.tertiary_color.unwrap().1, config.tertiary_color.unwrap().2))
             .add_modifier(Modifier::BOLD),
     );
 
     let command = Paragraph::new(selected_command.command.clone())
-        .style(Style::default().fg(Color::Rgb(181, 118, 20)))
+        .style(Style::default().fg(Color::Rgb(config.command_color.unwrap().0, config.command_color.unwrap().1, config.command_color.unwrap().2)))
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .block(
