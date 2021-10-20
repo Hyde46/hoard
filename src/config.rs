@@ -35,10 +35,10 @@ impl HoardConfig {
             config_home_path: Some(hoard_home_path.to_path_buf()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
             query_prefix: "  >".to_string(),
-            primary_color: Some(HoardConfig::default_colors(0)),
-            secondary_color: Some(HoardConfig::default_colors(1)),
-            tertiary_color: Some(HoardConfig::default_colors(2)),
-            command_color: Some(HoardConfig::default_colors(3))
+            primary_color: Some(Self::default_colors(0)),
+            secondary_color: Some(Self::default_colors(1)),
+            tertiary_color: Some(Self::default_colors(2)),
+            command_color: Some(Self::default_colors(3))
         }
     }
 
@@ -60,12 +60,12 @@ impl HoardConfig {
         }
     }
 
-    fn default_colors(color_level: u8) -> (u8, u8, u8) {
+    const fn default_colors(color_level: u8) -> (u8, u8, u8) {
         match color_level {
             0 => (242, 229, 118),
             1 => (181, 118, 20),
             2 => (50, 48, 47),
-            _ => (181, 118, 20)
+            _ => (180, 118, 20)
         }
     }
 }
@@ -96,6 +96,7 @@ fn load_or_build_default_path() -> Result<HoardConfig, Error> {
     }
 }
 
+#[allow(clippy::useless_let_if_seq)]
 fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     info!("Loading or building in {:?}", path);
     let home_path = Path::new(&path);
@@ -149,7 +150,7 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     config
 }
 
-fn save_config(config_to_save: &HoardConfig, config_path: &PathBuf) -> Result<(), Error> {
+fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {
     let s = serde_yaml::to_string(&config_to_save)?;
     fs::write(config_path, s).expect("Unable to write config file");
     Ok(())
