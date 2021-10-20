@@ -3,9 +3,22 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Hyde46/hoard/actions/workflows/test.yml">
+    <img src="https://img.shields.io/github/workflow/status/hyde46/hoard/Rust?style=flat-square" />
+  </a>
   <a href="https://crates.io/crates/hoard-rs"
     ><img
       src="https://img.shields.io/crates/v/hoard-rs?style=flat-square"
+      alt="Crates.io version"
+  /></a>
+  <a href="https://github.com/Hyde46/hoard/issues"
+    ><img
+      src="https://img.shields.io/github/issues/Hyde46/hoard?style=flat-square"
+      alt="Crates.io version"
+  /></a>
+  <a href="https://crates.io/crates/hoard-rs"
+    ><img
+      src="https://img.shields.io/github/license/Hyde46/hoard?style=flat-square"
       alt="Crates.io version"
   /></a>
 </p>
