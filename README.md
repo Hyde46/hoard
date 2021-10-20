@@ -1,8 +1,20 @@
-#  hoard 
+<p align="center">
+<img src=img/hoard_icon.png width="400" height="400">
+</p>
 
-> A command organizer utility tool to hoard all your precious commands 💎🐉
+<p align="center">
+  <a href="https://crates.io/crates/hoard-rs"
+    ><img
+      src="https://img.shields.io/crates/v/hoard-rs?style=flat-square"
+      alt="Crates.io version"
+  /></a>
+</p>
 
-![Example usage](img/hoard_example.gif)
+<p align="center">
+<em> command organizer tool to hoard all your precious commands 💎🐉</em>
+</p>
+
+![Example usage](img/hoard_usage_example.gif)
 
 #### What is a command organizer?
 
