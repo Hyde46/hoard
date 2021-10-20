@@ -20,6 +20,8 @@ pub struct HoardConfig {
     pub config_home_path: Option<PathBuf>,
     pub trove_home_path: Option<PathBuf>,
     pub query_prefix: String,
+    // Color settings
+    pub primary_color: Option<(u8, u8, u8)>
 }
 
 impl HoardConfig {
@@ -30,6 +32,7 @@ impl HoardConfig {
             config_home_path: Some(hoard_home_path.to_path_buf()),
             trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
             query_prefix: "  >".to_string(),
+            primary_color: Some((242, 229, 188))
         }
     }
 
@@ -44,8 +47,14 @@ impl HoardConfig {
             config_home_path: self.config_home_path,
             trove_home_path: self.trove_home_path,
             query_prefix: self.query_prefix,
+            primary_color: self.primary_color
         }
     }
+
+    fn default_primary_color() -> (u8, u8, u8) {
+        (242, 229, 188)
+    }
+
 }
 
 /// Loads hoard config file at $HOME/.hoard/config.yml.
@@ -90,19 +99,33 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     // Check if $HOME/.hoard/config.yml exists. Create default config if it does not exist
     let config = if hoard_config_path.exists() {
         info!("Config file exists");
-        let f = std::fs::File::open(hoard_config_path)?;
+        let f = std::fs::File::open(&hoard_config_path)?;
         let mut loaded_config: HoardConfig = serde_yaml::from_reader::<_, HoardConfig>(f)?;
+        let mut is_config_dirty = false;
+        if loaded_config.primary_color.is_none() {
+            loaded_config.primary_color = Some(HoardConfig::default_primary_color()); 
+            is_config_dirty = true;
+        }
         if loaded_config.trove_home_path.is_none() {
             loaded_config.trove_home_path = Some(hoard_dir.join(HOARD_FILE));
+            is_config_dirty = true;
+        }
+        if is_config_dirty {
+            save_config(&loaded_config, &hoard_config_path)?;
         }
         Ok(loaded_config)
     } else {
         info!("Config file does not exist. Creating new one");
         let new_config = HoardConfig::new(&hoard_dir).with_default_namespace();
-        let s = serde_yaml::to_string(&new_config)?;
-        fs::write(hoard_config_path, s).expect("Unable to write config file");
+        save_config(&new_config, &hoard_config_path)?;
         Ok(new_config)
     };
 
     config
+}
+
+fn save_config(config_to_save: &HoardConfig, config_path: &PathBuf) -> Result<(), Error> {
+    let s = serde_yaml::to_string(&config_to_save)?;
+    fs::write(config_path, s).expect("Unable to write config file");
+    Ok(())
 }
