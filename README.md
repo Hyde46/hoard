@@ -1,5 +1,5 @@
 <p align="center">
-<img src=img/hoard_icon.png width="384" height="384">
+<img src=img/hoard_icon.png width="341" height="341">
 </p>
 
 <p align="center">
