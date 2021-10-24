@@ -72,7 +72,11 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
                 .map(|t| {
                     Spans::from(vec![Span::styled(
                         *t,
-                        Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)),
+                        Style::default().fg(Color::Rgb(
+                            config.primary_color.unwrap().0,
+                            config.primary_color.unwrap().1,
+                            config.primary_color.unwrap().2,
+                        )),
                     )])
                 })
                 .collect();
@@ -89,7 +93,11 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
                         .title(" Hoard Namespace ")
                         .borders(Borders::ALL),
                 )
-                .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+                .style(Style::default().fg(Color::Rgb(
+                    config.primary_color.unwrap().0,
+                    config.primary_color.unwrap().1,
+                    config.primary_color.unwrap().2,
+                )))
                 .highlight_style(
                     Style::default()
                         .fg(Color::Rgb(181, 118, 20))
@@ -308,7 +316,11 @@ fn render_commands<'a>(
 ) {
     let commands = Block::default()
         .borders(Borders::ALL)
-        .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+        .style(Style::default().fg(Color::Rgb(
+            config.primary_color.unwrap().0,
+            config.primary_color.unwrap().1,
+            config.primary_color.unwrap().2,
+        )))
         .title(" Commands ")
         .border_type(BorderType::Plain);
 
@@ -343,42 +355,74 @@ fn render_commands<'a>(
 
     let list = List::new(items).block(commands).highlight_style(
         Style::default()
-            .bg(Color::Rgb(config.secondary_color.unwrap().0, config.secondary_color.unwrap().1, config.secondary_color.unwrap().2))
-            .fg(Color::Rgb(config.tertiary_color.unwrap().0, config.tertiary_color.unwrap().1, config.tertiary_color.unwrap().2))
+            .bg(Color::Rgb(
+                config.secondary_color.unwrap().0,
+                config.secondary_color.unwrap().1,
+                config.secondary_color.unwrap().2,
+            ))
+            .fg(Color::Rgb(
+                config.tertiary_color.unwrap().0,
+                config.tertiary_color.unwrap().1,
+                config.tertiary_color.unwrap().2,
+            ))
             .add_modifier(Modifier::BOLD),
     );
 
     let command = Paragraph::new(selected_command.command.clone())
-        .style(Style::default().fg(Color::Rgb(config.command_color.unwrap().0, config.command_color.unwrap().1, config.command_color.unwrap().2)))
+        .style(Style::default().fg(Color::Rgb(
+            config.command_color.unwrap().0,
+            config.command_color.unwrap().1,
+            config.command_color.unwrap().2,
+        )))
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+                .style(Style::default().fg(Color::Rgb(
+                    config.primary_color.unwrap().0,
+                    config.primary_color.unwrap().1,
+                    config.primary_color.unwrap().2,
+                )))
                 .title(" Hoarded command ")
                 .border_type(BorderType::Plain),
         );
 
     let tags = Paragraph::new(selected_command.tags_as_string())
-        .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+        .style(Style::default().fg(Color::Rgb(
+            config.primary_color.unwrap().0,
+            config.primary_color.unwrap().1,
+            config.primary_color.unwrap().2,
+        )))
         .alignment(Alignment::Left)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+                .style(Style::default().fg(Color::Rgb(
+                    config.primary_color.unwrap().0,
+                    config.primary_color.unwrap().1,
+                    config.primary_color.unwrap().2,
+                )))
                 .title(" Tags ")
                 .border_type(BorderType::Plain),
         );
 
     let description = Paragraph::new(selected_command.description.unwrap_or_default())
-        .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+        .style(Style::default().fg(Color::Rgb(
+            config.primary_color.unwrap().0,
+            config.primary_color.unwrap().1,
+            config.primary_color.unwrap().2,
+        )))
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+                .style(Style::default().fg(Color::Rgb(
+                    config.primary_color.unwrap().0,
+                    config.primary_color.unwrap().1,
+                    config.primary_color.unwrap().2,
+                )))
                 .title(" Description ")
                 .border_type(BorderType::Plain),
         );
@@ -388,7 +432,11 @@ fn render_commands<'a>(
     let query_title = format!(" hoard v{} ", VERSION);
     let input = Paragraph::new(query_string).block(
         Block::default()
-            .style(Style::default().fg(Color::Rgb(config.primary_color.unwrap().0, config.primary_color.unwrap().1, config.primary_color.unwrap().2)))
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
             .borders(Borders::ALL)
             .title(query_title),
     );
