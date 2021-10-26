@@ -29,7 +29,6 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
-    println!("{:?}", config.primary_color);
 
     let mut app_state = State {
         input: "".to_string(),
