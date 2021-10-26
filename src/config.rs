@@ -62,7 +62,7 @@ impl HoardConfig {
 
     const fn default_colors(color_level: u8) -> (u8, u8, u8) {
         match color_level {
-            0 => (242, 229, 118),
+            0 => (242, 229, 188),
             1 => (181, 118, 20),
             2 => (50, 48, 47),
             _ => (180, 118, 20)
