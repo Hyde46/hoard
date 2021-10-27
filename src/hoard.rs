@@ -5,7 +5,7 @@ use url::ParseError;
 
 use crate::config::load_or_build_config;
 
-use crate::command::hoard_command::HoardCommand;
+use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui;
@@ -147,14 +147,16 @@ impl Hoard {
                 } else {
                     match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                         Ok(selected_command) => {
-                            // Is set if a command is selected in GUI
-                            if !selected_command.is_empty() {
-                                //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
-                                autocomplete_command = selected_command;
+                            if let Some(c) = selected_command {
+                                // Is set if a command is selected in GUI
+                                if !c.command.is_empty() {
+                                    //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
+                                    autocomplete_command = c.command;
+                                }
                             }
                         }
-                        Err(error) => {
-                            println!("{}", error);
+                        Err(e) => {
+                            println!("{}", e);
                         }
                     }
                 }
@@ -162,7 +164,9 @@ impl Hoard {
             // Load command by name into clipboard, if available
             ("pick", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self.trove.pick_command(command_name);
+                    let command_result = self
+                        .trove
+                        .pick_command(&self.config.as_ref().unwrap(), command_name);
                     match command_result {
                         Ok(c) => {
                             println!("{}", c.command);
@@ -239,7 +243,9 @@ impl Hoard {
             ("edit", Some(sub_m)) => {
                 if let Some(command_name) = sub_m.value_of("name") {
                     println!("Editing {:?}", command_name);
-                    let command_to_edit = self.trove.pick_command(command_name);
+                    let command_to_edit = self
+                        .trove
+                        .pick_command(&self.config.as_ref().unwrap(), command_name);
                     match command_to_edit {
                         Ok(c) => {
                             println!("{}", c.command);

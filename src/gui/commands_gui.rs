@@ -25,11 +25,10 @@ struct State {
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
+pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<HoardCommand>> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
-    println!("{:?}", config.primary_color);
 
     let mut app_state = State {
         input: "".to_string(),
@@ -140,7 +139,12 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<String> {
                 key_handler(input, &mut app_state, &trove.commands, &namespace_tabs)
             {
                 terminal.show_cursor()?;
-                return Ok(output);
+                return Ok(Some(output));
+            } else {
+                if app_state.should_exit {
+                    terminal.show_cursor()?;
+                    return Ok(None);
+                }
             }
         }
     }
@@ -152,12 +156,12 @@ fn key_handler(
     app: &mut State,
     trove_commands: &Vec<HoardCommand>,
     namespace_tabs: &Vec<&str>,
-) -> Option<String> {
+) -> Option<HoardCommand> {
     match input {
         // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
             app.should_exit = true;
-            Some("".to_string())
+            None
         }
         // Switch namespace
         Key::Left | Key::Ctrl('h') => {
@@ -240,7 +244,8 @@ fn key_handler(
         // Select command
         Key::Char('\n') => {
             if app.commands.is_empty() {
-                return Some("".to_string());
+                app.should_exit = true;
+                return None;
             }
             let selected_command = app
                 .commands
@@ -252,7 +257,7 @@ fn key_handler(
                 )
                 .expect("exists")
                 .clone();
-            Some(selected_command.command)
+            Some(selected_command)
         }
         // Handle query input
         Key::Backspace => {

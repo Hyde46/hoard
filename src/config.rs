@@ -25,6 +25,8 @@ pub struct HoardConfig {
     pub secondary_color: Option<(u8, u8, u8)>,
     pub tertiary_color: Option<(u8, u8, u8)>,
     pub command_color: Option<(u8, u8, u8)>,
+    // Parameter settings
+    pub parameter_token: Option<String>,
 }
 
 impl HoardConfig {
@@ -39,6 +41,7 @@ impl HoardConfig {
             secondary_color: Some(Self::default_colors(1)),
             tertiary_color: Some(Self::default_colors(2)),
             command_color: Some(Self::default_colors(3)),
+            parameter_token: Some(Self::default_parameter_token()),
         }
     }
 
@@ -57,7 +60,12 @@ impl HoardConfig {
             secondary_color: self.secondary_color,
             tertiary_color: self.tertiary_color,
             command_color: self.command_color,
+            parameter_token: self.parameter_token,
         }
+    }
+
+    fn default_parameter_token() -> String {
+        return "#".to_string();
     }
 
     const fn default_colors(color_level: u8) -> (u8, u8, u8) {
@@ -134,6 +142,10 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
         }
         if loaded_config.trove_home_path.is_none() {
             loaded_config.trove_home_path = Some(hoard_dir.join(HOARD_FILE));
+            is_config_dirty = true;
+        }
+        if loaded_config.parameter_token.is_none() {
+            loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
             is_config_dirty = true;
         }
         if is_config_dirty {

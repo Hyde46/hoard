@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
-use crate::command::hoard_command::HoardCommand;
+use crate::command::hoard_command::{HoardCommand, Parameterized};
+use crate::config::HoardConfig;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -116,9 +117,12 @@ impl CommandTrove {
         namespaces
     }
 
-    pub fn pick_command(&self, name: &str) -> Result<HoardCommand> {
+    pub fn pick_command(&self, config: &HoardConfig, name: &str) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
         if let Some(command) = filtered_command {
+            let command = command
+                .clone()
+                .with_input_parameters(&config.parameter_token.clone().unwrap());
             Ok(command.clone())
         } else {
             return Err(anyhow!("No matching command found with name: {}", name));

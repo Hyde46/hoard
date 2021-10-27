@@ -223,6 +223,8 @@ pub trait Parameterized {
         token: &String,
         parameters: &Vec<String>,
     ) -> Result<String, String>;
+
+    fn with_input_parameters(self, token: &String) -> HoardCommand;
 }
 
 impl Parameterized for HoardCommand {
@@ -260,6 +262,31 @@ impl Parameterized for HoardCommand {
             collected.push(parameter_iter.next().unwrap_or(&"".to_string()).clone());
         }
         Ok(collected.concat())
+    }
+
+    fn with_input_parameters(self, token: &String) -> HoardCommand {
+        let parameter_count = self.get_parameter_count(token);
+        if parameter_count == 0 {
+            return self;
+        }
+        let mut command_state = self.command.clone();
+        for i in 0..parameter_count {
+            let prompt_dialoge = format!(
+                "Enter parameter({}) nr {} \n~> {}\n",
+                token,
+                (i + 1),
+                command_state
+            );
+            let parameter = prompt_input(&prompt_dialoge, None);
+            command_state = command_state.replacen(token, &parameter, 1);
+        }
+        HoardCommand {
+            name: self.name,
+            namespace: self.namespace,
+            tags: self.tags,
+            command: command_state,
+            description: self.description,
+        }
     }
 }
 
