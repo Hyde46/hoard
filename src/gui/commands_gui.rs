@@ -1,7 +1,8 @@
-use crate::command::hoard_command::HoardCommand;
+use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
 use crate::gui::event::{Config, Event, Events};
+use crate::util::translate_number_to_nth;
 use eyre::Result;
 use std::io::stdout;
 use std::time::Duration;
@@ -22,6 +23,16 @@ struct State {
     command_list_state: ListState,
     namespace_tab_state: ListState,
     should_exit: bool,
+    draw_state: DrawState,
+    parameter_token: String,
+    selected_command: Option<HoardCommand>,
+    provided_parameter_count: u16,
+}
+
+#[derive(Eq, PartialEq)]
+enum DrawState {
+    Search,
+    ParameterInput,
 }
 
 #[allow(clippy::too_many_lines)]
@@ -36,6 +47,10 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         command_list_state: ListState::default(),
         namespace_tab_state: ListState::default(),
         should_exit: false,
+        draw_state: DrawState::Search,
+        parameter_token: config.parameter_token.as_ref().unwrap().clone(),
+        selected_command: None,
+        provided_parameter_count: 0,
     };
 
     app_state.command_list_state.select(Some(0));
@@ -52,87 +67,14 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
     namespace_tabs.insert(0, "All");
     loop {
         // Draw GUI
-        terminal.draw(|rect| {
-            let size = rect.size();
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .margin(1)
-                .constraints(
-                    [
-                        Constraint::Length(3),
-                        Constraint::Min(2),
-                        Constraint::Length(3),
-                    ]
-                    .as_ref(),
-                )
-                .split(size);
-            let menu = namespace_tabs
-                .iter()
-                .map(|t| {
-                    Spans::from(vec![Span::styled(
-                        *t,
-                        Style::default().fg(Color::Rgb(
-                            config.primary_color.unwrap().0,
-                            config.primary_color.unwrap().1,
-                            config.primary_color.unwrap().2,
-                        )),
-                    )])
-                })
-                .collect();
-
-            let tabs = Tabs::new(menu)
-                .select(
-                    app_state
-                        .namespace_tab_state
-                        .selected()
-                        .expect("Always a namespace selected"),
-                )
-                .block(
-                    Block::default()
-                        .title(" Hoard Namespace ")
-                        .borders(Borders::ALL),
-                )
-                .style(Style::default().fg(Color::Rgb(
-                    config.primary_color.unwrap().0,
-                    config.primary_color.unwrap().1,
-                    config.primary_color.unwrap().2,
-                )))
-                .highlight_style(
-                    Style::default()
-                        .fg(Color::Rgb(181, 118, 20))
-                        .add_modifier(Modifier::UNDERLINED),
-                )
-                .divider(Span::raw("|"));
-
-            rect.render_widget(tabs, chunks[0]);
-
-            let commands_chunks = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
-                .split(chunks[1]);
-            let command_detail_chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Length(3),
-                        Constraint::Percentage(60),
-                        Constraint::Length(3),
-                    ]
-                    .as_ref(),
-                )
-                .split(commands_chunks[1]);
-            let (commands, command, tags_widget, description, input) =
-                render_commands(&app_state.commands.clone(), &mut app_state, config);
-            rect.render_stateful_widget(
-                commands,
-                commands_chunks[0],
-                &mut app_state.command_list_state,
-            );
-            rect.render_widget(tags_widget, command_detail_chunks[0]);
-            rect.render_widget(description, command_detail_chunks[1]);
-            rect.render_widget(command, command_detail_chunks[2]);
-            rect.render_widget(input, chunks[2]);
-        })?;
+        match app_state.draw_state {
+            DrawState::Search => {
+                draw_list_search(&mut app_state, config, &mut namespace_tabs, &mut terminal)?;
+            }
+            DrawState::ParameterInput => {
+                draw_parameter_input(&mut app_state, config, &mut terminal)?;
+            }
+        }
 
         if let Event::Input(input) = events.next()? {
             if let Some(output) =
@@ -140,14 +82,172 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             {
                 terminal.show_cursor()?;
                 return Ok(Some(output));
-            } else {
-                if app_state.should_exit {
-                    terminal.show_cursor()?;
-                    return Ok(None);
-                }
+            }
+            if app_state.should_exit {
+                terminal.show_cursor()?;
+                return Ok(None);
             }
         }
     }
+}
+
+#[allow(clippy::too_many_lines)]
+fn draw_list_search(
+    app_state: &mut State,
+    config: &HoardConfig,
+    namespace_tabs: &mut Vec<&str>,
+    terminal: &mut Terminal<
+        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
+    >,
+) -> Result<(), eyre::Error> {
+    terminal.draw(|rect| {
+        let size = rect.size();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints(
+                [
+                    Constraint::Length(3),
+                    Constraint::Min(2),
+                    Constraint::Length(3),
+                ]
+                .as_ref(),
+            )
+            .split(size);
+        let menu = namespace_tabs
+            .iter()
+            .map(|t| {
+                Spans::from(vec![Span::styled(
+                    *t,
+                    Style::default().fg(Color::Rgb(
+                        config.primary_color.unwrap().0,
+                        config.primary_color.unwrap().1,
+                        config.primary_color.unwrap().2,
+                    )),
+                )])
+            })
+            .collect();
+
+        let tabs = Tabs::new(menu)
+            .select(
+                app_state
+                    .namespace_tab_state
+                    .selected()
+                    .expect("Always a namespace selected"),
+            )
+            .block(
+                Block::default()
+                    .title(" Hoard Namespace ")
+                    .borders(Borders::ALL),
+            )
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
+            .highlight_style(
+                Style::default()
+                    .fg(Color::Rgb(181, 118, 20))
+                    .add_modifier(Modifier::UNDERLINED),
+            )
+            .divider(Span::raw("|"));
+
+        rect.render_widget(tabs, chunks[0]);
+
+        let commands_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
+            .split(chunks[1]);
+        let command_detail_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Length(3),
+                    Constraint::Percentage(60),
+                    Constraint::Length(3),
+                ]
+                .as_ref(),
+            )
+            .split(commands_chunks[1]);
+        let (commands, command, tags_widget, description, input) =
+            render_commands(&app_state.commands.clone(), app_state, config);
+        rect.render_stateful_widget(
+            commands,
+            commands_chunks[0],
+            &mut app_state.command_list_state,
+        );
+        rect.render_widget(tags_widget, command_detail_chunks[0]);
+        rect.render_widget(description, command_detail_chunks[1]);
+        rect.render_widget(command, command_detail_chunks[2]);
+        rect.render_widget(input, chunks[2]);
+    })?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_lines)]
+fn draw_parameter_input(
+    app_state: &mut State,
+    config: &HoardConfig,
+    terminal: &mut Terminal<
+        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
+    >,
+) -> Result<(), eyre::Error> {
+    terminal.draw(|rect| {
+        let size = rect.size();
+        // Overlay
+        let overlay_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints(
+                [
+                    Constraint::Percentage(40),
+                    Constraint::Percentage(10),
+                    Constraint::Percentage(10),
+                    Constraint::Percentage(40),
+                ]
+                .as_ref(),
+            )
+            .split(size);
+
+        let mut query_string = config.query_prefix.clone();
+        query_string.push_str(&app_state.input.clone()[..]);
+        let title_string = format!(
+            "Provide {} parameter",
+            translate_number_to_nth(app_state.provided_parameter_count)
+        );
+        let input = Paragraph::new(query_string)
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
+            .block(
+                Block::default()
+                    .style(Style::default().fg(Color::Rgb(
+                        config.command_color.unwrap().0,
+                        config.command_color.unwrap().1,
+                        config.command_color.unwrap().2,
+                    )))
+                    .title(title_string),
+            );
+        let parameterized_command = app_state.selected_command.clone().unwrap().command;
+        let command = Paragraph::new(parameterized_command)
+            .style(Style::default().fg(Color::Rgb(
+                config.command_color.unwrap().0,
+                config.command_color.unwrap().1,
+                config.command_color.unwrap().2,
+            )))
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true })
+            .block(Block::default().style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            ))));
+        rect.render_widget(command, overlay_chunks[1]);
+        rect.render_widget(input, overlay_chunks[2]);
+    })?;
+    Ok(())
 }
 
 #[allow(clippy::too_many_lines, clippy::ptr_arg)]
@@ -164,7 +264,7 @@ fn key_handler(
             None
         }
         // Switch namespace
-        Key::Left | Key::Ctrl('h') => {
+        Key::Left | Key::Ctrl('h') if app.draw_state == DrawState::Search => {
             if let Some(selected) = app.namespace_tab_state.selected() {
                 let amount_ns = namespace_tabs.clone().len();
                 if selected > 0 {
@@ -189,7 +289,7 @@ fn key_handler(
             }
             None
         }
-        Key::Right | Key::Ctrl('l') => {
+        Key::Right | Key::Ctrl('l') if app.draw_state == DrawState::Search => {
             if let Some(selected) = app.namespace_tab_state.selected() {
                 let amount_ns = namespace_tabs.clone().len();
                 if selected >= amount_ns - 1 {
@@ -215,7 +315,7 @@ fn key_handler(
             None
         }
         // Switch command
-        Key::Up | Key::Ctrl('y' | 'p') => {
+        Key::Up | Key::Ctrl('y' | 'p') if app.draw_state == DrawState::Search => {
             if !app.commands.is_empty() {
                 if let Some(selected) = app.command_list_state.selected() {
                     let amount_commands = app.commands.clone().len();
@@ -228,7 +328,7 @@ fn key_handler(
             }
             None
         }
-        Key::Down | Key::Ctrl('.' | 'n') => {
+        Key::Down | Key::Ctrl('.' | 'n') if app.draw_state == DrawState::Search => {
             if !app.commands.is_empty() {
                 if let Some(selected) = app.command_list_state.selected() {
                     let amount_commands = app.commands.clone().len();
@@ -241,8 +341,20 @@ fn key_handler(
             }
             None
         }
+        Key::Char('\n') if app.draw_state == DrawState::ParameterInput => {
+            let command = app.selected_command.clone().unwrap();
+            let parameter = app.input.clone();
+            let replaced_command = command.replace_parameters(&app.parameter_token, &[parameter]);
+            app.input = String::from("");
+            if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
+                return Some(replaced_command);
+            }
+            app.selected_command = Some(replaced_command);
+            app.provided_parameter_count += 1;
+            None
+        }
         // Select command
-        Key::Char('\n') => {
+        Key::Char('\n') if app.draw_state == DrawState::Search => {
             if app.commands.is_empty() {
                 app.should_exit = true;
                 return None;
@@ -257,31 +369,47 @@ fn key_handler(
                 )
                 .expect("exists")
                 .clone();
+
+            // Check if parameters need to be supplied
+            if selected_command.get_parameter_count(&app.parameter_token) > 0 {
+                // Set next state to draw
+                app.draw_state = DrawState::ParameterInput;
+                // Save which command to replace parameters for
+                app.selected_command = Some(selected_command);
+                // Empty input for next screen
+                app.input = "".to_string();
+                // return None, otherwise drawing will quit
+                return None;
+            }
             Some(selected_command)
         }
         // Handle query input
         Key::Backspace => {
             app.input.pop();
-            let selected_tab = namespace_tabs
-                .get(
-                    app.namespace_tab_state
-                        .selected()
-                        .expect("Always a namespace selected"),
-                )
-                .expect("Always a tab selected");
-            apply_search(app, trove_commands, selected_tab);
+            if app.draw_state == DrawState::Search {
+                let selected_tab = namespace_tabs
+                    .get(
+                        app.namespace_tab_state
+                            .selected()
+                            .expect("Always a namespace selected"),
+                    )
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
+            }
             None
         }
         Key::Char(c) => {
             app.input.push(c);
-            let selected_tab = namespace_tabs
-                .get(
-                    app.namespace_tab_state
-                        .selected()
-                        .expect("Always a namespace selected"),
-                )
-                .expect("Always a tab selected");
-            apply_search(app, trove_commands, selected_tab);
+            if app.draw_state == DrawState::Search {
+                let selected_tab = namespace_tabs
+                    .get(
+                        app.namespace_tab_state
+                            .selected()
+                            .expect("Always a namespace selected"),
+                    )
+                    .expect("Always a tab selected");
+                apply_search(app, trove_commands, selected_tab);
+            }
             None
         }
         _ => None,
@@ -308,6 +436,7 @@ fn apply_search(app: &mut State, all_commands: &Vec<HoardCommand>, selected_tab:
         .collect();
 }
 
+#[allow(clippy::too_many_lines)]
 fn render_commands<'a>(
     commands_list: &[HoardCommand],
     app: &mut State,

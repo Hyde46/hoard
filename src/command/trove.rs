@@ -123,7 +123,7 @@ impl CommandTrove {
             let command = command
                 .clone()
                 .with_input_parameters(&config.parameter_token.clone().unwrap());
-            Ok(command.clone())
+            Ok(command)
         } else {
             return Err(anyhow!("No matching command found with name: {}", name));
         }

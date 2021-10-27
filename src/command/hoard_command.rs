@@ -25,6 +25,7 @@ impl HoardCommand {
             description: None,
         }
     }
+
     #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         if self.name.is_empty()
@@ -45,6 +46,7 @@ impl HoardCommand {
             .join(",")
     }
 
+    #[allow(dead_code)]
     pub fn with_command_raw(self, command_string: &str) -> Self {
         Self {
             name: self.name,
@@ -206,65 +208,61 @@ impl Parsable for HoardCommand {
 
 pub trait Parameterized {
     // Check if parameter pointers are present
-    fn is_parameterized(&self, token: &String) -> bool;
+    fn is_parameterized(&self, token: &str) -> bool;
     // Count number of parameter pointers
-    fn get_parameter_count(&self, token: &String) -> usize;
-    fn split(&self, token: &String) -> Vec<String>;
+    fn get_parameter_count(&self, token: &str) -> usize;
+    fn split(&self, token: &str) -> Vec<String>;
     // Get parameterized Stringlike subject including parameter token
     // For example, given subject with parameter token '#1':
     // 'This is a #1 with one parameter token'
     // `get_split_subject("#")` returns
     // Vec['This is a ', '#', ' with one parameter token']
-    fn get_split_subject(&self, token: &String) -> Vec<String>;
+    fn get_split_subject(&self, token: &str) -> Vec<String>;
     // Replaces parameter tokens with content from `parameters`,
     // consuming entries one by one until `parameters` is empty.
-    fn replace_parameters(
-        &self,
-        token: &String,
-        parameters: &Vec<String>,
-    ) -> Result<String, String>;
+    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand;
 
-    fn with_input_parameters(self, token: &String) -> HoardCommand;
+    fn with_input_parameters(self, token: &str) -> HoardCommand;
 }
 
 impl Parameterized for HoardCommand {
-    fn is_parameterized(&self, token: &String) -> bool {
+    fn is_parameterized(&self, token: &str) -> bool {
         self.command.contains(token)
     }
-    fn get_parameter_count(&self, token: &String) -> usize {
+    fn get_parameter_count(&self, token: &str) -> usize {
         self.command.matches(token).count()
     }
-    fn split(&self, token: &String) -> Vec<String> {
-        self.command.split(token).map(|s| s.to_string()).collect()
+    fn split(&self, token: &str) -> Vec<String> {
+        self.command.split(token).map(ToString::to_string).collect()
     }
-    fn get_split_subject(&self, token: &String) -> Vec<String> {
+    fn get_split_subject(&self, token: &str) -> Vec<String> {
         let split = self.split(token);
         let mut collected: Vec<String> = Vec::new();
         for s in split {
             collected.push(s.clone());
-            collected.push(token.clone());
+            collected.push(token.to_string());
         }
         collected
     }
-    fn replace_parameters(
-        &self,
-        token: &String,
-        parameters: &Vec<String>,
-    ) -> Result<String, String> {
-        if self.get_parameter_count(token) != parameters.len() {
-            return Err("Not the same amount of parameters supplied".to_string());
-        }
+    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand {
         let mut parameter_iter = parameters.iter();
         let split = self.split(token);
         let mut collected: Vec<String> = Vec::new();
         for s in split {
             collected.push(s.clone());
-            collected.push(parameter_iter.next().unwrap_or(&"".to_string()).clone());
+            collected.push(parameter_iter.next().unwrap_or(&token.to_string()).clone());
         }
-        Ok(collected.concat())
+        collected.pop();
+        Self {
+            name: self.name,
+            namespace: self.namespace,
+            tags: self.tags,
+            command: collected.concat(),
+            description: self.description,
+        }
     }
 
-    fn with_input_parameters(self, token: &String) -> HoardCommand {
+    fn with_input_parameters(self, token: &str) -> HoardCommand {
         let parameter_count = self.get_parameter_count(token);
         if parameter_count == 0 {
             return self;
@@ -280,7 +278,7 @@ impl Parameterized for HoardCommand {
             let parameter = prompt_input(&prompt_dialoge, None);
             command_state = command_state.replacen(token, &parameter, 1);
         }
-        HoardCommand {
+        Self {
             name: self.name,
             namespace: self.namespace,
             tags: self.tags,
@@ -381,8 +379,8 @@ mod test_parameterized {
         let token = "#".to_string();
         let c: HoardCommand = command_struct("test # bar");
         let to_replace = vec!["foo".to_string()];
-        let expected = Ok("test foo bar".to_string());
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace));
+        let expected = "test foo bar".to_string();
+        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
     }
 
     #[test]
@@ -390,34 +388,7 @@ mod test_parameterized {
         let token = "#".to_string();
         let c: HoardCommand = command_struct("test foo #");
         let to_replace = vec!["bar".to_string()];
-        let expected = Ok("test foo bar".to_string());
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace));
-    }
-
-    #[test]
-    fn test_replace_too_many_parameters() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test foo #");
-        let to_replace = vec!["bar".to_string(), "bar".to_string()];
-        let expected = Err("Not the same amount of parameters supplied".to_string());
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace));
-    }
-
-    #[test]
-    fn test_replace_too_few_parameters() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test foo # # # #");
-        let to_replace = vec!["bar".to_string(), "bar".to_string()];
-        let expected = Err("Not the same amount of parameters supplied".to_string());
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace));
-    }
-
-    #[test]
-    fn test_replace_no_parameters_to_replace() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test foo");
-        let to_replace = vec!["bar".to_string(), "bar".to_string()];
-        let expected = Err("Not the same amount of parameters supplied".to_string());
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace));
+        let expected = "test foo bar".to_string();
+        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
     }
 }

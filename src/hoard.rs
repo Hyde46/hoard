@@ -5,7 +5,7 @@ use url::ParseError;
 
 use crate::config::load_or_build_config;
 
-use crate::command::hoard_command::{HoardCommand, Parameterized};
+use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui;
@@ -166,7 +166,7 @@ impl Hoard {
                 if let Some(command_name) = sub_m.value_of("name") {
                     let command_result = self
                         .trove
-                        .pick_command(&self.config.as_ref().unwrap(), command_name);
+                        .pick_command(self.config.as_ref().unwrap(), command_name);
                     match command_result {
                         Ok(c) => {
                             println!("{}", c.command);
@@ -245,7 +245,7 @@ impl Hoard {
                     println!("Editing {:?}", command_name);
                     let command_to_edit = self
                         .trove
-                        .pick_command(&self.config.as_ref().unwrap(), command_name);
+                        .pick_command(self.config.as_ref().unwrap(), command_name);
                     match command_to_edit {
                         Ok(c) => {
                             println!("{}", c.command);

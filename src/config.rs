@@ -65,7 +65,7 @@ impl HoardConfig {
     }
 
     fn default_parameter_token() -> String {
-        return "#".to_string();
+        "#".to_string()
     }
 
     const fn default_colors(color_level: u8) -> (u8, u8, u8) {
