@@ -57,8 +57,16 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
-        let command_string: String = prompt_input("Command to hoard", default_value);
+    pub fn with_command_string_input(
+        self,
+        default_value: Option<String>,
+        parameter_token: &str,
+    ) -> Self {
+        let base_prompt = format!(
+            "Command to hoard ( Mark unknown parameters with {} )\n",
+            parameter_token
+        );
+        let command_string: String = prompt_input(&base_prompt, default_value);
         Self {
             name: self.name,
             namespace: self.namespace,
