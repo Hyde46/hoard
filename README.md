@@ -38,7 +38,7 @@ For every **hoarded** command, `hoard` saves
 - tags
 - description
 - namespace where it lives in
-- the command itself
+- the command itself ( can be parameterized with a customizable token )
 
 If you get lost in your massive command history, and can't find for example a specific `docker` command out of thousand `docker` commands you've already ran,
 just **hoard** it. With a **name** and **description** it will be much easier to find again. When you look for that command again a month later, take a look at your **hoarded** commands.
@@ -119,6 +119,8 @@ source src/shell/hoard.fish
 hoard new
 ```
 
+If a parameter is not known when saving the command, put a `#` ( Or your customized token from your `~/.config/.hoard/config.yml` )
+
 #### Delete a command
 
 ```
@@ -148,6 +150,8 @@ Or alternatively, if not installed as a plugin, the interactive search can still
 ```
 hoard list
 ```
+
+When running `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
 
 #### Import other trove files from `trove.yml` or urls pointing to a trove.yml file
 

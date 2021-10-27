@@ -1,7 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use crate::command::trove::CommandTrove;
 use crate::gui::prompts::{prompt_input, prompt_input_validate};
+use serde::{Deserialize, Serialize};
 
 pub trait Parsable {
     fn parse_arguments(matches: &clap::ArgMatches) -> Self;
@@ -26,6 +25,7 @@ impl HoardCommand {
             description: None,
         }
     }
+
     #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         if self.name.is_empty()
@@ -46,8 +46,27 @@ impl HoardCommand {
             .join(",")
     }
 
-    pub fn with_command_string_input(self, default_value: Option<String>) -> Self {
-        let command_string: String = prompt_input("Command to hoard", default_value);
+    #[allow(dead_code)]
+    pub fn with_command_raw(self, command_string: &str) -> Self {
+        Self {
+            name: self.name,
+            namespace: self.namespace,
+            tags: self.tags,
+            command: command_string.to_string(),
+            description: self.description,
+        }
+    }
+
+    pub fn with_command_string_input(
+        self,
+        default_value: Option<String>,
+        parameter_token: &str,
+    ) -> Self {
+        let base_prompt = format!(
+            "Command to hoard ( Mark unknown parameters with {} )\n",
+            parameter_token
+        );
+        let command_string: String = prompt_input(&base_prompt, default_value);
         Self {
             name: self.name,
             namespace: self.namespace,
@@ -195,6 +214,88 @@ impl Parsable for HoardCommand {
     }
 }
 
+pub trait Parameterized {
+    // Check if parameter pointers are present
+    fn is_parameterized(&self, token: &str) -> bool;
+    // Count number of parameter pointers
+    fn get_parameter_count(&self, token: &str) -> usize;
+    fn split(&self, token: &str) -> Vec<String>;
+    // Get parameterized Stringlike subject including parameter token
+    // For example, given subject with parameter token '#1':
+    // 'This is a #1 with one parameter token'
+    // `get_split_subject("#")` returns
+    // Vec['This is a ', '#', ' with one parameter token']
+    fn get_split_subject(&self, token: &str) -> Vec<String>;
+    // Replaces parameter tokens with content from `parameters`,
+    // consuming entries one by one until `parameters` is empty.
+    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand;
+
+    fn with_input_parameters(self, token: &str) -> HoardCommand;
+}
+
+impl Parameterized for HoardCommand {
+    fn is_parameterized(&self, token: &str) -> bool {
+        self.command.contains(token)
+    }
+    fn get_parameter_count(&self, token: &str) -> usize {
+        self.command.matches(token).count()
+    }
+    fn split(&self, token: &str) -> Vec<String> {
+        self.command.split(token).map(ToString::to_string).collect()
+    }
+    fn get_split_subject(&self, token: &str) -> Vec<String> {
+        let split = self.split(token);
+        let mut collected: Vec<String> = Vec::new();
+        for s in split {
+            collected.push(s.clone());
+            collected.push(token.to_string());
+        }
+        collected
+    }
+    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand {
+        let mut parameter_iter = parameters.iter();
+        let split = self.split(token);
+        let mut collected: Vec<String> = Vec::new();
+        for s in split {
+            collected.push(s.clone());
+            collected.push(parameter_iter.next().unwrap_or(&token.to_string()).clone());
+        }
+        collected.pop();
+        Self {
+            name: self.name,
+            namespace: self.namespace,
+            tags: self.tags,
+            command: collected.concat(),
+            description: self.description,
+        }
+    }
+
+    fn with_input_parameters(self, token: &str) -> HoardCommand {
+        let parameter_count = self.get_parameter_count(token);
+        if parameter_count == 0 {
+            return self;
+        }
+        let mut command_state = self.command.clone();
+        for i in 0..parameter_count {
+            let prompt_dialoge = format!(
+                "Enter parameter({}) nr {} \n~> {}\n",
+                token,
+                (i + 1),
+                command_state
+            );
+            let parameter = prompt_input(&prompt_dialoge, None);
+            command_state = command_state.replacen(token, &parameter, 1);
+        }
+        Self {
+            name: self.name,
+            namespace: self.namespace,
+            tags: self.tags,
+            command: command_state,
+            description: self.description,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test_commands {
     use super::*;
@@ -246,5 +347,56 @@ mod test_commands {
         let command = HoardCommand::default().with_tags_raw("foo, bar");
         let expected = Some(vec!["foo".to_string(), "bar".to_string()]);
         assert_eq!(expected, command.tags);
+    }
+}
+
+#[cfg(test)]
+mod test_parameterized {
+    use super::*;
+
+    fn command_struct(command: &str) -> HoardCommand {
+        HoardCommand::default().with_command_raw(command)
+    }
+
+    #[test]
+    fn test_split() {
+        let token = "#".to_string();
+        let c: HoardCommand = command_struct("test # test");
+        let expected = vec!["test ".to_string(), " test".to_string()];
+        assert_eq!(expected, c.split(&token));
+    }
+
+    #[test]
+    fn test_split_empty() {
+        let token = "#".to_string();
+        let c: HoardCommand = command_struct("test  test");
+        let expected = vec!["test  test".to_string()];
+        assert_eq!(expected, c.split(&token));
+    }
+
+    #[test]
+    fn test_split_multiple() {
+        let token = "#".to_string();
+        let c: HoardCommand = command_struct("test # test #");
+        let expected = vec!["test ".to_string(), " test ".to_string(), "".to_string()];
+        assert_eq!(expected, c.split(&token));
+    }
+
+    #[test]
+    fn test_replace_parameters() {
+        let token = "#".to_string();
+        let c: HoardCommand = command_struct("test # bar");
+        let to_replace = vec!["foo".to_string()];
+        let expected = "test foo bar".to_string();
+        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
+    }
+
+    #[test]
+    fn test_replace_last_parameters() {
+        let token = "#".to_string();
+        let c: HoardCommand = command_struct("test foo #");
+        let to_replace = vec!["bar".to_string()];
+        let expected = "test foo bar".to_string();
+        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
     }
 }

@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - ✨ Advanced export allowing subset of namespaces or commands to be exported
 - 🐛 Fix bug where selecting a command when running `hoard` as a `zsh` plugin produces gibberish rendered text in the terminal 
 - ✨ Customizable GUI colors through ~/config/.hoard/config.yml
+- ✨ Support parameterized commands. Put '#' in place where a parameter is expected. When running `hoard pick <command_name>` or `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
 
 ## 0.1.8
 - Wrap command text in UI

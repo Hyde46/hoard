@@ -11,6 +11,7 @@ mod command;
 mod config;
 mod gui;
 mod hoard;
+mod util;
 use hoard::Hoard;
 
 fn main() {
