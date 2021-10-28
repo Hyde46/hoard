@@ -2,112 +2,69 @@ use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::gui::commands_gui::{DrawState, State};
 use termion::event::Key;
 
-#[allow(clippy::too_many_lines)]
 pub fn key_handler(
     input: Key,
-    app: &mut State,
+    state: &mut State,
     trove_commands: &[HoardCommand],
     namespace_tabs: &[&str],
 ) -> Option<HoardCommand> {
     match input {
         // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
-            app.should_exit = true;
+            state.should_exit = true;
             None
         }
+        // Show help
         Key::F(1) => {
-            app.draw_state = DrawState::Help;
+            state.draw_state = DrawState::Help;
             None
         }
         // Switch namespace
         Key::Left | Key::Ctrl('h') => {
-            if let Some(selected) = app.namespace_tab_state.selected() {
-                let amount_ns = namespace_tabs.len();
-                if selected > 0 {
-                    app.namespace_tab_state.select(Some(selected - 1));
-                } else {
-                    app.namespace_tab_state.select(Some(amount_ns - 1));
-                }
-                let selected_tab = namespace_tabs
-                    .get(
-                        app.namespace_tab_state
-                            .selected()
-                            .expect("Always a namespace selected"),
-                    )
-                    .expect("Always a tab selected");
-                apply_search(app, trove_commands, selected_tab);
-                let new_selection = if app.commands.is_empty() {
-                    0
-                } else {
-                    app.commands.len() - 1
-                };
-                app.command_list_state.select(Some(new_selection));
+            if let Some(selected) = state.namespace_tab_state.selected() {
+                let new_selected_tab = previous_index(selected, namespace_tabs.len());
+                switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
             }
             None
         }
         Key::Right | Key::Ctrl('l') => {
-            if let Some(selected) = app.namespace_tab_state.selected() {
-                let amount_ns = namespace_tabs.len();
-                if selected >= amount_ns - 1 {
-                    app.namespace_tab_state.select(Some(0));
-                } else {
-                    app.namespace_tab_state.select(Some(selected + 1));
-                }
-                let selected_tab = namespace_tabs
-                    .get(
-                        app.namespace_tab_state
-                            .selected()
-                            .expect("Always a namespace selected"),
-                    )
-                    .expect("Always a tab selected");
-                apply_search(app, trove_commands, selected_tab);
-                let new_selection = if app.commands.is_empty() {
-                    0
-                } else {
-                    app.commands.len() - 1
-                };
-                app.command_list_state.select(Some(new_selection));
+            if let Some(selected) = state.namespace_tab_state.selected() {
+                let new_selected_tab = next_index(selected, namespace_tabs.len());
+                switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
             }
             None
         }
         // Switch command
         Key::Up | Key::Ctrl('y' | 'p') => {
-            if !app.commands.is_empty() {
-                if let Some(selected) = app.command_list_state.selected() {
-                    let amount_commands = app.commands.clone().len();
-                    if selected > 0 {
-                        app.command_list_state.select(Some(selected - 1));
-                    } else {
-                        app.command_list_state.select(Some(amount_commands - 1));
-                    }
+            if !state.commands.is_empty() {
+                if let Some(selected) = state.command_list_state.selected() {
+                    let new_selected = previous_index(selected, state.commands.len());
+                    state.command_list_state.select(Some(new_selected));
                 }
             }
             None
         }
         Key::Down | Key::Ctrl('.' | 'n') => {
-            if !app.commands.is_empty() {
-                if let Some(selected) = app.command_list_state.selected() {
-                    let amount_commands = app.commands.clone().len();
-                    if selected >= amount_commands - 1 {
-                        app.command_list_state.select(Some(0));
-                    } else {
-                        app.command_list_state.select(Some(selected + 1));
-                    }
+            if !state.commands.is_empty() {
+                if let Some(selected) = state.command_list_state.selected() {
+                    let new_selected = next_index(selected, state.commands.len());
+                    state.command_list_state.select(Some(new_selected));
                 }
             }
             None
         }
         // Select command
         Key::Char('\n') => {
-            if app.commands.is_empty() {
-                app.should_exit = true;
+            if state.commands.is_empty() {
+                state.should_exit = true;
                 return None;
             }
-            let selected_command = app
+            let selected_command = state
                 .commands
                 .clone()
                 .get(
-                    app.command_list_state
+                    state
+                        .command_list_state
                         .selected()
                         .expect("there is always a selected command"),
                 )
@@ -115,13 +72,13 @@ pub fn key_handler(
                 .clone();
 
             // Check if parameters need to be supplied
-            if selected_command.get_parameter_count(&app.parameter_token) > 0 {
+            if selected_command.get_parameter_count(&state.parameter_token) > 0 {
                 // Set next state to draw
-                app.draw_state = DrawState::ParameterInput;
+                state.draw_state = DrawState::ParameterInput;
                 // Save which command to replace parameters for
-                app.selected_command = Some(selected_command);
+                state.selected_command = Some(selected_command);
                 // Empty input for next screen
-                app.input = "".to_string();
+                state.input = "".to_string();
                 // return None, otherwise drawing will quit
                 return None;
             }
@@ -129,37 +86,61 @@ pub fn key_handler(
         }
         // Handle query input
         Key::Backspace => {
-            app.input.pop();
-            let selected_tab = namespace_tabs
-                .get(
-                    app.namespace_tab_state
-                        .selected()
-                        .expect("Always a namespace selected"),
-                )
-                .expect("Always a tab selected");
-            apply_search(app, trove_commands, selected_tab);
+            state.input.pop();
+            apply_filter(state, namespace_tabs, trove_commands);
             None
         }
         Key::Char(c) => {
-            app.input.push(c);
-            let selected_tab = namespace_tabs
-                .get(
-                    app.namespace_tab_state
-                        .selected()
-                        .expect("Always a namespace selected"),
-                )
-                .expect("Always a tab selected");
-            apply_search(app, trove_commands, selected_tab);
+            state.input.push(c);
+            apply_filter(state, namespace_tabs, trove_commands);
             None
         }
         _ => None,
     }
 }
 
-#[allow(clippy::ptr_arg)]
-fn apply_search(app: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
-    let query_term = &app.input[..];
-    app.commands = all_commands
+const fn next_index(current_index: usize, collection_length: usize) -> usize {
+    if current_index >= collection_length - 1 {
+        0
+    } else {
+        current_index + 1
+    }
+}
+
+const fn previous_index(current_index: usize, collection_length: usize) -> usize {
+    if current_index > 0 {
+        current_index - 1
+    } else {
+        collection_length - 1
+    }
+}
+
+fn switch_namespace(
+    state: &mut State,
+    index_to_select: usize,
+    namespaces: &[&str],
+    commands: &[HoardCommand],
+) {
+    state.namespace_tab_state.select(Some(index_to_select));
+
+    let selected_namespace = namespaces
+        .get(index_to_select)
+        .expect("Always a tab selected");
+
+    apply_search(state, commands, selected_namespace);
+
+    let new_selected_command = if state.commands.is_empty() {
+        0
+    } else {
+        state.commands.len() - 1
+    };
+
+    state.command_list_state.select(Some(new_selected_command));
+}
+
+fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
+    let query_term = &state.input[..];
+    state.commands = all_commands
         .to_owned()
         .into_iter()
         .filter(|c| {
@@ -174,6 +155,18 @@ fn apply_search(app: &mut State, all_commands: &[HoardCommand], selected_tab: &s
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
         })
         .collect();
+}
+
+fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCommand]) {
+    let selected_tab = namespaces
+        .get(
+            state
+                .namespace_tab_state
+                .selected()
+                .expect("Always a namespace selected"),
+        )
+        .expect("Always a tab selected");
+    apply_search(state, commands, selected_tab);
 }
 
 #[cfg(test)]
@@ -346,6 +339,15 @@ mod test_controls {
         key_handler(Key::Char('\n'), &mut state, &commands, &namespaces);
 
         assert_eq!(DrawState::ParameterInput, state.draw_state);
+    }
+
+    #[test]
+    fn quit_on_nothing_to_pick() {
+        let mut state = create_state(vec![]);
+
+        key_handler(Key::Char('\n'), &mut state, &[], &[]);
+
+        assert!(state.should_exit);
     }
 
     #[test]
