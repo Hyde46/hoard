@@ -26,7 +26,7 @@ pub struct State {
     pub provided_parameter_count: u16,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum DrawState {
     Search,
     ParameterInput,
