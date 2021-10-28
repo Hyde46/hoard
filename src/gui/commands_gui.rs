@@ -4,7 +4,7 @@ use crate::config::HoardConfig;
 use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
 use crate::gui::list_search::controls::key_handler as key_handler_list_search;
-use crate::gui::list_search::render::draw;
+use crate::gui::list_search::render::draw as draw_list_search;
 use crate::gui::parameter_input::{
     draw as draw_parameter_input, key_handler as key_handler_parameter_input,
 };
@@ -67,7 +67,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         // Draw GUI
         match app_state.draw_state {
             DrawState::Search => {
-                draw(&mut app_state, config, &mut namespace_tabs, &mut terminal)?;
+                draw_list_search(&mut app_state, config, &mut namespace_tabs, &mut terminal)?;
             }
             DrawState::ParameterInput => {
                 draw_parameter_input(&mut app_state, config, &mut terminal)?;
