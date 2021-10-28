@@ -16,6 +16,19 @@ use tui::{
     Terminal,
 };
 
+const HELP_CONTENT: &[(&str, &str)] = &[
+    ("Next item in command list", "<Ctrl-N> / <Down-Arrow>"),
+    (
+        "Previous item in command list",
+        "<Ctrl-P> / <Ctrl-Y> / <Up-Arrow>",
+    ),
+    ("Next namespace tab", "<Ctrl-L> / <Right-Arrow>"),
+    ("Previous namespace tab", "<Ctrl-H> / <Left-Arrow>"),
+    ("Select command", "<Enter>"),
+    ("Quit", "<Ctrl-D> / <Ctrl-C> / <Ctrl-G>"),
+    ("Show help", "<F1>"),
+];
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 struct State {
     input: String,
@@ -33,6 +46,7 @@ struct State {
 enum DrawState {
     Search,
     ParameterInput,
+    Help,
 }
 
 #[allow(clippy::too_many_lines)]
@@ -74,15 +88,25 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             DrawState::ParameterInput => {
                 draw_parameter_input(&mut app_state, config, &mut terminal)?;
             }
+            DrawState::Help => {
+                draw_help(config, &mut terminal)?;
+            }
         }
 
         if let Event::Input(input) = events.next()? {
-            if let Some(output) =
-                key_handler(input, &mut app_state, &trove.commands, &namespace_tabs)
-            {
+            let command = match app_state.draw_state {
+                DrawState::Search => {
+                    key_handler_list_search(input, &mut app_state, &trove.commands, &namespace_tabs)
+                }
+                DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
+                DrawState::Help => key_handler_help(input, &mut app_state),
+            };
+
+            if let Some(output) = command {
                 terminal.show_cursor()?;
                 return Ok(Some(output));
             }
+
             if app_state.should_exit {
                 terminal.show_cursor()?;
                 return Ok(None);
@@ -250,8 +274,56 @@ fn draw_parameter_input(
     Ok(())
 }
 
+fn draw_help(
+    config: &HoardConfig,
+    terminal: &mut Terminal<
+        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
+    >,
+) -> Result<(), eyre::Error> {
+    terminal.draw(|rect| {
+        let help = Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
+            .title(" Help ")
+            .border_type(BorderType::Plain);
+
+        let items: Vec<_> = HELP_CONTENT
+            .iter()
+            .map(|item| {
+                ListItem::new(vec![
+                    Spans::from(Span::styled(
+                        item.0,
+                        Style::default().fg(Color::Rgb(
+                            config.command_color.unwrap().0,
+                            config.command_color.unwrap().1,
+                            config.command_color.unwrap().2,
+                        )),
+                    )),
+                    Spans::from(Span::styled(
+                        format!("    {}", item.1),
+                        Style::default().fg(Color::Rgb(
+                            config.primary_color.unwrap().0,
+                            config.primary_color.unwrap().1,
+                            config.primary_color.unwrap().2,
+                        )),
+                    )),
+                    Spans::from(""),
+                ])
+            })
+            .collect();
+
+        let list = List::new(items).block(help);
+        rect.render_widget(list, rect.size());
+    })?;
+    Ok(())
+}
+
 #[allow(clippy::too_many_lines, clippy::ptr_arg)]
-fn key_handler(
+fn key_handler_list_search(
     input: Key,
     app: &mut State,
     trove_commands: &Vec<HoardCommand>,
@@ -263,8 +335,12 @@ fn key_handler(
             app.should_exit = true;
             None
         }
+        Key::F(1) => {
+            app.draw_state = DrawState::Help;
+            None
+        }
         // Switch namespace
-        Key::Left | Key::Ctrl('h') if app.draw_state == DrawState::Search => {
+        Key::Left | Key::Ctrl('h') => {
             if let Some(selected) = app.namespace_tab_state.selected() {
                 let amount_ns = namespace_tabs.clone().len();
                 if selected > 0 {
@@ -289,7 +365,7 @@ fn key_handler(
             }
             None
         }
-        Key::Right | Key::Ctrl('l') if app.draw_state == DrawState::Search => {
+        Key::Right | Key::Ctrl('l') => {
             if let Some(selected) = app.namespace_tab_state.selected() {
                 let amount_ns = namespace_tabs.clone().len();
                 if selected >= amount_ns - 1 {
@@ -315,7 +391,7 @@ fn key_handler(
             None
         }
         // Switch command
-        Key::Up | Key::Ctrl('y' | 'p') if app.draw_state == DrawState::Search => {
+        Key::Up | Key::Ctrl('y' | 'p') => {
             if !app.commands.is_empty() {
                 if let Some(selected) = app.command_list_state.selected() {
                     let amount_commands = app.commands.clone().len();
@@ -328,7 +404,7 @@ fn key_handler(
             }
             None
         }
-        Key::Down | Key::Ctrl('.' | 'n') if app.draw_state == DrawState::Search => {
+        Key::Down | Key::Ctrl('.' | 'n') => {
             if !app.commands.is_empty() {
                 if let Some(selected) = app.command_list_state.selected() {
                     let amount_commands = app.commands.clone().len();
@@ -341,20 +417,8 @@ fn key_handler(
             }
             None
         }
-        Key::Char('\n') if app.draw_state == DrawState::ParameterInput => {
-            let command = app.selected_command.clone().unwrap();
-            let parameter = app.input.clone();
-            let replaced_command = command.replace_parameters(&app.parameter_token, &[parameter]);
-            app.input = String::from("");
-            if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
-                return Some(replaced_command);
-            }
-            app.selected_command = Some(replaced_command);
-            app.provided_parameter_count += 1;
-            None
-        }
         // Select command
-        Key::Char('\n') if app.draw_state == DrawState::Search => {
+        Key::Char('\n') => {
             if app.commands.is_empty() {
                 app.should_exit = true;
                 return None;
@@ -386,34 +450,67 @@ fn key_handler(
         // Handle query input
         Key::Backspace => {
             app.input.pop();
-            if app.draw_state == DrawState::Search {
-                let selected_tab = namespace_tabs
-                    .get(
-                        app.namespace_tab_state
-                            .selected()
-                            .expect("Always a namespace selected"),
-                    )
-                    .expect("Always a tab selected");
-                apply_search(app, trove_commands, selected_tab);
-            }
+            let selected_tab = namespace_tabs
+                .get(
+                    app.namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         Key::Char(c) => {
             app.input.push(c);
-            if app.draw_state == DrawState::Search {
-                let selected_tab = namespace_tabs
-                    .get(
-                        app.namespace_tab_state
-                            .selected()
-                            .expect("Always a namespace selected"),
-                    )
-                    .expect("Always a tab selected");
-                apply_search(app, trove_commands, selected_tab);
-            }
+            let selected_tab = namespace_tabs
+                .get(
+                    app.namespace_tab_state
+                        .selected()
+                        .expect("Always a namespace selected"),
+                )
+                .expect("Always a tab selected");
+            apply_search(app, trove_commands, selected_tab);
             None
         }
         _ => None,
     }
+}
+
+fn key_handler_parameter_input(input: Key, app: &mut State) -> Option<HoardCommand> {
+    match input {
+        // Quit command
+        Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+            app.should_exit = true;
+            None
+        }
+        Key::Char('\n') => {
+            let command = app.selected_command.clone().unwrap();
+            let parameter = app.input.clone();
+            let replaced_command = command.replace_parameters(&app.parameter_token, &[parameter]);
+            app.input = String::from("");
+            if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
+                return Some(replaced_command);
+            }
+            app.selected_command = Some(replaced_command);
+            app.provided_parameter_count += 1;
+            None
+        }
+        // Handle query input
+        Key::Backspace => {
+            app.input.pop();
+            None
+        }
+        Key::Char(c) => {
+            app.input.push(c);
+            None
+        }
+        _ => None,
+    }
+}
+
+fn key_handler_help(_input: Key, app: &mut State) -> Option<HoardCommand> {
+    app.draw_state = DrawState::Search;
+    None
 }
 
 #[allow(clippy::ptr_arg)]
@@ -563,7 +660,7 @@ fn render_commands<'a>(
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
-    let query_title = format!(" hoard v{} ", VERSION);
+    let query_title = format!(" hoard v{} (F1 for help)", VERSION);
     let input = Paragraph::new(query_string).block(
         Block::default()
             .style(Style::default().fg(Color::Rgb(
