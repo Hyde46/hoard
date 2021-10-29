@@ -1,6 +1,7 @@
 use crate::command::hoard_command::HoardCommand;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
+use crate::gui::help::HELP_KEY;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
@@ -29,6 +30,7 @@ pub fn draw(
                     Constraint::Length(3),
                     Constraint::Min(2),
                     Constraint::Length(3),
+                    Constraint::Length(1),
                 ]
                 .as_ref(),
             )
@@ -99,6 +101,16 @@ pub fn draw(
         rect.render_widget(description, command_detail_chunks[1]);
         rect.render_widget(command, command_detail_chunks[2]);
         rect.render_widget(input, chunks[2]);
+
+        let help_hint = Paragraph::new(format!("Show help - {} ", HELP_KEY))
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
+            .alignment(Alignment::Right);
+
+        rect.render_widget(help_hint, chunks[3]);
     })?;
     Ok(())
 }
@@ -230,7 +242,7 @@ fn render_commands<'a>(
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
-    let query_title = format!(" hoard v{} (F1 for help)", VERSION);
+    let query_title = format!(" hoard v{} ", VERSION);
     let input = Paragraph::new(query_string).block(
         Block::default()
             .style(Style::default().fg(Color::Rgb(

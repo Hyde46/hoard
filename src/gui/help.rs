@@ -9,6 +9,7 @@ use tui::text::{Span, Spans};
 use tui::widgets::{Block, BorderType, Borders, List, ListItem};
 use tui::Terminal;
 
+pub const HELP_KEY: &str = "<F1>";
 const HELP_CONTENT: &[(&str, &str)] = &[
     ("Next item in command list", "<Ctrl-N> / <Down-Arrow>"),
     (
@@ -19,7 +20,8 @@ const HELP_CONTENT: &[(&str, &str)] = &[
     ("Previous namespace tab", "<Ctrl-H> / <Left-Arrow>"),
     ("Select command", "<Enter>"),
     ("Quit", "<Ctrl-D> / <Ctrl-C> / <Ctrl-G>"),
-    ("Show help", "<F1>"),
+    ("Show help", HELP_KEY),
+    ("Close help", "<Any key>"),
 ];
 
 pub fn draw(
