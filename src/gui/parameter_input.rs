@@ -7,6 +7,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Style};
+use tui::text::{Span, Spans};
 use tui::widgets::{Block, Paragraph, Wrap};
 use tui::Terminal;
 
@@ -41,35 +42,47 @@ pub fn draw(
             "Provide {} parameter",
             translate_number_to_nth(app_state.provided_parameter_count)
         );
+
+        let command_style = Style::default().fg(Color::Rgb(
+            config.command_color.unwrap().0,
+            config.command_color.unwrap().1,
+            config.command_color.unwrap().2,
+        ));
+
+        let primary_style = Style::default().fg(Color::Rgb(
+            config.primary_color.unwrap().0,
+            config.primary_color.unwrap().1,
+            config.primary_color.unwrap().2,
+        ));
+
         let input = Paragraph::new(query_string)
-            .style(Style::default().fg(Color::Rgb(
-                config.primary_color.unwrap().0,
-                config.primary_color.unwrap().1,
-                config.primary_color.unwrap().2,
-            )))
-            .block(
-                Block::default()
-                    .style(Style::default().fg(Color::Rgb(
-                        config.command_color.unwrap().0,
-                        config.command_color.unwrap().1,
-                        config.command_color.unwrap().2,
-                    )))
-                    .title(title_string),
-            );
-        let parameterized_command = app_state.selected_command.clone().unwrap().command;
-        let command = Paragraph::new(parameterized_command)
-            .style(Style::default().fg(Color::Rgb(
-                config.command_color.unwrap().0,
-                config.command_color.unwrap().1,
-                config.command_color.unwrap().2,
-            )))
+            .style(primary_style)
+            .block(Block::default().style(command_style).title(title_string));
+
+        let token = config.parameter_token.as_ref().unwrap().as_str();
+        let command_text = app_state
+            .selected_command
+            .as_ref()
+            .unwrap()
+            .command
+            .as_str();
+
+        let command_parts = command_text.split_once(token);
+        let command_spans = if let Some((begin, end)) = command_parts {
+            vec![
+                Span::styled(begin, command_style),
+                Span::styled(token, primary_style),
+                Span::styled(end, command_style),
+            ]
+        } else {
+            vec![Span::styled(command_text, command_style)]
+        };
+
+        let command = Paragraph::new(Spans::from(command_spans))
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true })
-            .block(Block::default().style(Style::default().fg(Color::Rgb(
-                config.primary_color.unwrap().0,
-                config.primary_color.unwrap().1,
-                config.primary_color.unwrap().2,
-            ))));
+            .block(Block::default().style(primary_style));
+
         rect.render_widget(command, overlay_chunks[1]);
         rect.render_widget(input, overlay_chunks[2]);
     })?;
