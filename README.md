@@ -172,6 +172,11 @@ hoard export /path/to/exported/trove.yml
 
 ## :zap: Hoard list shortcuts 
 
+Show list of commands in the GUI
+```
+<F1>
+```
+
 Next item in command list
 
 ```
