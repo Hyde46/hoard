@@ -5,9 +5,8 @@ use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
 use crate::gui::list_search::controls::key_handler as key_handler_list_search;
 use crate::gui::list_search::render::draw as draw_list_search;
-use crate::gui::parameter_input::{
-    draw as draw_parameter_input, key_handler as key_handler_parameter_input,
-};
+use crate::gui::parameter_input::controls::key_handler as key_handler_parameter_input;
+use crate::gui::parameter_input::render::draw as draw_parameter_input;
 use eyre::Result;
 use std::io::stdout;
 use std::time::Duration;
