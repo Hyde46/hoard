@@ -10,6 +10,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - ✨ Support parameterized commands. Put '#' in place where a parameter is expected. When running `hoard pick <command_name>` or `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
 - ✨ Press `<F1>` when running `hoard list` to see all shortcuts
 
+Breaking changes:
+- 🔨 Find your hoard config files at `~/.config/hoard` (Used to be `~/.config/.hoard`. Copy them over or import your old trove file by running `hoard import ~/.config/.hoard/trove.yml`)
+
 ## 0.1.8
 - Wrap command text in UI
 - Left align command text in UI
