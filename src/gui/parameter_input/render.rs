@@ -1,8 +1,6 @@
-use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::util::translate_number_to_nth;
-use termion::event::Key;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
@@ -11,7 +9,6 @@ use tui::text::{Span, Spans};
 use tui::widgets::{Block, Paragraph, Wrap};
 use tui::Terminal;
 
-#[allow(clippy::too_many_lines)]
 pub fn draw(
     app_state: &mut State,
     config: &HoardConfig,
@@ -87,36 +84,4 @@ pub fn draw(
         rect.render_widget(input, overlay_chunks[2]);
     })?;
     Ok(())
-}
-
-pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCommand> {
-    match input {
-        // Quit command
-        Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
-            app.should_exit = true;
-            None
-        }
-        Key::Char('\n') => {
-            let command = app.selected_command.clone().unwrap();
-            let parameter = app.input.clone();
-            let replaced_command = command.replace_parameters(&app.parameter_token, &[parameter]);
-            app.input = String::from("");
-            if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
-                return Some(replaced_command);
-            }
-            app.selected_command = Some(replaced_command);
-            app.provided_parameter_count += 1;
-            None
-        }
-        // Handle query input
-        Key::Backspace => {
-            app.input.pop();
-            None
-        }
-        Key::Char(c) => {
-            app.input.push(c);
-            None
-        }
-        _ => None,
-    }
 }
