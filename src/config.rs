@@ -8,7 +8,7 @@ use std::{
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const HOARD_HOMEDIR: &str = ".config/.hoard";
+const HOARD_HOMEDIR: &str = ".config/hoard";
 const HOARD_FILE: &str = "trove.yml";
 const HOARD_CONFIG: &str = "config.yml";
 
