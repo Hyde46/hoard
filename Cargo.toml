@@ -17,7 +17,7 @@ depends = "$auto"
 section = "utility"
 
 [package.metadata.rpm]
-package = "atuin"
+package = "hoard"
 
 [package.metadata.rpm.cargo]
 buildflags = ["--release"]
