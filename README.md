@@ -119,7 +119,7 @@ source src/shell/hoard.fish
 hoard new
 ```
 
-If a parameter is not known when saving the command, put a `#` ( Or your customized token from your `~/.config/.hoard/config.yml` )
+If a parameter is not known when saving the command, put a `#` ( Or your customized token from your `~/.config/hoard/config.yml` )
 
 #### Delete a command
 
