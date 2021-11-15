@@ -34,11 +34,11 @@
 A command organizer lets you save commands that you often use, but are too complicated or long to remember.
 For every **hoarded** command, `hoard` saves
 
+- the command ( parameterized with a customizable token, default `#` )
 - name
-- tags
 - description
 - namespace where it lives in
-- the command itself ( can be parameterized with a customizable token )
+- tags ( Optional )
 
 If you get lost in your massive command history, and can't find for example a specific `docker` command out of thousand `docker` commands you've already ran,
 just **hoard** it. With a **name** and **description** it will be much easier to find again. When you look for that command again a month later, take a look at your **hoarded** commands.
