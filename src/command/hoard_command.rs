@@ -66,7 +66,7 @@ impl HoardCommand {
             "Command to hoard ( Mark unknown parameters with {} )\n",
             parameter_token
         );
-        let command_string: String = prompt_input(&base_prompt, default_value);
+        let command_string: String = prompt_input(&base_prompt, false, default_value);
         Self {
             name: self.name,
             namespace: self.namespace,
@@ -102,7 +102,8 @@ impl HoardCommand {
             }
         };
         let tags: String = prompt_input_validate(
-            "Give your command some tags ( comma seperated )",
+            "Give your command some optional tags ( comma seperated )",
+            true,
             default_value,
             Some(tag_validator),
         );
@@ -110,7 +111,7 @@ impl HoardCommand {
     }
 
     pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
-        let namespace: String = prompt_input("Namespace of the command", default_namespace);
+        let namespace: String = prompt_input("Namespace of the command", false, default_namespace);
         Self {
             name: self.name,
             namespace,
@@ -144,7 +145,7 @@ impl HoardCommand {
                 Ok(())
             }
         };
-        let name = prompt_input_validate(prompt_string, default_value, Some(validator));
+        let name = prompt_input_validate(prompt_string, false, default_value, Some(validator));
         Self {
             name,
             namespace: self.namespace,
@@ -176,7 +177,7 @@ impl HoardCommand {
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
         let description_string: String =
-            prompt_input("Describe what the command does", default_value);
+            prompt_input("Describe what the command does", false, default_value);
         Self {
             name: self.name,
             namespace: self.namespace,
@@ -283,7 +284,7 @@ impl Parameterized for HoardCommand {
                 (i + 1),
                 command_state
             );
-            let parameter = prompt_input(&prompt_dialoge, None);
+            let parameter = prompt_input(&prompt_dialoge, false, None);
             command_state = command_state.replacen(token, &parameter, 1);
         }
         Self {
