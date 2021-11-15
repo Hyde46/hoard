@@ -48,10 +48,11 @@ pub fn prompt_yes_or_no(text: &str) -> Confirmation {
     }
 }
 
-pub fn prompt_input(text: &str, default_value: Option<String>) -> String {
+pub fn prompt_input(text: &str, allow_empty: bool, default_value: Option<String>) -> String {
     // Just calls `prompt_input_validate` to not keep on typing `None` for the validator
     prompt_input_validate(
         text,
+        allow_empty,
         default_value,
         None::<Box<dyn FnMut(&String) -> Result<(), String>>>,
     )
@@ -59,6 +60,7 @@ pub fn prompt_input(text: &str, default_value: Option<String>) -> String {
 
 pub fn prompt_input_validate<F>(
     text: &str,
+    allow_empty: bool,
     default_value: Option<String>,
     validator: Option<F>,
 ) -> String
@@ -75,6 +77,7 @@ where
     if let Some(val) = validator {
         input.validate_with(val);
     }
+    input.allow_empty(allow_empty);
     input.with_prompt(text).interact_text().unwrap()
 }
 

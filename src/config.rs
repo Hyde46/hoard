@@ -48,6 +48,7 @@ impl HoardConfig {
     pub fn with_default_namespace(self) -> Self {
         let default_namespace = prompt_input(
             "This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.",
+            false,
             Some("default".to_string())
         );
         Self {
