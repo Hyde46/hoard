@@ -1,4 +1,4 @@
-## Example Trove
+## Example Troves
 
 List of trove files, showing how `hoard` can be used
 
