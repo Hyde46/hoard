@@ -1,0 +1,44 @@
+---
+version: 0.1.9
+commands:
+  - name: git_status
+    namespace: git
+    tags:
+      - git
+    command: git status
+    description: "List the files you've changed and those you still need to add or commit"
+  - name: git_connect_remote
+    namespace: git
+    tags:
+      - git
+      - remote
+    command: "git remote add origin #"
+    description: "If you haven't connected your local repository to a remote server, add the server to be able to push to it"
+  - name: git_list_remotes
+    namespace: git
+    tags:
+      - git
+      - remote
+    command: git remote -v
+    description: List all currently configured remote repositories
+  - name: git_new_branch
+    namespace: git
+    tags:
+      - git
+      - branch
+    command: "git checkout -b #"
+    description: Create a new branch and switch to it
+  - name: git_delete_branch
+    namespace: git
+    tags:
+      - git
+      - branch
+    command: "git branch -d #"
+    description: Delete the feature branch
+  - name: git_reset
+    namespace: git
+    tags:
+      - git
+      - reset
+    command: git reset --hard origin/master
+    description: Fetch latest history form the server and point your local master branch at it
