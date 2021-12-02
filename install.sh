@@ -39,7 +39,7 @@ __hoard_install_with_cargo(){
 }
 
 __hoard_install_ubuntu(){
-	echo "Ubuntu detected"
+	echo "Assuming Ubuntu distro. Trying to install .deb package"
 	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v0.1.8/hoard_0.1.8.deb"
 
 	TEMP_DEB="$(mktemp)" &&
@@ -50,7 +50,12 @@ __hoard_install_ubuntu(){
 
 __hoard_install_mac(){
     echo "MacOS detected."
-    echo "Not yet supported, please install hoard from source with cargo"
+    echo "Not yet supported by installer.sh"
+    echo "please install hoard from source with cargo or with brew"
+    echo "brew tap add Hyde46/hoard"
+    echo "brew install hoard"
+    echo "To install as zshell plug, run:"
+    echo 'curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc'
 }
 
 __hoard_detect_os(){

@@ -61,6 +61,12 @@ It's best to use [rustup](https://rustup.rs/) to get setup with a Rust
 toolchain, then you can run:
 
 ```
+cargo install hoard-rs
+```
+
+Or build it yourself:
+
+```
 cargo build --release
 ```
 
@@ -68,6 +74,9 @@ Find the binaries in `./target/release/hoard`
 Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 
 ### Linux
+
+Tested on:
+- Ubuntu
 
 Install `hoard` by running
 
@@ -78,7 +87,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=0.1.8 ./install.fish
+LATEST_RELEASE=1.0.0 ./install.fish
 ```
 
 ### Brew on MacOS
