@@ -34,13 +34,15 @@ __hoard_install_with_cargo(){
 		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q
 
 		echo "rustup installed! Attempting cargo install"
+        
+        cargo install hoard-rs
     fi
 
 }
 
 __hoard_install_ubuntu(){
 	echo "Assuming Ubuntu distro. Trying to install .deb package"
-	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v0.1.8/hoard_0.1.8.deb"
+	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v1.0.0/hoard_1.0.0.deb"
 
 	TEMP_DEB="$(mktemp)" &&
 	wget -O "$TEMP_DEB" "$ARTIFACT_URL"

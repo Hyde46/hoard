@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## 🚀 1.0.0 ( WIP )
+## 🚀 1.0.0
 - ✨ Advanced export allowing subset of namespaces or commands to be exported
 - 🐛 Fix bug where selecting a command when running `hoard` as a `zsh` plugin produces gibberish rendered text in the terminal 
 - ✨ Customizable GUI colors through ~/config/.hoard/config.yml
