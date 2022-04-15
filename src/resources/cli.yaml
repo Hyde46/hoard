@@ -92,6 +92,10 @@ subcommands:
             index: 1
             help: Namespace to remove
             takes_value: true
+  - info:
+      about: Show setting file paths
+      help: Show setting file paths
+
   - import:
       visible_alias: i
       about: Import a trove file
