@@ -65,6 +65,24 @@ impl Hoard {
         };
     }
 
+    pub fn show_info(&self) {
+        if let Some(config) = &self.config {
+            if let Some(config_home_path) = &config.config_home_path {
+                println!(
+                    "✨ Config file is located at {}",
+                    config_home_path.display()
+                );
+            }
+
+            if let Some(trove_home_path) = &config.trove_home_path {
+                println!(
+                    "✨ Trove file is located at {}",
+                    trove_home_path.display()
+                );
+            }
+        }
+    }
+
     fn export_command(&self, arguments: &ArgMatches) {
         if let Some(path) = arguments.value_of("path") {
             let target_path = PathBuf::from(path);
@@ -245,6 +263,9 @@ impl Hoard {
                 } else {
                     println!("No arguments provided");
                 }
+            }
+            ("info", Some(_sub_m)) => {
+                self.show_info();
             }
             ("export", Some(sub_m)) => {
                 self.export_command(sub_m);
