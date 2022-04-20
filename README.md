@@ -148,6 +148,14 @@ hoard remove_namespace <namespace_name>
 hoard edit <name>
 ```
 
+#### Info
+
+Shows location of config file and trove file
+
+```
+hoard info
+```
+
 #### Search through command trove
 
 ```
