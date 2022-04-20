@@ -69,14 +69,14 @@ impl Hoard {
         if let Some(config) = &self.config {
             if let Some(config_home_path) = &config.config_home_path {
                 println!(
-                    "✨ Where config file is located at {}",
+                    "✨ Config file is located at {}",
                     config_home_path.display()
                 );
             }
 
             if let Some(trove_home_path) = &config.trove_home_path {
                 println!(
-                    "✨ Where trove file is located at {}",
+                    "✨ Trove file is located at {}",
                     trove_home_path.display()
                 );
             }
