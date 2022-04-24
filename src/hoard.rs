@@ -86,7 +86,9 @@ impl Hoard {
     pub fn set_parameter_token(&self, parameter_token: &str) {
         if let Some(config) = &self.config {
             if let Some(config_path) = &config.config_home_path {
-                save_parameter_token(config, config_path, parameter_token);
+                if !save_parameter_token(config, config_path, parameter_token) {
+                    std::process::exit(1);
+                }
             }
         }
     }

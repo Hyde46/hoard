@@ -163,18 +163,18 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     config
 }
 
-pub fn save_parameter_token(config: &HoardConfig, config_path: &PathBuf, parameter_token: &str) {
+pub fn save_parameter_token(config: &HoardConfig, config_path: &PathBuf, parameter_token: &str) -> bool {
     let mut new_config = config.clone();
     let path_buf = config_path.join(HOARD_CONFIG);
     new_config.parameter_token = Some(String::from(parameter_token));
     match save_config(&new_config, path_buf.as_path()) {
-        Ok(_) => (),
+        Ok(_) => return true,
         Err(err) => {
             eprintln!("ERROR: {}", err);
             err.chain()
                 .skip(1)
                 .for_each(|cause| eprintln!("because: {}", cause));
-            std::process::exit(1);
+            return false;
         }
     }
 }
@@ -200,7 +200,7 @@ mod test_config {
         // write config file.
         let tmp_path = tmp_dir.path();
         let config = HoardConfig::new(&tmp_path);
-        save_parameter_token(&config, &tmp_path.to_path_buf(), "@");
+        assert_eq!(save_parameter_token(&config, &tmp_path.to_path_buf(), "@"), true);
 
         // read config file, and check parameter token.
         let tmp_file = tmp_dir.path().join(HOARD_CONFIG);
