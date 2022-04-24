@@ -13,7 +13,7 @@ const HOARD_FILE: &str = "trove.yml";
 const HOARD_CONFIG: &str = "config.yml";
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HoardConfig {
     pub version: String,
     pub default_namespace: String,
@@ -161,6 +161,22 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     };
 
     config
+}
+
+pub fn save_parameter_token(config: &HoardConfig, config_path: &PathBuf, parameter_token: &str) {
+    let mut new_config = config.clone();
+    let path_buf = config_path.join(HOARD_CONFIG);
+    new_config.parameter_token = Some(String::from(parameter_token));
+    match save_config(&new_config, path_buf.as_path()) {
+        Ok(_) => (),
+        Err(err) => {
+            eprintln!("ERROR: {}", err);
+            err.chain()
+                .skip(1)
+                .for_each(|cause| eprintln!("because: {}", cause));
+            std::process::exit(1);
+        }
+    }
 }
 
 fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {

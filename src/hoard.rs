@@ -3,7 +3,7 @@ use log::info;
 use reqwest::Url;
 use url::ParseError;
 
-use crate::config::load_or_build_config;
+use crate::config::{load_or_build_config, save_parameter_token};
 
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
@@ -79,6 +79,14 @@ impl Hoard {
                     "✨ Trove file is located at {}",
                     trove_home_path.display()
                 );
+            }
+        }
+    }
+
+    pub fn set_parameter_token(&self, parameter_token: &str) {
+        if let Some(config) = &self.config {
+            if let Some(config_path) = &config.config_home_path {
+                save_parameter_token(config, config_path, parameter_token);
             }
         }
     }
@@ -230,6 +238,15 @@ impl Hoard {
                 } else {
                     println!("No namespace provided!");
                 }
+            }
+            ("set_parameter_token", Some(sub_m)) => {
+                sub_m.value_of("parameter_token")
+                    .map_or_else(
+                        || println!("No parameter token provided!"),
+                        |parameter_token| {
+                            self.set_parameter_token(parameter_token);
+                        }
+                );
             }
             // Load command by name
             ("copy", Some(_sub_m)) => {

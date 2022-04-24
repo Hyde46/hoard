@@ -156,6 +156,14 @@ Shows location of config file and trove file
 hoard info
 ```
 
+### Set parameter token
+
+Change parameter token of config file
+
+```
+hoard set_parameter_token <parameter_token>
+```
+
 #### Search through command trove
 
 ```
