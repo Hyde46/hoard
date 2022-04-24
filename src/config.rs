@@ -184,3 +184,28 @@ fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), E
     fs::write(config_path, s).expect("Unable to write config file");
     Ok(())
 }
+
+
+#[cfg(test)]
+mod test_config {
+    use super::{HoardConfig, HOARD_CONFIG, save_parameter_token};
+    use tempfile::tempdir;
+    use std::fs::File;
+
+
+    #[test]
+    fn test_save_parameter_token() {
+        let tmp_dir = tempdir().ok().unwrap();
+
+        // write config file.
+        let tmp_path = tmp_dir.path();
+        let config = HoardConfig::new(&tmp_path);
+        save_parameter_token(&config, &tmp_path.to_path_buf(), "@");
+
+        // read config file, and check parameter token.
+        let tmp_file = tmp_dir.path().join(HOARD_CONFIG);
+        let f = File::open(tmp_file).ok().unwrap();
+        let parsed_config = serde_yaml::from_reader::<_, HoardConfig>(f).ok().unwrap();
+        assert_eq!(parsed_config.parameter_token, Some(String::from("@")));
+    }
+}
