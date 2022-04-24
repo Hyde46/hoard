@@ -13,7 +13,7 @@ const HOARD_FILE: &str = "trove.yml";
 const HOARD_CONFIG: &str = "config.yml";
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HoardConfig {
     pub version: String,
     pub default_namespace: String,
@@ -163,8 +163,49 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     config
 }
 
+pub fn save_parameter_token(config: &HoardConfig, config_path: &PathBuf, parameter_token: &str) -> bool {
+    let mut new_config = config.clone();
+    let path_buf = config_path.join(HOARD_CONFIG);
+    new_config.parameter_token = Some(String::from(parameter_token));
+    match save_config(&new_config, path_buf.as_path()) {
+        Ok(_) => return true,
+        Err(err) => {
+            eprintln!("ERROR: {}", err);
+            err.chain()
+                .skip(1)
+                .for_each(|cause| eprintln!("because: {}", cause));
+            return false;
+        }
+    }
+}
+
 fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {
     let s = serde_yaml::to_string(&config_to_save)?;
     fs::write(config_path, s).expect("Unable to write config file");
     Ok(())
+}
+
+
+#[cfg(test)]
+mod test_config {
+    use super::{HoardConfig, HOARD_CONFIG, save_parameter_token};
+    use tempfile::tempdir;
+    use std::fs::File;
+
+
+    #[test]
+    fn test_save_parameter_token() {
+        let tmp_dir = tempdir().ok().unwrap();
+
+        // write config file.
+        let tmp_path = tmp_dir.path();
+        let config = HoardConfig::new(&tmp_path);
+        assert_eq!(save_parameter_token(&config, &tmp_path.to_path_buf(), "@"), true);
+
+        // read config file, and check parameter token.
+        let tmp_file = tmp_dir.path().join(HOARD_CONFIG);
+        let f = File::open(tmp_file).ok().unwrap();
+        let parsed_config = serde_yaml::from_reader::<_, HoardConfig>(f).ok().unwrap();
+        assert_eq!(parsed_config.parameter_token, Some(String::from("@")));
+    }
 }

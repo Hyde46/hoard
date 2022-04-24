@@ -52,3 +52,6 @@ array_tool = "1.0.3"
 reqwest = {version="0.11.4"}
 url = {version="2.2.2"}
 console = "0.15.0"
+
+[dev-dependencies]
+tempfile = "3.3.0"

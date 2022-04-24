@@ -73,6 +73,14 @@ subcommands:
             required: true
             takes_value: true
             index: 1
+  - set_parameter_token:
+      about: Set a parameter token
+      help: Set a parameter token
+      args:
+        - parameter_token:
+            index: 1
+            help: Parameter token to remove
+            takes_value: true
   - remove:
       visible_alias: r
       about: Removes a command of the trove
