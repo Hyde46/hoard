@@ -27,6 +27,7 @@ pub struct HoardConfig {
     pub command_color: Option<(u8, u8, u8)>,
     // Parameter settings
     pub parameter_token: Option<String>,
+    pub read_from_current_directory: Option<bool>
 }
 
 impl HoardConfig {
@@ -42,6 +43,7 @@ impl HoardConfig {
             tertiary_color: Some(Self::default_colors(2)),
             command_color: Some(Self::default_colors(3)),
             parameter_token: Some(Self::default_parameter_token()),
+            read_from_current_directory: Some(false)
         }
     }
 
@@ -62,6 +64,7 @@ impl HoardConfig {
             tertiary_color: self.tertiary_color,
             command_color: self.command_color,
             parameter_token: self.parameter_token,
+            read_from_current_directory: self.read_from_current_directory
         }
     }
 
@@ -149,9 +152,19 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
             loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
             is_config_dirty = true;
         }
+        if loaded_config.read_from_current_directory.is_none() {
+            loaded_config.read_from_current_directory = Some(false);
+            is_config_dirty = true;
+        }
         if is_config_dirty {
             save_config(&loaded_config, &hoard_config_path)?;
         }
+
+        let path_buf = Path::new(HOARD_FILE).to_path_buf();
+        if loaded_config.read_from_current_directory.unwrap() && path_buf.exists() {
+            loaded_config.trove_home_path = Some(path_buf);
+        }
+
         Ok(loaded_config)
     } else {
         info!("Config file does not exist. Creating new one");
