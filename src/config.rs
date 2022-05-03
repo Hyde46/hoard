@@ -114,7 +114,7 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     let hoard_dir = home_path.join(HOARD_HOMEDIR);
     if !hoard_dir.exists() {
         info!("Creating {:?}", hoard_dir);
-        fs::create_dir(&hoard_dir)?;
+        fs::create_dir_all(&hoard_dir)?;
     }
 
     let hoard_config_path = hoard_dir.join(HOARD_CONFIG);
