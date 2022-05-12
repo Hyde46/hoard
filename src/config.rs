@@ -43,7 +43,7 @@ impl HoardConfig {
             tertiary_color: Some(Self::default_colors(2)),
             command_color: Some(Self::default_colors(3)),
             parameter_token: Some(Self::default_parameter_token()),
-            read_from_current_directory: Some(false)
+            read_from_current_directory: Some(Self::default_read_from_current_directory())
         }
     }
 
@@ -70,6 +70,10 @@ impl HoardConfig {
 
     fn default_parameter_token() -> String {
         "#".to_string()
+    }
+
+    const fn default_read_from_current_directory() -> bool {
+        false
     }
 
     const fn default_colors(color_level: u8) -> (u8, u8, u8) {
