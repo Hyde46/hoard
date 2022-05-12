@@ -18,7 +18,7 @@ pub struct HoardConfig {
     pub version: String,
     pub default_namespace: String,
     pub config_home_path: Option<PathBuf>,
-    pub trove_home_path: Option<PathBuf>,
+    pub trove_path: Option<PathBuf>,
     pub query_prefix: String,
     // Color settings
     pub primary_color: Option<(u8, u8, u8)>,
@@ -36,7 +36,7 @@ impl HoardConfig {
             version: VERSION.to_string(),
             default_namespace: "default".to_string(),
             config_home_path: Some(hoard_home_path.to_path_buf()),
-            trove_home_path: Some(hoard_home_path.join(HOARD_FILE)),
+            trove_path: Some(hoard_home_path.join(HOARD_FILE)),
             query_prefix: "  >".to_string(),
             primary_color: Some(Self::default_colors(0)),
             secondary_color: Some(Self::default_colors(1)),
@@ -57,7 +57,7 @@ impl HoardConfig {
             version: self.version,
             default_namespace,
             config_home_path: self.config_home_path,
-            trove_home_path: self.trove_home_path,
+            trove_path: self.trove_path,
             query_prefix: self.query_prefix,
             primary_color: self.primary_color,
             secondary_color: self.secondary_color,
@@ -144,8 +144,8 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
             loaded_config.command_color = Some(HoardConfig::default_colors(3));
             is_config_dirty = true;
         }
-        if loaded_config.trove_home_path.is_none() {
-            loaded_config.trove_home_path = Some(hoard_dir.join(HOARD_FILE));
+        if loaded_config.trove_path.is_none() {
+            loaded_config.trove_path = Some(hoard_dir.join(HOARD_FILE));
             is_config_dirty = true;
         }
         if loaded_config.parameter_token.is_none() {
@@ -162,7 +162,7 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
 
         let path_buf = Path::new(HOARD_FILE).to_path_buf();
         if loaded_config.read_from_current_directory.unwrap() && path_buf.exists() {
-            loaded_config.trove_home_path = Some(path_buf);
+            loaded_config.trove_path = Some(path_buf);
         }
 
         Ok(loaded_config)

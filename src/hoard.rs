@@ -46,7 +46,7 @@ impl Hoard {
     pub fn load_trove(&mut self) -> &mut Self {
         match &self.config {
             Some(config) => {
-                self.trove = CommandTrove::load_trove_file(&config.trove_home_path);
+                self.trove = CommandTrove::load_trove_file(&config.trove_path);
             }
             None => {
                 info!("[DEBUG] No command config loaded");
@@ -58,7 +58,7 @@ impl Hoard {
     pub fn save_trove(&self, path: Option<&Path>) {
         match &self.config {
             Some(config) => {
-                let path_to_save = path.unwrap_or_else(|| config.trove_home_path.as_ref().unwrap());
+                let path_to_save = path.unwrap_or_else(|| config.trove_path.as_ref().unwrap());
                 self.trove.save_trove_file(path_to_save);
             }
             None => info!("[DEBUG] No command config loaded"),
@@ -74,10 +74,10 @@ impl Hoard {
                 );
             }
 
-            if let Some(trove_home_path) = &config.trove_home_path {
+            if let Some(trove_path) = &config.trove_path {
                 println!(
                     "✨ Trove file is located at {}",
-                    trove_home_path.display()
+                    trove_path.display()
                 );
             }
         }
