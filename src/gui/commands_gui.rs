@@ -7,11 +7,14 @@ use crate::gui::list_search::controls::key_handler as key_handler_list_search;
 use crate::gui::list_search::render::draw as draw_list_search;
 use crate::gui::parameter_input::controls::key_handler as key_handler_parameter_input;
 use crate::gui::parameter_input::render::draw as draw_parameter_input;
+use crossterm::execute;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use eyre::Result;
 use std::io::stdout;
 use std::time::Duration;
-use termion::{raw::IntoRawMode, screen::AlternateScreen};
-use tui::{backend::TermionBackend, widgets::ListState, Terminal};
+use tui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 
 pub struct State {
     pub input: String,
@@ -53,9 +56,10 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
     app_state.command_list_state.select(Some(0));
     app_state.namespace_tab_state.select(Some(0));
 
-    let stdout = stdout().into_raw_mode()?;
-    let stdout = AlternateScreen::from(stdout);
-    let backend = TermionBackend::new(stdout);
+    enable_raw_mode()?;
+    let mut stdout = stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
@@ -86,11 +90,15 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             };
 
             if let Some(output) = command {
+                disable_raw_mode()?;
+                execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
                 terminal.show_cursor()?;
                 return Ok(Some(output));
             }
 
             if app_state.should_exit {
+                disable_raw_mode()?;
+                execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
                 terminal.show_cursor()?;
                 return Ok(None);
             }
