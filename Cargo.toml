@@ -1,7 +1,7 @@
 [package]
 name = "hoard-rs"
 version = "1.0.0"
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 license = "MIT"
 authors = ["Denis Heid"]
