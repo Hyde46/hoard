@@ -27,7 +27,7 @@ pub struct HoardConfig {
     pub command_color: Option<(u8, u8, u8)>,
     // Parameter settings
     pub parameter_token: Option<String>,
-    pub read_from_current_directory: Option<bool>
+    pub read_from_current_directory: Option<bool>,
 }
 
 impl HoardConfig {
@@ -43,7 +43,7 @@ impl HoardConfig {
             tertiary_color: Some(Self::default_colors(2)),
             command_color: Some(Self::default_colors(3)),
             parameter_token: Some(Self::default_parameter_token()),
-            read_from_current_directory: Some(Self::default_read_from_current_directory())
+            read_from_current_directory: Some(Self::default_read_from_current_directory()),
         }
     }
 
@@ -64,7 +64,7 @@ impl HoardConfig {
             tertiary_color: self.tertiary_color,
             command_color: self.command_color,
             parameter_token: self.parameter_token,
-            read_from_current_directory: self.read_from_current_directory
+            read_from_current_directory: self.read_from_current_directory,
         }
     }
 
@@ -73,7 +73,7 @@ impl HoardConfig {
     }
 
     const fn default_read_from_current_directory() -> bool {
-        false
+        true
     }
 
     const fn default_colors(color_level: u8) -> (u8, u8, u8) {
@@ -131,38 +131,12 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
         info!("Config file exists");
         let f = std::fs::File::open(&hoard_config_path)?;
         let mut loaded_config: HoardConfig = serde_yaml::from_reader::<_, HoardConfig>(f)?;
-        let mut is_config_dirty = false;
-        if loaded_config.primary_color.is_none() {
-            loaded_config.primary_color = Some(HoardConfig::default_colors(0));
-            is_config_dirty = true;
-        }
-        if loaded_config.secondary_color.is_none() {
-            loaded_config.secondary_color = Some(HoardConfig::default_colors(1));
-            is_config_dirty = true;
-        }
-        if loaded_config.tertiary_color.is_none() {
-            loaded_config.tertiary_color = Some(HoardConfig::default_colors(2));
-            is_config_dirty = true;
-        }
-        if loaded_config.command_color.is_none() {
-            loaded_config.command_color = Some(HoardConfig::default_colors(3));
-            is_config_dirty = true;
-        }
-        if loaded_config.trove_path.is_none() {
-            loaded_config.trove_path = Some(hoard_dir.join(HOARD_FILE));
-            is_config_dirty = true;
-        }
-        if loaded_config.parameter_token.is_none() {
-            loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
-            is_config_dirty = true;
-        }
-        if loaded_config.read_from_current_directory.is_none() {
-            loaded_config.read_from_current_directory = Some(false);
-            is_config_dirty = true;
-        }
-        if is_config_dirty {
-            save_config(&loaded_config, &hoard_config_path)?;
-        }
+
+        append_missing_default_values_to_config(
+            &mut loaded_config,
+            &hoard_dir,
+            &hoard_config_path,
+        )?;
 
         let path_buf = Path::new(HOARD_FILE).to_path_buf();
         if loaded_config.read_from_current_directory.unwrap() && path_buf.exists() {
@@ -180,7 +154,50 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
     config
 }
 
-pub fn save_parameter_token(config: &HoardConfig, config_path: &PathBuf, parameter_token: &str) -> bool {
+fn append_missing_default_values_to_config(
+    loaded_config: &mut HoardConfig,
+    hoard_dir: &PathBuf,
+    hoard_config_path: &PathBuf,
+) -> Result<(), Error> {
+    let mut is_config_dirty = false;
+    if loaded_config.primary_color.is_none() {
+        loaded_config.primary_color = Some(HoardConfig::default_colors(0));
+        is_config_dirty = true;
+    }
+    if loaded_config.secondary_color.is_none() {
+        loaded_config.secondary_color = Some(HoardConfig::default_colors(1));
+        is_config_dirty = true;
+    }
+    if loaded_config.tertiary_color.is_none() {
+        loaded_config.tertiary_color = Some(HoardConfig::default_colors(2));
+        is_config_dirty = true;
+    }
+    if loaded_config.command_color.is_none() {
+        loaded_config.command_color = Some(HoardConfig::default_colors(3));
+        is_config_dirty = true;
+    }
+    if loaded_config.trove_path.is_none() {
+        loaded_config.trove_path = Some(hoard_dir.join(HOARD_FILE));
+        is_config_dirty = true;
+    }
+    if loaded_config.parameter_token.is_none() {
+        loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
+        is_config_dirty = true;
+    }
+    if loaded_config.read_from_current_directory.is_none() {
+        loaded_config.read_from_current_directory = Some(false);
+        is_config_dirty = true;
+    }
+    Ok(if is_config_dirty {
+        save_config(&*loaded_config, hoard_config_path)?;
+    })
+}
+
+pub fn save_parameter_token(
+    config: &HoardConfig,
+    config_path: &PathBuf,
+    parameter_token: &str,
+) -> bool {
     let mut new_config = config.clone();
     let path_buf = config_path.join(HOARD_CONFIG);
     new_config.parameter_token = Some(String::from(parameter_token));
@@ -202,13 +219,11 @@ fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), E
     Ok(())
 }
 
-
 #[cfg(test)]
 mod test_config {
-    use super::{HoardConfig, HOARD_CONFIG, save_parameter_token};
-    use tempfile::tempdir;
+    use super::{save_parameter_token, HoardConfig, HOARD_CONFIG};
     use std::fs::File;
-
+    use tempfile::tempdir;
 
     #[test]
     fn test_save_parameter_token() {
@@ -217,7 +232,10 @@ mod test_config {
         // write config file.
         let tmp_path = tmp_dir.path();
         let config = HoardConfig::new(&tmp_path);
-        assert_eq!(save_parameter_token(&config, &tmp_path.to_path_buf(), "@"), true);
+        assert_eq!(
+            save_parameter_token(&config, &tmp_path.to_path_buf(), "@"),
+            true
+        );
 
         // read config file, and check parameter token.
         let tmp_file = tmp_dir.path().join(HOARD_CONFIG);

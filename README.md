@@ -87,7 +87,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.0.0 ./install.fish
+LATEST_RELEASE=1.0.1 ./install.fish
 ```
 
 ### Brew on MacOS
@@ -129,6 +129,22 @@ hoard new
 ```
 
 If a parameter is not known when saving the command, put a `#` ( Or your customized token from your `~/.config/hoard/config.yml` )
+#### Search through command trove
+
+```
+<Ctrl-h>
+```
+
+Or alternatively, if not installed as a plugin, the interactive search can still be performed, though without autocomplete. This assumes the user to copy the command by mouse from the UI
+
+```
+hoard list
+```
+
+When running `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
+
+If there is a `trove.yml` file present in the local directory, `hoard` will only load this trove file and not display your "global" trove!
+( Edit ~/.config/hoard/config.yml `read_from_current_directory` to disable )
 
 #### Delete a command
 
@@ -156,27 +172,13 @@ Shows location of config file and trove file
 hoard info
 ```
 
-### Set parameter token
+#### Set parameter token
 
 Change parameter token of config file
 
 ```
 hoard set_parameter_token <parameter_token>
 ```
-
-#### Search through command trove
-
-```
-<Ctrl-h>
-```
-
-Or alternatively, if not installed as a plugin, the interactive search can still be performed, though without autocomplete. This assumes the user to copy the command by mouse from the UI
-
-```
-hoard list
-```
-
-When running `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
 
 #### Import other trove files from `trove.yml` or urls pointing to a trove.yml file
 
