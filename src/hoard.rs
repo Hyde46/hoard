@@ -151,133 +151,34 @@ impl Hoard {
         match matches.subcommand() {
             // Create new command and save it it in trove
             ("new", Some(_sub_m)) => {
-                let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
-                let new_command = HoardCommand::default()
-                    .with_command_string_input(
-                        None,
-                        &self
-                            .config
-                            .as_ref()
-                            .unwrap()
-                            .parameter_token
-                            .clone()
-                            .unwrap(),
-                    )
-                    .with_namespace_input(Some(default_namespace))
-                    .with_name_input(None, &self.trove)
-                    .with_description_input(None)
-                    .with_tags_input(None);
-                self.trove.add_command(new_command);
-                self.save_trove(None);
+                self.new_command();
             }
             // Fuzzy search through trove
             ("search", Some(_sub_m)) => {}
             // List all available commands
             ("list", Some(sub_m)) => {
-                if self.trove.is_empty() {
-                    println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
-                } else if sub_m.is_present("simple") {
-                    self.trove.print_trove();
-                } else {
-                    match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
-                        Ok(selected_command) => {
-                            if let Some(c) = selected_command {
-                                // Is set if a command is selected in GUI
-                                if !c.command.is_empty() {
-                                    //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
-                                    autocomplete_command = c.command;
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            println!("{}", e);
-                        }
-                    }
-                }
+                self.list_commands(sub_m, &mut autocomplete_command);
             }
             // Load command by name into clipboard, if available
             ("pick", Some(sub_m)) => {
-                if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self
-                        .trove
-                        .pick_command(self.config.as_ref().unwrap(), command_name);
-                    match command_result {
-                        Ok(c) => {
-                            println!("{}", c.command);
-                        }
-                        Err(e) => eprintln!("{}", e),
-                    }
-                }
+                self.pick_command(sub_m);
             }
             // removes command from trove with a name supplied by input
             ("remove", Some(sub_m)) => {
-                if let Some(command_name) = sub_m.value_of("name") {
-                    let command_result = self.trove.remove_command(command_name);
-                    match command_result {
-                        Ok(_) => {
-                            println!("Removed [{}]", command_name);
-                        }
-                        Err(e) => eprintln!("{}", e),
-                    }
-                    self.save_trove(None);
-                } else {
-                    println!("No name provided!");
-                }
+                self.remove_command(sub_m);
             }
             ("remove_namespace", Some(sub_m)) => {
-                if let Some(namespace) = sub_m.value_of("namespace") {
-                    let command_result = self.trove.remove_namespace_commands(namespace);
-                    match command_result {
-                        Ok(_) => {
-                            println!("Removed all commands of namespace [{}]", namespace);
-                        }
-                        Err(e) => eprintln!("{}", e),
-                    }
-                    self.save_trove(None);
-                } else {
-                    println!("No namespace provided!");
-                }
+                self.remove_namespace(sub_m);
             }
             ("set_parameter_token", Some(sub_m)) => {
-                sub_m.value_of("parameter_token").map_or_else(
-                    || println!("No parameter token provided!"),
-                    |parameter_token| {
-                        self.set_parameter_token(parameter_token);
-                    },
-                );
+                set_parameter_token(sub_m);
             }
             // Load command by name
             ("copy", Some(_sub_m)) => {
                 println!("Not yet implemented");
             }
             ("import", Some(sub_m)) => {
-                if let Some(path) = sub_m.value_of("uri") {
-                    match Url::parse(path) {
-                        Ok(url) => match reqwest_trove(url) {
-                            Ok(trove_string) => {
-                                let imported_trove =
-                                    CommandTrove::load_trove_from_string(&trove_string[..]);
-                                self.trove.merge_trove(&imported_trove);
-                                self.save_trove(None);
-                            }
-                            Err(e) => {
-                                println!("Could not import trove from url: {:?}", e);
-                            }
-                        },
-                        Err(err) => {
-                            if let ParseError::RelativeUrlWithoutBase = err {
-                                let imported_trove =
-                                    CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
-                                self.trove.merge_trove(&imported_trove);
-                                self.save_trove(None);
-                            } else {
-                                eprintln!("Not a valid URL or file path");
-                            }
-                        }
-                    }
-                } else {
-                    println!("No arguments provided");
-                }
+                self.import_trove(sub_m);
             }
             ("info", Some(_sub_m)) => {
                 self.show_info();
@@ -286,41 +187,172 @@ impl Hoard {
                 self.export_command(sub_m);
             }
             ("edit", Some(sub_m)) => {
-                if let Some(command_name) = sub_m.value_of("name") {
-                    println!("Editing {:?}", command_name);
-                    let command_to_edit = self
-                        .trove
-                        .pick_command(self.config.as_ref().unwrap(), command_name);
-                    match command_to_edit {
-                        Ok(c) => {
-                            println!("{}", c.command);
-                            let new_command = HoardCommand::default()
-                                .with_command_string_input(
-                                    Some(c.command.clone()),
-                                    &self
-                                        .config
-                                        .as_ref()
-                                        .unwrap()
-                                        .parameter_token
-                                        .clone()
-                                        .unwrap(),
-                                )
-                                .with_name_input(Some(c.name.clone()), &self.trove)
-                                .with_description_input(c.description.clone())
-                                .with_tags_input(Some(c.tags_as_string()))
-                                .with_namespace_input(Some(c.namespace));
-                            self.trove.remove_command(command_name).ok();
-                            self.trove.add_command(new_command);
-                            self.save_trove(None);
-                        }
-                        Err(_e) => eprintln!("Could not find command {} to edit", command_name),
-                    }
-                }
+                self.edit_command(sub_m);
             }
             _ => {}
         }
         (autocomplete_command, matches.is_present("autocomplete"))
     }
+
+    fn edit_command(&mut self, sub_m: &ArgMatches) {
+        if let Some(command_name) = sub_m.value_of("name") {
+            println!("Editing {:?}", command_name);
+            let command_to_edit = self
+                .trove
+                .pick_command(self.config.as_ref().unwrap(), command_name);
+            match command_to_edit {
+                Ok(c) => {
+                    println!("{}", c.command);
+                    let new_command = HoardCommand::default()
+                        .with_command_string_input(
+                            Some(c.command.clone()),
+                            &self
+                                .config
+                                .as_ref()
+                                .unwrap()
+                                .parameter_token
+                                .clone()
+                                .unwrap(),
+                        )
+                        .with_name_input(Some(c.name.clone()), &self.trove)
+                        .with_description_input(c.description.clone())
+                        .with_tags_input(Some(c.tags_as_string()))
+                        .with_namespace_input(Some(c.namespace));
+                    self.trove.remove_command(command_name).ok();
+                    self.trove.add_command(new_command);
+                    self.save_trove(None);
+                }
+                Err(_e) => eprintln!("Could not find command {} to edit", command_name),
+            }
+        }
+    }
+
+    fn import_trove(&mut self, sub_m: &ArgMatches) {
+        if let Some(path) = sub_m.value_of("uri") {
+            match Url::parse(path) {
+                Ok(url) => match reqwest_trove(url) {
+                    Ok(trove_string) => {
+                        let imported_trove =
+                            CommandTrove::load_trove_from_string(&trove_string[..]);
+                        self.trove.merge_trove(&imported_trove);
+                        self.save_trove(None);
+                    }
+                    Err(e) => {
+                        println!("Could not import trove from url: {:?}", e);
+                    }
+                },
+                Err(err) => {
+                    if let ParseError::RelativeUrlWithoutBase = err {
+                        let imported_trove =
+                            CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
+                        self.trove.merge_trove(&imported_trove);
+                        self.save_trove(None);
+                    } else {
+                        eprintln!("Not a valid URL or file path");
+                    }
+                }
+            }
+        } else {
+            println!("No arguments provided");
+        }
+    }
+
+    fn remove_namespace(&mut self, sub_m: &ArgMatches) {
+        if let Some(namespace) = sub_m.value_of("namespace") {
+            let command_result = self.trove.remove_namespace_commands(namespace);
+            match command_result {
+                Ok(_) => {
+                    println!("Removed all commands of namespace [{}]", namespace);
+                }
+                Err(e) => eprintln!("{}", e),
+            }
+            self.save_trove(None);
+        } else {
+            println!("No namespace provided!");
+        }
+    }
+
+    fn remove_command(&mut self, sub_m: &ArgMatches) {
+        if let Some(command_name) = sub_m.value_of("name") {
+            let command_result = self.trove.remove_command(command_name);
+            match command_result {
+                Ok(_) => {
+                    println!("Removed [{}]", command_name);
+                }
+                Err(e) => eprintln!("{}", e),
+            }
+            self.save_trove(None);
+        } else {
+            println!("No name provided!");
+        }
+    }
+
+    fn pick_command(&mut self, sub_m: &ArgMatches) {
+        if let Some(command_name) = sub_m.value_of("name") {
+            let command_result = self
+                .trove
+                .pick_command(self.config.as_ref().unwrap(), command_name);
+            match command_result {
+                Ok(c) => {
+                    println!("{}", c.command);
+                }
+                Err(e) => eprintln!("{}", e),
+            }
+        }
+    }
+
+    fn list_commands(&mut self, sub_m: &ArgMatches, autocomplete_command: &mut String) {
+        if self.trove.is_empty() {
+            println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
+        } else if sub_m.is_present("simple") {
+            self.trove.print_trove();
+        } else {
+            match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
+                Ok(selected_command) => {
+                    if let Some(c) = selected_command {
+                        // Is set if a command is selected in GUI
+                        if !c.command.is_empty() {
+                            //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
+                            *autocomplete_command = c.command;
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("{}", e);
+                }
+            }
+        }
+    }
+
+    fn new_command(&mut self) {
+        let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
+        let new_command = HoardCommand::default()
+            .with_command_string_input(
+                None,
+                &self
+                    .config
+                    .as_ref()
+                    .unwrap()
+                    .parameter_token
+                    .clone()
+                    .unwrap(),
+            )
+            .with_namespace_input(Some(default_namespace))
+            .with_name_input(None, &self.trove)
+            .with_description_input(None)
+            .with_tags_input(None);
+        self.trove.add_command(new_command);
+        self.save_trove(None);
+    }
+}
+
+fn set_parameter_token(sub_m: &ArgMatches) {
+    sub_m.value_of("parameter_token").map_or_else(
+        || println!("No parameter token provided!"),
+        |parameter_token| {
+            self.set_parameter_token(parameter_token);
+        },
+    );
 }
 
 #[tokio::main]
