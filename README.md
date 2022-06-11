@@ -87,7 +87,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.0.0 ./install.fish
+LATEST_RELEASE=1.0.1 ./install.fish
 ```
 
 ### Brew on MacOS
@@ -144,6 +144,7 @@ hoard list
 When running `hoard list` as a shell plugin and selecting a parameterized command, `hoard` will ask for all missing parameters to input before sending the complete command to your shell input. 
 
 If there is a `trove.yml` file present in the local directory, `hoard` will only load this trove file and not display your "global" trove!
+( Edit ~/.config/hoard/config.yml `read_from_current_directory` to disable )
 
 #### Delete a command
 
