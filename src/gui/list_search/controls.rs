@@ -261,7 +261,7 @@ mod test_controls {
         state
     }
 
-    fn test_change_command(key: Key, initial_index: usize, expected_index: usize) {
+    fn test_change_command(key: KeyEvent, initial_index: usize, expected_index: usize) {
         let namespaces = vec![DEFAULT_NAMESPACE];
         let cmd1 = create_command("first", DEFAULT_NAMESPACE);
         let cmd2 = create_command("second", DEFAULT_NAMESPACE);
@@ -276,7 +276,7 @@ mod test_controls {
         assert_eq!(expected_index, new_selected_index.unwrap());
     }
 
-    fn test_change_namespace(key: Key, initial_index: usize, expected_index: usize) {
+    fn test_change_namespace(key: KeyEvent, initial_index: usize, expected_index: usize) {
         let namespaces = vec!["first", "second", "third"];
         let mut state = create_state(vec![]);
         state.namespace_tab_state.select(Some(initial_index));
@@ -291,43 +291,99 @@ mod test_controls {
     // Commands
     #[test]
     fn next_command() {
-        test_change_command(Key::Down, 0, 1);
+        test_change_command(
+            KeyEvent {
+                code: KeyCode::Down,
+                modifiers: KeyModifiers::NONE,
+            },
+            0,
+            1,
+        );
     }
 
     #[test]
     fn next_command_wrap() {
-        test_change_command(Key::Down, 2, 0);
+        test_change_command(
+            KeyEvent {
+                code: KeyCode::Down,
+                modifiers: KeyModifiers::NONE,
+            },
+            2,
+            0,
+        );
     }
 
     #[test]
     fn previous_command() {
-        test_change_command(Key::Up, 2, 1);
+        test_change_command(
+            KeyEvent {
+                code: KeyCode::Up,
+                modifiers: KeyModifiers::NONE,
+            },
+            2,
+            1,
+        );
     }
 
     #[test]
     fn previous_command_wrap() {
-        test_change_command(Key::Up, 0, 2);
+        test_change_command(
+            KeyEvent {
+                code: KeyCode::Up,
+                modifiers: KeyModifiers::NONE,
+            },
+            0,
+            2,
+        );
     }
 
     // Namespaces
     #[test]
     fn next_namespace() {
-        test_change_namespace(Key::Right, 1, 2);
+        test_change_namespace(
+            KeyEvent {
+                code: KeyCode::Right,
+                modifiers: KeyModifiers::NONE,
+            },
+            1,
+            2,
+        );
     }
 
     #[test]
     fn next_namespace_wrap() {
-        test_change_namespace(Key::Right, 2, 0);
+        test_change_namespace(
+            KeyEvent {
+                code: KeyCode::Right,
+                modifiers: KeyModifiers::NONE,
+            },
+            2,
+            0,
+        );
     }
 
     #[test]
     fn previous_namespace() {
-        test_change_namespace(Key::Left, 2, 1);
+        test_change_namespace(
+            KeyEvent {
+                code: KeyCode::Left,
+                modifiers: KeyModifiers::NONE,
+            },
+            2,
+            1,
+        );
     }
 
     #[test]
     fn previous_namespace_wrap() {
-        test_change_namespace(Key::Left, 0, 2);
+        test_change_namespace(
+            KeyEvent {
+                code: KeyCode::Left,
+                modifiers: KeyModifiers::NONE,
+            },
+            0,
+            2,
+        );
     }
 
     #[test]
@@ -342,7 +398,15 @@ mod test_controls {
         let mut state = create_state(vec![cmd1, cmd2]);
 
         let commands = state.commands.clone();
-        key_handler(Key::Right, &mut state, &commands, &all_namespaces);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Right,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &all_namespaces,
+        );
         let filtered_commands = state.commands;
 
         assert_eq!(1, filtered_commands.len());
@@ -361,7 +425,15 @@ mod test_controls {
         let mut state = create_state(vec![cmd1, cmd2]);
 
         let commands = state.commands.clone();
-        key_handler(Key::Right, &mut state, &commands, &all_namespaces);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Right,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &all_namespaces,
+        );
         let selected_command_index = state.command_list_state.selected().unwrap();
 
         assert_eq!(expected_command_index, selected_command_index);
@@ -379,8 +451,16 @@ mod test_controls {
         state.command_list_state.select(Some(command_index));
 
         let commands = state.commands.clone();
-        let actual_command =
-            key_handler(Key::Char('\n'), &mut state, &commands, &namespaces).unwrap();
+        let actual_command = key_handler(
+            KeyEvent {
+                code: KeyCode::Enter,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &namespaces,
+        )
+        .unwrap();
 
         assert_eq!(expected_command, actual_command.command);
     }
@@ -392,7 +472,15 @@ mod test_controls {
 
         let mut state = create_state(vec![cmd]);
         let commands = state.commands.clone();
-        key_handler(Key::Char('\n'), &mut state, &commands, &namespaces);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Enter,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &namespaces,
+        );
 
         assert_eq!(DrawState::ParameterInput, state.draw_state);
     }
@@ -401,7 +489,15 @@ mod test_controls {
     fn quit_on_nothing_to_pick() {
         let mut state = create_state(vec![]);
 
-        key_handler(Key::Char('\n'), &mut state, &[], &[]);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Enter,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &[],
+            &[],
+        );
 
         assert!(state.should_exit);
     }
@@ -410,7 +506,15 @@ mod test_controls {
     fn quit() {
         let mut state = create_state(vec![]);
 
-        key_handler(Key::Esc, &mut state, &[], &[]);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Esc,
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &[],
+            &[],
+        );
 
         assert!(state.should_exit);
     }
@@ -419,7 +523,15 @@ mod test_controls {
     fn show_help() {
         let mut state = create_state(vec![]);
 
-        key_handler(Key::F(1), &mut state, &[], &[]);
+        key_handler(
+            KeyEvent {
+                code: KeyCode::F(1),
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &[],
+            &[],
+        );
 
         assert_eq!(DrawState::Help, state.draw_state);
     }
