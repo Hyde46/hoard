@@ -171,7 +171,7 @@ impl Hoard {
                 self.remove_namespace(sub_m);
             }
             ("set_parameter_token", Some(sub_m)) => {
-                set_parameter_token(sub_m);
+                self.set_parameter_token_command(sub_m);
             }
             // Load command by name
             ("copy", Some(_sub_m)) => {
@@ -344,15 +344,15 @@ impl Hoard {
         self.trove.add_command(new_command);
         self.save_trove(None);
     }
-}
 
-fn set_parameter_token(sub_m: &ArgMatches) {
-    sub_m.value_of("parameter_token").map_or_else(
-        || println!("No parameter token provided!"),
-        |parameter_token| {
-            self.set_parameter_token(parameter_token);
-        },
-    );
+    fn set_parameter_token_command(&mut self, sub_m: &ArgMatches) {
+        sub_m.value_of("parameter_token").map_or_else(
+            || println!("No parameter token provided!"),
+            |parameter_token| {
+                self.set_parameter_token(parameter_token);
+            },
+        );
+    }
 }
 
 #[tokio::main]
