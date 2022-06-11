@@ -1,33 +1,61 @@
 use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::gui::commands_gui::{DrawState, State};
-use termion::event::Key;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 pub fn key_handler(
-    input: Key,
+    input: KeyEvent,
     state: &mut State,
     trove_commands: &[HoardCommand],
     namespace_tabs: &[&str],
 ) -> Option<HoardCommand> {
     match input {
         // Quit command
-        Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+        // ESC | Ctrl + c | Ctrl + d | Ctrl + g
+        KeyEvent {
+            code: KeyCode::Esc,
+            modifiers: KeyModifiers::NONE,
+        }
+        | KeyEvent {
+            code: KeyCode::Char('c' | 'd' | 'g'),
+            modifiers: KeyModifiers::CONTROL,
+        } => {
             state.should_exit = true;
             None
         }
         // Show help
-        Key::F(1) => {
+        // F1
+        KeyEvent {
+            code: KeyCode::F(1),
+            modifiers: KeyModifiers::NONE,
+        } => {
             state.draw_state = DrawState::Help;
             None
         }
         // Switch namespace
-        Key::Left | Key::Ctrl('h') => {
+        // LeftArrow | Ctrl + h
+        KeyEvent {
+            code: KeyCode::Left,
+            modifiers: KeyModifiers::NONE,
+        }
+        | KeyEvent {
+            code: KeyCode::Char('h'),
+            modifiers: KeyModifiers::CONTROL,
+        } => {
             if let Some(selected) = state.namespace_tab_state.selected() {
                 let new_selected_tab = previous_index(selected, namespace_tabs.len());
                 switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
             }
             None
         }
-        Key::Right | Key::Ctrl('l') => {
+        // RightArrow | Ctrl + l
+        KeyEvent {
+            code: KeyCode::Right,
+            modifiers: KeyModifiers::NONE,
+        }
+        | KeyEvent {
+            code: KeyCode::Char('l'),
+            modifiers: KeyModifiers::CONTROL,
+        } => {
             if let Some(selected) = state.namespace_tab_state.selected() {
                 let new_selected_tab = next_index(selected, namespace_tabs.len());
                 switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
@@ -35,7 +63,15 @@ pub fn key_handler(
             None
         }
         // Switch command
-        Key::Up | Key::Ctrl('y' | 'p') => {
+        // UpArrow | Ctrl + y | Ctrl + p
+        KeyEvent {
+            code: KeyCode::Up,
+            modifiers: KeyModifiers::NONE,
+        }
+        | KeyEvent {
+            code: KeyCode::Char('y' | 'p'),
+            modifiers: KeyModifiers::CONTROL,
+        } => {
             if !state.commands.is_empty() {
                 if let Some(selected) = state.command_list_state.selected() {
                     let new_selected = previous_index(selected, state.commands.len());
@@ -44,7 +80,15 @@ pub fn key_handler(
             }
             None
         }
-        Key::Down | Key::Ctrl('.' | 'n') => {
+        // DownArrow | Ctrl + . | Ctrl + n
+        KeyEvent {
+            code: KeyCode::Down,
+            modifiers: KeyModifiers::NONE,
+        }
+        | KeyEvent {
+            code: KeyCode::Char('.' | 'n'),
+            modifiers: KeyModifiers::CONTROL,
+        } => {
             if !state.commands.is_empty() {
                 if let Some(selected) = state.command_list_state.selected() {
                     let new_selected = next_index(selected, state.commands.len());
@@ -54,7 +98,11 @@ pub fn key_handler(
             None
         }
         // Select command
-        Key::Char('\n') => {
+        // Enter
+        KeyEvent {
+            code: KeyCode::Enter,
+            modifiers: KeyModifiers::NONE,
+        } => {
             if state.commands.is_empty() {
                 state.should_exit = true;
                 return None;
@@ -85,13 +133,21 @@ pub fn key_handler(
             Some(selected_command)
         }
         // Handle query input
-        Key::Backspace => {
+        // Backspace
+        KeyEvent {
+            code: KeyCode::Backspace,
+            modifiers: KeyModifiers::NONE,
+        } => {
             state.input.pop();
             apply_filter(state, namespace_tabs, trove_commands);
             None
         }
-        Key::Char(c) => {
-            state.input.push(c);
+        // c
+        KeyEvent {
+            code: KeyCode::Char('c'),
+            modifiers: KeyModifiers::NONE,
+        } => {
+            state.input.push('c');
             apply_filter(state, namespace_tabs, trove_commands);
             None
         }

@@ -1,7 +1,7 @@
 use crate::command::hoard_command::HoardCommand;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::{DrawState, State};
-use termion::event::Key;
+use crossterm::event::KeyEvent;
 use tui::backend::CrosstermBackend;
 use tui::style::{Color, Style};
 use tui::text::{Span, Spans};
@@ -69,7 +69,7 @@ pub fn draw(
     Ok(())
 }
 
-pub fn key_handler(_input: Key, app: &mut State) -> Option<HoardCommand> {
+pub fn key_handler(_input: KeyEvent, app: &mut State) -> Option<HoardCommand> {
     app.draw_state = DrawState::Search;
     None
 }
