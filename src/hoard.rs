@@ -75,10 +75,7 @@ impl Hoard {
             }
 
             if let Some(trove_path) = &config.trove_path {
-                println!(
-                    "✨ Trove file is located at {}",
-                    trove_path.display()
-                );
+                println!("✨ Trove file is located at {}", trove_path.display());
             }
         }
     }
@@ -242,12 +239,11 @@ impl Hoard {
                 }
             }
             ("set_parameter_token", Some(sub_m)) => {
-                sub_m.value_of("parameter_token")
-                    .map_or_else(
-                        || println!("No parameter token provided!"),
-                        |parameter_token| {
-                            self.set_parameter_token(parameter_token);
-                        }
+                sub_m.value_of("parameter_token").map_or_else(
+                    || println!("No parameter token provided!"),
+                    |parameter_token| {
+                        self.set_parameter_token(parameter_token);
+                    },
                 );
             }
             // Load command by name
