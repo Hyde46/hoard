@@ -42,12 +42,12 @@ pub fn key_handler(input: KeyEvent, app: &mut State) -> Option<HoardCommand> {
             app.input.pop();
             None
         }
-        // c
+        // All char
         KeyEvent {
-            code: KeyCode::Char('c'),
+            code: KeyCode::Char(c),
             modifiers: KeyModifiers::NONE,
         } => {
-            app.input.push('c');
+            app.input.push(c);
             None
         }
         _ => None,

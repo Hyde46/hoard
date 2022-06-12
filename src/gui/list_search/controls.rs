@@ -142,12 +142,12 @@ pub fn key_handler(
             apply_filter(state, namespace_tabs, trove_commands);
             None
         }
-        // c
+        // All char
         KeyEvent {
-            code: KeyCode::Char('c'),
+            code: KeyCode::Char(c),
             modifiers: KeyModifiers::NONE,
         } => {
-            state.input.push('c');
+            state.input.push(c);
             apply_filter(state, namespace_tabs, trove_commands);
             None
         }
