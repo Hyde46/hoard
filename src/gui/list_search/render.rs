@@ -2,8 +2,7 @@ use crate::command::hoard_command::HoardCommand;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::gui::help::HELP_KEY;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
+use tui::backend::CrosstermBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
@@ -16,9 +15,7 @@ pub fn draw(
     app_state: &mut State,
     config: &HoardConfig,
     namespace_tabs: &mut Vec<&str>,
-    terminal: &mut Terminal<
-        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
-    >,
+    terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
 ) -> Result<(), eyre::Error> {
     terminal.draw(|rect| {
         let size = rect.size();

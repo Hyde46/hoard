@@ -1,17 +1,20 @@
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
-use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
 use crate::gui::list_search::controls::key_handler as key_handler_list_search;
 use crate::gui::list_search::render::draw as draw_list_search;
 use crate::gui::parameter_input::controls::key_handler as key_handler_parameter_input;
 use crate::gui::parameter_input::render::draw as draw_parameter_input;
+use crossterm::event::{poll, read, Event};
+use crossterm::execute;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use eyre::Result;
 use std::io::stdout;
 use std::time::Duration;
-use termion::{raw::IntoRawMode, screen::AlternateScreen};
-use tui::{backend::TermionBackend, widgets::ListState, Terminal};
+use tui::{backend::CrosstermBackend, widgets::ListState, Terminal};
 
 pub struct State {
     pub input: String,
@@ -34,10 +37,6 @@ pub enum DrawState {
 
 #[allow(clippy::too_many_lines)]
 pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<HoardCommand>> {
-    let events = Events::with_config(Config {
-        tick_rate: Duration::from_millis(200),
-    });
-
     let mut app_state = State {
         input: "".to_string(),
         commands: trove.commands.clone(),
@@ -53,9 +52,10 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
     app_state.command_list_state.select(Some(0));
     app_state.namespace_tab_state.select(Some(0));
 
-    let stdout = stdout().into_raw_mode()?;
-    let stdout = AlternateScreen::from(stdout);
-    let backend = TermionBackend::new(stdout);
+    enable_raw_mode()?;
+    let mut stdout = stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
 
@@ -76,23 +76,32 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             }
         }
 
-        if let Event::Input(input) = events.next()? {
-            let command = match app_state.draw_state {
-                DrawState::Search => {
-                    key_handler_list_search(input, &mut app_state, &trove.commands, &namespace_tabs)
+        if poll(Duration::from_secs(0))? {
+            if let Event::Key(input) = read()? {
+                let command = match app_state.draw_state {
+                    DrawState::Search => key_handler_list_search(
+                        input,
+                        &mut app_state,
+                        &trove.commands,
+                        &namespace_tabs,
+                    ),
+                    DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
+                    DrawState::Help => key_handler_help(input, &mut app_state),
+                };
+
+                if let Some(output) = command {
+                    disable_raw_mode()?;
+                    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                    terminal.show_cursor()?;
+                    return Ok(Some(output));
                 }
-                DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
-                DrawState::Help => key_handler_help(input, &mut app_state),
-            };
 
-            if let Some(output) = command {
-                terminal.show_cursor()?;
-                return Ok(Some(output));
-            }
-
-            if app_state.should_exit {
-                terminal.show_cursor()?;
-                return Ok(None);
+                if app_state.should_exit {
+                    disable_raw_mode()?;
+                    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                    terminal.show_cursor()?;
+                    return Ok(None);
+                }
             }
         }
     }

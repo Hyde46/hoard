@@ -1,8 +1,7 @@
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::util::translate_number_to_nth;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
+use tui::backend::CrosstermBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Style};
 use tui::text::{Span, Spans};
@@ -12,9 +11,7 @@ use tui::Terminal;
 pub fn draw(
     app_state: &mut State,
     config: &HoardConfig,
-    terminal: &mut Terminal<
-        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
-    >,
+    terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
 ) -> Result<(), eyre::Error> {
     terminal.draw(|rect| {
         let size = rect.size();

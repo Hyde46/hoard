@@ -1,9 +1,8 @@
 use crate::command::hoard_command::HoardCommand;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::{DrawState, State};
-use termion::event::Key;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
+use crossterm::event::KeyEvent;
+use tui::backend::CrosstermBackend;
 use tui::style::{Color, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{Block, BorderType, Borders, List, ListItem};
@@ -26,9 +25,7 @@ const HELP_CONTENT: &[(&str, &str)] = &[
 
 pub fn draw(
     config: &HoardConfig,
-    terminal: &mut Terminal<
-        TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
-    >,
+    terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
 ) -> Result<(), eyre::Error> {
     terminal.draw(|rect| {
         let help = Block::default()
@@ -72,7 +69,7 @@ pub fn draw(
     Ok(())
 }
 
-pub fn key_handler(_input: Key, app: &mut State) -> Option<HoardCommand> {
+pub fn key_handler(_input: KeyEvent, app: &mut State) -> Option<HoardCommand> {
     app.draw_state = DrawState::Search;
     None
 }
