@@ -77,6 +77,7 @@ Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
 
 Tested on:
 - Ubuntu
+- EndeavourOS
 
 Install `hoard` by running
 
