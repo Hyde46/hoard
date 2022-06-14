@@ -387,6 +387,40 @@ mod test_controls {
     }
 
     #[test]
+    fn filter_commands_on_input() {
+        let namespaces = vec![DEFAULT_NAMESPACE];
+        let cmd2_name = "second";
+        let cmd1 = create_command("first", DEFAULT_NAMESPACE);
+        let cmd2 = create_command(cmd2_name, DEFAULT_NAMESPACE);
+        let cmd3 = create_command("third", DEFAULT_NAMESPACE);
+        let mut state = create_state(vec![cmd1, cmd2, cmd3]);
+
+        let commands = state.commands.clone();
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Char('s'),
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &namespaces,
+        );
+        key_handler(
+            KeyEvent {
+                code: KeyCode::Char('e'),
+                modifiers: KeyModifiers::NONE,
+            },
+            &mut state,
+            &commands,
+            &namespaces,
+        );
+        let filtered_commands = state.commands;
+
+        assert_eq!(1, filtered_commands.len());
+        assert_eq!(cmd2_name, filtered_commands.first().unwrap().name);
+    }
+
+    #[test]
     fn filter_commands_when_namespace_changed() {
         let namespace1 = "first_namespace";
         let namespace2 = "second_namespace";
