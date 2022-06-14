@@ -2,6 +2,7 @@ use crate::command::hoard_command::{HoardCommand, Parameterized};
 use crate::gui::commands_gui::{DrawState, State};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+#[allow(clippy::too_many_lines)]
 pub fn key_handler(
     input: KeyEvent,
     state: &mut State,
