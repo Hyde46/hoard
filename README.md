@@ -96,6 +96,9 @@ LATEST_RELEASE=1.0.1 ./install.fish
 brew tap Hyde46/hoard
 brew install hoard
 ```
+### Windows
+Best to install from source, good luck
+
 ### Install Shell plugin
 
 Install `hoard` as a plugin to enable autocomplete.
