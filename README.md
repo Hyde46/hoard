@@ -122,6 +122,14 @@ source src/shell/hoard.zsh
 ```
 source src/shell/hoard.fish
 ```
+
+### Nix
+
+The hoard package is in the [nixpkgs](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=hoard) package repository.
+
+Either install it with `nix-env -iA hoard`, get it temporarily with `nix-shell -p hoard` or add it to your configuration.
+
+
 <a name="usage"/>
 
 ## 🤸 Usage
