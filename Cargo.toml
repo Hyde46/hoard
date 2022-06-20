@@ -36,7 +36,7 @@ crossterm = "0.23"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
-anyhow = "1.0.38"
+anyhow = "1.0.58"
 dirs = "4.0.0"
 log = "0.4"
 eyre = "0.6"
