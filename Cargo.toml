@@ -28,7 +28,7 @@ path = "src/main.rs"
 
 [dependencies]
 # Command lien argument parser
-clap = { version = "2.33.3", features = ["yaml"] }
+clap = { version = "3.2.10", features = ["yaml"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.0"
 crossterm = "0.23"
@@ -40,7 +40,7 @@ anyhow = "1.0.58"
 dirs = "4.0.0"
 log = "0.4"
 eyre = "0.6"
-simple_logger = "2.1.0"
+simple_logger = "2.2.0"
 prettytable-rs = "0.8.0"
 tui = { version = "0.18.0" }
 chrono = { version = "0.4", features = ["serde"] }
