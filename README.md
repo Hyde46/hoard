@@ -141,6 +141,12 @@ hoard new
 ```
 
 If a parameter is not known when saving the command, put a `#` ( Or your customized token from your `~/.config/hoard/config.yml` )
+You can also name your parameters like this:
+```
+echo "My name is #first and I live at #city. Did I tell you my name, #first?" 
+```
+When putting `#first` you only have to do it once for each occurence in the command.
+A parameter name is defined as everyting followed by the token until the first space character is found.
 #### Search through command trove
 
 ```

@@ -24,7 +24,7 @@ pub fn key_handler(input: KeyEvent, app: &mut State) -> Option<HoardCommand> {
         } => {
             let command = app.selected_command.clone().unwrap();
             let parameter = app.input.clone();
-            let replaced_command = command.replace_parameters(&app.parameter_token, &[parameter]);
+            let replaced_command = command.replace_parameter(&app.parameter_token, parameter);
             app.input = String::from("");
             if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
                 return Some(replaced_command);
