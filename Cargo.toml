@@ -28,7 +28,7 @@ path = "src/main.rs"
 
 [dependencies]
 # Command lien argument parser
-clap = { version = "2.33.3", features = ["yaml"] }
+clap = { version = "3.2.13", features = ["yaml"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.0"
 crossterm = "0.24"
