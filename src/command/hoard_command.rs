@@ -1,5 +1,6 @@
 use crate::command::trove::CommandTrove;
 use crate::gui::prompts::{prompt_input, prompt_input_validate};
+use crate::util::string_find_next;
 use serde::{Deserialize, Serialize};
 
 pub trait Parsable {
@@ -229,7 +230,7 @@ pub trait Parameterized {
     fn get_split_subject(&self, token: &str) -> Vec<String>;
     // Replaces parameter tokens with content from `parameters`,
     // consuming entries one by one until `parameters` is empty.
-    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand;
+    fn replace_parameter(self, token: &str, parameter: String) -> HoardCommand;
 
     fn with_input_parameters(self, token: &str) -> HoardCommand;
 }
@@ -253,14 +254,29 @@ impl Parameterized for HoardCommand {
         }
         collected
     }
-    fn replace_parameters(self, token: &str, parameters: &[String]) -> HoardCommand {
-        let mut parameter_iter = parameters.iter();
-        let split = self.split(token);
+
+    //fn get_first_named_parameters(&self, token: &str) -> Vec<String> {
+//
+    //}
+
+    fn replace_parameter(self, token: &str, parameter: String) -> HoardCommand {
+        let parameter_array = &[parameter.clone()];
+        let mut parameter_iter = parameter_array.iter();
+
+        let named_token = string_find_next(&self.command, token, " ");
+        let split = self.split(&named_token);
         let mut collected: Vec<String> = Vec::new();
         for s in split {
             collected.push(s.clone());
-            collected.push(parameter_iter.next().unwrap_or(&token.to_string()).clone());
+            
+            // if token is not named replace following occurences of the token in the command with the token again.
+            // only replace all occurences of a token if it is names
+            // this is a convoluted way of achieving this, but doing it properly would need this method to be completely reworked
+            let to_push = if named_token == token {token.to_string()} else {parameter.clone()};
+            collected.push(parameter_iter.next().unwrap_or(&to_push).clone());
         }
+        // Always places either a token or the parmeter at the end, due to the bad loop design. 
+        // Just remove it at the end
         collected.pop();
         Self {
             name: self.name,
@@ -384,20 +400,20 @@ mod test_parameterized {
     }
 
     #[test]
-    fn test_replace_parameters() {
+    fn test_replace_parameter() {
         let token = "#".to_string();
         let c: HoardCommand = command_struct("test # bar");
-        let to_replace = vec!["foo".to_string()];
+        let to_replace = "foo".to_string();
         let expected = "test foo bar".to_string();
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
+        assert_eq!(expected, c.replace_parameter(&token, to_replace).command);
     }
 
     #[test]
-    fn test_replace_last_parameters() {
+    fn test_replace_last_parameter() {
         let token = "#".to_string();
         let c: HoardCommand = command_struct("test foo #");
-        let to_replace = vec!["bar".to_string()];
+        let to_replace = "bar".to_string();
         let expected = "test foo bar".to_string();
-        assert_eq!(expected, c.replace_parameters(&token, &to_replace).command);
+        assert_eq!(expected, c.replace_parameter(&token, to_replace).command);
     }
 }
