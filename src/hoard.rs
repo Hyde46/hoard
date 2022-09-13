@@ -306,7 +306,8 @@ impl Hoard {
             println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
         } else if sub_m.is_present("simple") {
             self.trove.print_trove();
-        } else {
+        } else if sub_m.is_present("json") {
+        }else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {
                     if let Some(c) = selected_command {
