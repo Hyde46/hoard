@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.1
+
 ## 1.1.0
 - ✨ Named Parameters. You can now add any string after your token `#`. Tokens with the same name will be filled out automatically after being prompted once for them when selecting a command from `hoard list`
 ## 1.0.1

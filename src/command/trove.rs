@@ -27,6 +27,13 @@ impl Default for CommandTrove {
     }
 }
 impl CommandTrove {
+    pub fn from_commands(commands: &[HoardCommand]) -> Self {
+        Self {
+            version: CARGO_VERSION.to_string(),
+            commands: commands.to_vec(),
+        }
+    }
+
     pub fn load_trove_file(path: &Option<PathBuf>) -> Self {
         match path {
             Some(p) => {
