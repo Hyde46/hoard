@@ -27,6 +27,13 @@ impl Default for CommandTrove {
     }
 }
 impl CommandTrove {
+    pub fn from_commands(commands: Vec<HoardCommand>) -> Self {
+        Self {
+            version: CARGO_VERSION.to_string(),
+            commands: commands.to_vec(),
+        }
+    }
+
     pub fn load_trove_file(path: &Option<PathBuf>) -> Self {
         match path {
             Some(p) => {
@@ -65,8 +72,12 @@ impl CommandTrove {
         }
     }
 
+    pub fn to_json(&self) -> String {
+        serde_yaml::to_string(&self).unwrap()
+    }
+
     pub fn save_trove_file(&self, path: &Path) {
-        let s = serde_yaml::to_string(&self).unwrap();
+        let s = self.to_json();
         fs::write(path, s).expect("Unable to write config file");
     }
 

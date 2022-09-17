@@ -53,6 +53,15 @@ subcommands:
       about: List commands saved in trove
       help: List commands saved in trove
       args:
+        - filter:
+            long: filter
+            short: f
+            help: List commands with filter applied
+            takes_value: true
+        - json:
+            long: json
+            short: j
+            help: Return hoarded commands in json format
         - simple:
             long: simple
             short: s
