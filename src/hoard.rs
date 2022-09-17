@@ -10,6 +10,7 @@ use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui;
 use crate::gui::prompts::prompt_multiselect_options;
+use crate::filter::filter_trove;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -157,7 +158,10 @@ impl Hoard {
             ("search", Some(_sub_m)) => {}
             // List all available commands
             ("list", Some(sub_m)) => {
-                self.list_commands(sub_m, &mut autocomplete_command);
+                let commands = self.list_commands(sub_m);
+                if let Some(c) = commands {
+                    autocomplete_command = c;
+                }
             }
             // Load command by name into clipboard, if available
             ("pick", Some(sub_m)) => {
@@ -301,12 +305,20 @@ impl Hoard {
         }
     }
 
-    fn list_commands(&mut self, sub_m: &ArgMatches, autocomplete_command: &mut String) {
+    fn list_commands(&mut self, sub_m: &ArgMatches) -> Option<String> {
         if self.trove.is_empty() {
             println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
         } else if sub_m.is_present("simple") {
             self.trove.print_trove();
         } else if sub_m.is_present("json") {
+            // Return list of commands in json format, filtered by `filter`
+            let query_string =  if sub_m.is_present("filter") {
+                sub_m.value_of("filter").unwrap()
+            } else {
+                ""
+            };
+            let filtered_trove = filter_trove(&self.trove, query_string);
+            return Some(filtered_trove.to_json());
         }else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {
@@ -314,7 +326,7 @@ impl Hoard {
                         // Is set if a command is selected in GUI
                         if !c.command.is_empty() {
                             //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
-                            *autocomplete_command = c.command;
+                            return Some(c.command);
                         }
                     }
                 }
@@ -323,6 +335,7 @@ impl Hoard {
                 }
             }
         }
+        None
     }
 
     fn new_command(&mut self) {
