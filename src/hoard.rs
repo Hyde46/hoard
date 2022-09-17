@@ -318,7 +318,7 @@ impl Hoard {
                 ""
             };
             let filtered_trove = filter_trove(&self.trove, query_string);
-            return Some(filtered_trove.to_json());
+            return Some(filtered_trove.to_yaml());
         }else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {

@@ -72,12 +72,12 @@ impl CommandTrove {
         }
     }
 
-    pub fn to_json(&self) -> String {
+    pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(&self).unwrap()
     }
 
     pub fn save_trove_file(&self, path: &Path) {
-        let s = self.to_json();
+        let s = self.to_yaml();
         fs::write(path, s).expect("Unable to write config file");
     }
 
