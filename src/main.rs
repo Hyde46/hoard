@@ -9,10 +9,10 @@ extern crate array_tool;
 
 mod command;
 mod config;
+mod filter;
 mod gui;
 mod hoard;
 mod util;
-mod filter;
 use hoard::Hoard;
 
 fn main() {

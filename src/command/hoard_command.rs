@@ -256,7 +256,7 @@ impl Parameterized for HoardCommand {
     }
 
     //fn get_first_named_parameters(&self, token: &str) -> Vec<String> {
-//
+    //
     //}
 
     fn replace_parameter(self, token: &str, parameter: String) -> HoardCommand {
@@ -268,14 +268,18 @@ impl Parameterized for HoardCommand {
         let mut collected: Vec<String> = Vec::new();
         for s in split {
             collected.push(s.clone());
-            
+
             // if token is not named replace following occurences of the token in the command with the token again.
             // only replace all occurences of a token if it is names
             // this is a convoluted way of achieving this, but doing it properly would need this method to be completely reworked
-            let to_push = if named_token == token {token.to_string()} else {parameter.clone()};
+            let to_push = if named_token == token {
+                token.to_string()
+            } else {
+                parameter.clone()
+            };
             collected.push(parameter_iter.next().unwrap_or(&to_push).clone());
         }
-        // Always places either a token or the parmeter at the end, due to the bad loop design. 
+        // Always places either a token or the parmeter at the end, due to the bad loop design.
         // Just remove it at the end
         collected.pop();
         Self {

@@ -8,9 +8,9 @@ use crate::config::{load_or_build_config, save_parameter_token};
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
+use crate::filter::filter_trove;
 use crate::gui::commands_gui;
 use crate::gui::prompts::prompt_multiselect_options;
-use crate::filter::filter_trove;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -312,14 +312,14 @@ impl Hoard {
             self.trove.print_trove();
         } else if sub_m.is_present("json") {
             // Return list of commands in json format, filtered by `filter`
-            let query_string =  if sub_m.is_present("filter") {
+            let query_string = if sub_m.is_present("filter") {
                 sub_m.value_of("filter").unwrap()
             } else {
                 ""
             };
             let filtered_trove = filter_trove(&self.trove, query_string);
             return Some(filtered_trove.to_yaml());
-        }else {
+        } else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {
                     if let Some(c) = selected_command {

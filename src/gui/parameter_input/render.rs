@@ -1,6 +1,6 @@
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
-use crate::util::{translate_number_to_nth, string_find_next, split_with_delim};
+use crate::util::{split_with_delim, string_find_next, translate_number_to_nth};
 use tui::backend::CrosstermBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Style};
@@ -64,7 +64,7 @@ pub fn draw(
         let named_token = string_find_next(command_text, token, " ");
 
         let mut command_spans: Vec<Span> = Vec::new();
-        let split_commands:Vec<String> = split_with_delim(command_text, &named_token);
+        let split_commands: Vec<String> = split_with_delim(command_text, &named_token);
         if token == named_token {
             // If the next token to replace is not named
             let command_parts = command_text.split_once(&token);
@@ -80,9 +80,17 @@ pub fn draw(
             command_spans.append(&mut spans);
         } else {
             // if the next token to replaced is named, find all other occurences and paint them too
-            let mut spans = split_commands.iter()
-                .map(|e| if *e == named_token {(e,primary_style)} else {(e,command_style)})
-                .map(|(command,style)| Span::styled(command, style)).collect();
+            let mut spans = split_commands
+                .iter()
+                .map(|e| {
+                    if *e == named_token {
+                        (e, primary_style)
+                    } else {
+                        (e, command_style)
+                    }
+                })
+                .map(|(command, style)| Span::styled(command, style))
+                .collect();
             command_spans.append(&mut spans);
         }
 

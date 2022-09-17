@@ -16,22 +16,25 @@ pub fn translate_number_to_nth(count: u16) -> String {
 
 pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
     // Find substring of a string `s` from first occurence of `from` to first occurence of `to` after `from` was encountered
-    // For example: 
+    // For example:
     // `s` = "Hello #my test" | `from` = "#" | `to` = " "
     // Returns "#my"
     if s.contains(from) {
         let split = s.split(from).nth(1).unwrap().split(to).nth(0).unwrap();
-        return format!("{}{}",from,split);
+        return format!("{}{}", from, split);
     }
     return String::from("");
 }
 
 pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
     let mut result: Vec<String> = Vec::new();
-    let s:String = s.to_string();
-        
-    let matched_indices: Vec<(usize, usize)> = s.match_indices(delim).map(|(i, _)| (i, i + delim.len() - 1)).collect();
-    let mut split_indices: Vec<(usize,usize)> = Vec::new();
+    let s: String = s.to_string();
+
+    let matched_indices: Vec<(usize, usize)> = s
+        .match_indices(delim)
+        .map(|(i, _)| (i, i + delim.len() - 1))
+        .collect();
+    let mut split_indices: Vec<(usize, usize)> = Vec::new();
 
     // string starts with delimiter
     if matched_indices.first().unwrap().0 != 0 {
@@ -39,7 +42,7 @@ pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
     }
 
     for (i, indices) in matched_indices.iter().enumerate() {
-        split_indices.push((indices.0,indices.1));
+        split_indices.push((indices.0, indices.1));
         if let Some(peeked_index) = matched_indices.get(i + 1) {
             split_indices.push((indices.1 + 1, peeked_index.0 - 1));
         }
@@ -51,12 +54,11 @@ pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
     }
 
     for (i, k) in split_indices.iter() {
-        let slice = &s[*i..(*k+1)];
+        let slice = &s[*i..(*k + 1)];
         result.push(slice.to_string());
     }
     result
 }
-
 
 #[cfg(test)]
 mod test_commands {
@@ -110,7 +112,6 @@ mod test_commands {
         let expected = vec!["command ", "#param", " test ", "#param", " lol ", "#param"];
         assert_eq!(expected, split_with_delim(&s, "#param"));
     }
-
 
     #[test]
     fn test_split_with_delim_at_start() {
