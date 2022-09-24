@@ -6,12 +6,12 @@ readme = "README.md"
 license = "MIT"
 authors = ["Denis Heid"]
 description = "hoard - cli command organizer written in Rust"
-homepage = "https://github.com/Hyde46/hoard"
+homepage = "https://hyde46.github.io/hoard/"
 repository = "https://github.com/Hyde46/hoard"
 
 [package.metadata.deb]
 maintainer = "Denis Heid"
-copyright = "2021, Denis Heid"
+copyright = "2022, Denis Heid"
 license-file = ["LICENSE"]
 depends = "$auto"
 section = "utility"
