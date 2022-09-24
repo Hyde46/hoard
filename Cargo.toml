@@ -30,7 +30,7 @@ path = "src/main.rs"
 # Command lien argument parser
 clap = { version = "2.33.3", features = ["yaml"] }
 # pretty dialogues in terminal
-dialoguer = "0.10.0"
+dialoguer = "0.10.2"
 termion = "1.5.6"
 # Yaml support to save/load command pallettes
 serde = { version = "1.0", features = ["derive"] }
@@ -46,12 +46,12 @@ tui = { version = "0.18.0", features = ["termion"]}
 chrono = { version = "0.4", features = ["serde"] }
 rand = { version = "0.8.4", default-features = false, features = ["std"] }
 thiserror = "1.0"
-crossbeam-channel = "0.5.5"
+crossbeam-channel = "0.5.6"
 tokio = { version = "1.20.0", features = ["full"] }
 array_tool = "1.0.3"
 reqwest = {version="0.11.11"}
 url = {version="2.2.2"}
-console = "0.15.0"
+console = "0.15.1"
 
 [dev-dependencies]
 tempfile = "3.3.0"
