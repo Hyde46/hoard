@@ -57,7 +57,7 @@ __hoard_install_mac(){
     echo "brew tap add Hyde46/hoard"
     echo "brew install hoard"
     echo "To install as zshell plug, run:"
-    echo 'curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc'
+    echo 'echo "hoard shell_config zsh | source" >> ~/.zshrc'
 }
 
 __hoard_detect_os(){
@@ -91,6 +91,6 @@ select fav in "${foods[@]}"; do
 done
 
 # TODO: Properly check which shell is installed
-curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.zsh >> ~/.zshrc
-curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.bash >> ~/.bashrc
+echo 'hoard shell_config zsh | source' >> ~/.zshrc
+echo 'hoard shell_config bash | source' >> ~/.zshrc
 echo 'source your .bashrc/.zshrc and press <Ctrl-H> to get started with the interactive hoard UI'

@@ -67,7 +67,7 @@ end
 
 function extend_config
     # Setup widget integration
-    curl https://raw.githubusercontent.com/Hyde46/hoard/main/src/shell/hoard.fish >> ~/.config/fish/config.fish
+    echo 'hoard shell_config fish | source' >> ~/.config/fish/config.fish
     echo 'source your fish.config and press <Ctrl-H> to get started with the interactive hoard UI'
 end
 
