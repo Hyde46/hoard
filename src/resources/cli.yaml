@@ -140,3 +140,13 @@ subcommands:
               required: true
               takes_value: true
               index: 1
+  - shell_config:
+      about: Print shell config
+      args:
+          - shell:
+              long: shell
+              short: s
+              help: The shell to print configs for
+              required: true
+              takes_value: true
+              index: 1

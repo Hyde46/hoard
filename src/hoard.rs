@@ -193,6 +193,9 @@ impl Hoard {
             ("edit", Some(sub_m)) => {
                 self.edit_command(sub_m);
             }
+            ("shell_config", Some(sub_m)) => {
+                self.shell_config_command(sub_m);
+            }
             _ => {}
         }
         (autocomplete_command, matches.is_present("autocomplete"))
@@ -366,6 +369,28 @@ impl Hoard {
                 self.set_parameter_token(parameter_token);
             },
         );
+    }
+
+    fn shell_config_command(&mut self, sub_m: &ArgMatches) {
+        let shell = match sub_m.value_of("shell") {
+            Some(s) => s,
+            None => {
+                println!("No shell option provided!");
+                return;
+            }
+        };
+
+        let src = match shell {
+            "bash" => include_str!("shell/hoard.bash"),
+            "fish" => include_str!("shell/hoard.fish"),
+            "zsh" => include_str!("shell/hoard.zsh"),
+            s => {
+                println!("Unknown shell '{}'!\nMust be either bash, fish or zsh!", s);
+                return;
+            }
+        };
+
+        print!("{}", src);
     }
 }
 
