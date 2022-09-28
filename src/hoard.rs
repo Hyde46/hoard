@@ -8,24 +8,15 @@ use crate::config::{load_or_build_config, save_parameter_token};
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
-use crate::filter::filter_trove;
+use crate::filter::query_trove;
 use crate::gui::commands_gui;
 use crate::gui::prompts::prompt_multiselect_options;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct Hoard {
     config: Option<HoardConfig>,
     trove: CommandTrove,
-}
-
-impl Default for Hoard {
-    fn default() -> Self {
-        Self {
-            config: None,
-            trove: CommandTrove::default(),
-        }
-    }
 }
 
 impl Hoard {
@@ -194,7 +185,7 @@ impl Hoard {
                 self.edit_command(sub_m);
             }
             ("shell_config", Some(sub_m)) => {
-                self.shell_config_command(sub_m);
+                Self::shell_config_command(sub_m);
             }
             _ => {}
         }
@@ -249,7 +240,7 @@ impl Hoard {
                     }
                 },
                 Err(err) => {
-                    if let ParseError::RelativeUrlWithoutBase = err {
+                    if err == ParseError::RelativeUrlWithoutBase {
                         let imported_trove =
                             CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
                         self.trove.merge_trove(&imported_trove);
@@ -320,7 +311,7 @@ impl Hoard {
             } else {
                 ""
             };
-            let filtered_trove = filter_trove(&self.trove, query_string);
+            let filtered_trove = query_trove(&self.trove, query_string);
             return Some(filtered_trove.to_yaml());
         } else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
@@ -371,7 +362,7 @@ impl Hoard {
         );
     }
 
-    fn shell_config_command(&mut self, sub_m: &ArgMatches) {
+    fn shell_config_command(sub_m: &ArgMatches) {
         let shell = match sub_m.value_of("shell") {
             Some(s) => s,
             None => {

@@ -141,8 +141,8 @@ fn switch_namespace(
 fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
-        .to_owned()
-        .into_iter()
+        .iter()
+        .cloned()
         .filter(|c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)

@@ -27,7 +27,7 @@ impl Default for CommandTrove {
     }
 }
 impl CommandTrove {
-    pub fn from_commands(commands: Vec<HoardCommand>) -> Self {
+    pub fn from_commands(commands: &[HoardCommand]) -> Self {
         Self {
             version: CARGO_VERSION.to_string(),
             commands: commands.to_vec(),
@@ -130,14 +130,15 @@ impl CommandTrove {
 
     pub fn pick_command(&self, config: &HoardConfig, name: &str) -> Result<HoardCommand> {
         let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
-        if let Some(command) = filtered_command {
-            let command = command
-                .clone()
-                .with_input_parameters(&config.parameter_token.clone().unwrap());
-            Ok(command)
-        } else {
-            return Err(anyhow!("No matching command found with name: {}", name));
-        }
+        filtered_command.map_or_else(
+            || Err(anyhow!("No matching command found with name: {}", name)),
+            |command| {
+                let command = command
+                    .clone()
+                    .with_input_parameters(&config.parameter_token.clone().unwrap());
+                Ok(command)
+            },
+        )
     }
 
     pub fn is_empty(&self) -> bool {
