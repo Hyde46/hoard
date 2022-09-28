@@ -156,59 +156,56 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
 
 fn append_missing_default_values_to_config(
     loaded_config: &mut HoardConfig,
-    hoard_dir: &PathBuf,
-    hoard_config_path: &PathBuf,
+    hoard_dir: &Path,
+    hoard_config_path: &Path,
 ) -> Result<(), Error> {
-    let mut is_config_dirty = false;
-    if loaded_config.primary_color.is_none() {
+    let is_config_dirty = if loaded_config.primary_color.is_none() {
         loaded_config.primary_color = Some(HoardConfig::default_colors(0));
-        is_config_dirty = true;
-    }
-    if loaded_config.secondary_color.is_none() {
+        true
+    } else if loaded_config.secondary_color.is_none() {
         loaded_config.secondary_color = Some(HoardConfig::default_colors(1));
-        is_config_dirty = true;
-    }
-    if loaded_config.tertiary_color.is_none() {
+        true
+    } else if loaded_config.tertiary_color.is_none() {
         loaded_config.tertiary_color = Some(HoardConfig::default_colors(2));
-        is_config_dirty = true;
-    }
-    if loaded_config.command_color.is_none() {
+        true
+    } else if loaded_config.command_color.is_none() {
         loaded_config.command_color = Some(HoardConfig::default_colors(3));
-        is_config_dirty = true;
-    }
-    if loaded_config.trove_path.is_none() {
+        true
+    } else if loaded_config.trove_path.is_none() {
         loaded_config.trove_path = Some(hoard_dir.join(HOARD_FILE));
-        is_config_dirty = true;
-    }
-    if loaded_config.parameter_token.is_none() {
+        true
+    } else if loaded_config.parameter_token.is_none() {
         loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
-        is_config_dirty = true;
-    }
-    if loaded_config.read_from_current_directory.is_none() {
+        true
+    } else if loaded_config.read_from_current_directory.is_none() {
         loaded_config.read_from_current_directory = Some(false);
-        is_config_dirty = true;
-    }
-    Ok(if is_config_dirty {
+        true
+    } else {
+        false
+    };
+
+    if is_config_dirty {
         save_config(&*loaded_config, hoard_config_path)?;
-    })
+    }
+    Ok(())
 }
 
 pub fn save_parameter_token(
     config: &HoardConfig,
-    config_path: &PathBuf,
+    config_path: &Path,
     parameter_token: &str,
 ) -> bool {
     let mut new_config = config.clone();
     let path_buf = config_path.join(HOARD_CONFIG);
     new_config.parameter_token = Some(String::from(parameter_token));
     match save_config(&new_config, path_buf.as_path()) {
-        Ok(_) => return true,
+        Ok(_) => true,
         Err(err) => {
             eprintln!("ERROR: {}", err);
             err.chain()
                 .skip(1)
                 .for_each(|cause| eprintln!("because: {}", cause));
-            return false;
+            false
         }
     }
 }
@@ -231,11 +228,8 @@ mod test_config {
 
         // write config file.
         let tmp_path = tmp_dir.path();
-        let config = HoardConfig::new(&tmp_path);
-        assert_eq!(
-            save_parameter_token(&config, &tmp_path.to_path_buf(), "@"),
-            true
-        );
+        let config = HoardConfig::new(tmp_path);
+        assert!(save_parameter_token(&config, tmp_path, "@"));
 
         // read config file, and check parameter token.
         let tmp_file = tmp_dir.path().join(HOARD_CONFIG);

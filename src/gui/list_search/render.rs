@@ -15,7 +15,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn draw(
     app_state: &mut State,
     config: &HoardConfig,
-    namespace_tabs: &mut Vec<&str>,
+    namespace_tabs: &mut [&str],
     terminal: &mut Terminal<
         TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
     >,

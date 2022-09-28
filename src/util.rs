@@ -18,10 +18,10 @@ pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
     // `s` = "Hello #my test" | `from` = "#" | `to` = " "
     // Returns "#my"
     if s.contains(from) {
-        let split = s.split(from).nth(1).unwrap().split(to).nth(0).unwrap();
+        let split = s.split(from).nth(1).unwrap().split(to).next().unwrap();
         return format!("{}{}", from, split);
     }
-    return String::from("");
+    String::from("")
 }
 
 pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
@@ -51,8 +51,9 @@ pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
         split_indices.push((matched_indices.last().unwrap().1 + 1, s.len() - 1));
     }
 
-    for (i, k) in split_indices.iter() {
-        let slice = &s[*i..(*k + 1)];
+    // What the hell was I thinking
+    for (i, k) in &split_indices {
+        let slice = &s[(*i)..=(*k)];
         result.push(slice.to_string());
     }
     result
