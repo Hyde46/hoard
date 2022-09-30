@@ -7,6 +7,7 @@ extern crate prettytable;
 
 extern crate array_tool;
 
+mod cli_commands;
 mod command;
 mod config;
 mod filter;
