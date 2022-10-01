@@ -3,10 +3,6 @@ use crate::gui::prompts::{prompt_input, prompt_input_validate};
 use crate::util::string_find_next;
 use serde::{Deserialize, Serialize};
 
-pub trait Parsable {
-    fn parse_arguments(matches: &clap::ArgMatches) -> Self;
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HoardCommand {
     pub name: String,
@@ -186,33 +182,6 @@ impl HoardCommand {
             command: self.command,
             description: Some(description_string),
         }
-    }
-}
-
-impl Parsable for HoardCommand {
-    fn parse_arguments(matches: &clap::ArgMatches) -> Self {
-        let mut new_command = Self::default();
-
-        if let Some(n) = matches.value_of("name") {
-            new_command.name = n.to_string();
-        }
-        // Defaults to 'default' namespace
-        if let Some(ns) = matches.value_of("namespace") {
-            new_command.namespace = ns.to_string();
-        }
-        // "$ hoard test -t" was run
-        // Expects comma seperated tags
-        if let Some(tags) = matches.value_of("tags") {
-            new_command.tags = Some(
-                tags.split(',')
-                    .map(std::string::ToString::to_string)
-                    .collect(),
-            );
-        }
-        if let Some(c) = matches.value_of("command") {
-            new_command.command = c.to_string();
-        }
-        new_command
     }
 }
 
