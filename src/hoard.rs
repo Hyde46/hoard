@@ -101,7 +101,7 @@ impl Hoard {
         if let Some(config) = &self.config {
             if let Some(config_home_path) = &config.config_home_path {
                 println!(
-                    "✨ Config file is located at {}",
+                    "🔧 Config file is located at {}",
                     config_home_path.display()
                 );
             }
