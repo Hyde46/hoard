@@ -88,7 +88,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.0.1 ./install.fish
+LATEST_RELEASE=1.1.1 ./install.fish
 ```
 
 ### Brew on MacOS
@@ -147,6 +147,10 @@ echo "My name is #first and I live at #city. Did I tell you my name, #first?"
 ```
 When putting `#first` you only have to do it once for each occurence in the command.
 A parameter name is defined as everyting followed by the token until the first space character is found.
+Alternatively you can determine where the named parameter ends by putting a `!` ( Or your customized token from your `~/.config/hoard.config.yml`)
+```
+echo "My name is #first named parameter! and I live at #city. Did I tell you my name, #first?" 
+```
 #### Search through command trove
 
 ```

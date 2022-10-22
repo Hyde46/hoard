@@ -21,6 +21,7 @@ pub struct State {
     pub should_exit: bool,
     pub draw_state: DrawState,
     pub parameter_token: String,
+    pub parameter_ending_token: String,
     pub selected_command: Option<HoardCommand>,
     pub provided_parameter_count: u16,
 }
@@ -46,6 +47,8 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         should_exit: false,
         draw_state: DrawState::Search,
         parameter_token: config.parameter_token.as_ref().unwrap().clone(),
+        parameter_ending_token: config.parameter_ending_token.as_ref().unwrap().clone(),
+
         selected_command: None,
         provided_parameter_count: 0,
     };

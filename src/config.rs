@@ -27,6 +27,8 @@ pub struct HoardConfig {
     pub command_color: Option<(u8, u8, u8)>,
     // Parameter settings
     pub parameter_token: Option<String>,
+    // Token to indicate the end of a named parameter
+    pub parameter_ending_token: Option<String>,
     pub read_from_current_directory: Option<bool>,
 }
 
@@ -43,6 +45,7 @@ impl HoardConfig {
             tertiary_color: Some(Self::default_colors(2)),
             command_color: Some(Self::default_colors(3)),
             parameter_token: Some(Self::default_parameter_token()),
+            parameter_ending_token: Some(Self::default_ending_parameter_token()),
             read_from_current_directory: Some(Self::default_read_from_current_directory()),
         }
     }
@@ -64,12 +67,17 @@ impl HoardConfig {
             tertiary_color: self.tertiary_color,
             command_color: self.command_color,
             parameter_token: self.parameter_token,
+            parameter_ending_token: self.parameter_ending_token,
             read_from_current_directory: self.read_from_current_directory,
         }
     }
 
     fn default_parameter_token() -> String {
         "#".to_string()
+    }
+
+    fn default_ending_parameter_token() -> String {
+        "!".to_string()
     }
 
     const fn default_read_from_current_directory() -> bool {
@@ -142,6 +150,8 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
         if loaded_config.read_from_current_directory.unwrap() && path_buf.exists() {
             loaded_config.trove_path = Some(path_buf);
         }
+        // Sanity check. If the config makes sense
+        assert!(loaded_config.parameter_token != loaded_config.parameter_ending_token, "Your parameter token {} is equal to your ending token {}. Please set one of them to another character!", loaded_config.parameter_token.as_ref().unwrap(), loaded_config.parameter_ending_token.as_ref().unwrap());
 
         Ok(loaded_config)
     } else {
@@ -159,6 +169,9 @@ fn append_missing_default_values_to_config(
     hoard_dir: &Path,
     hoard_config_path: &Path,
 ) -> Result<(), Error> {
+    // Adds configuration fields and sets the values to their default value if they are missing.
+    // Mostly for legacy configuration support when new configuration options are added
+    // If any of the defaults are loaded and set, save the hoard configration to disk
     let is_config_dirty = if loaded_config.primary_color.is_none() {
         loaded_config.primary_color = Some(HoardConfig::default_colors(0));
         true
@@ -176,6 +189,9 @@ fn append_missing_default_values_to_config(
         true
     } else if loaded_config.parameter_token.is_none() {
         loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
+        true
+    } else if loaded_config.parameter_ending_token.is_none() {
+        loaded_config.parameter_ending_token = Some(HoardConfig::default_ending_parameter_token());
         true
     } else if loaded_config.read_from_current_directory.is_none() {
         loaded_config.read_from_current_directory = Some(false);

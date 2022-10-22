@@ -64,11 +64,21 @@ pub fn draw(
             .as_str();
 
         let token = config.parameter_token.as_ref().unwrap().as_str();
+        let ending_token = config.parameter_ending_token.as_ref().unwrap().as_str();
+        // Named parameter ending with a space
         let named_token = string_find_next(command_text, token, " ");
-
+        // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
+        let mut full_named_token = string_find_next(command_text, token, ending_token);
+        full_named_token.push_str(ending_token);
+        // Select the split based on wether the ending token is part of the command or not
+        let split_token = if command_text.contains(ending_token) {
+            full_named_token
+        } else {
+            named_token
+        };
         let mut command_spans: Vec<Span> = Vec::new();
-        let split_commands: Vec<String> = split_with_delim(command_text, &named_token);
-        if token == named_token {
+        let split_commands: Vec<String> = split_with_delim(command_text, &split_token);
+        if token == split_token {
             // If the next token to replace is not named
             let command_parts = command_text.split_once(&token);
             let mut spans: Vec<Span> = if let Some((begin, end)) = command_parts {
@@ -86,7 +96,7 @@ pub fn draw(
             let mut spans = split_commands
                 .iter()
                 .map(|e| {
-                    if *e == named_token {
+                    if *e == split_token {
                         (e, primary_style)
                     } else {
                         (e, command_style)

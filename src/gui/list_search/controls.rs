@@ -195,6 +195,7 @@ mod test_controls {
             should_exit: false,
             draw_state: DrawState::Search,
             parameter_token: "#".to_string(),
+            parameter_ending_token: "!".to_string(),
             selected_command: None,
             provided_parameter_count: 0,
         };
