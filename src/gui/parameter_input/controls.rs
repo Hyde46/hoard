@@ -12,7 +12,11 @@ pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCommand> {
         Key::Char('\n') => {
             let command = app.selected_command.clone().unwrap();
             let parameter = app.input.clone();
-            let replaced_command = command.replace_parameter(&app.parameter_token, parameter);
+            let replaced_command = command.replace_parameter(
+                &app.parameter_token,
+                &app.parameter_ending_token,
+                parameter,
+            );
             app.input = String::from("");
             if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
                 return Some(replaced_command);
