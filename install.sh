@@ -42,7 +42,7 @@ __hoard_install_with_cargo(){
 
 __hoard_install_ubuntu(){
 	echo "Assuming Ubuntu distro. Trying to install .deb package"
-	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v1.0.1/hoard_1.0.1.deb"
+	ARTIFACT_URL="https://github.com/hyde46/hoard/releases/download/v1.1.1/hoard_1.1.1.deb"
 
 	TEMP_DEB="$(mktemp)" &&
 	wget -O "$TEMP_DEB" "$ARTIFACT_URL"
