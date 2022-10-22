@@ -72,6 +72,10 @@ cargo build --release
 
 Find the binaries in `./target/release/hoard`
 Move it to wherever you need it ( Like `/usr/local/bin/hoard` )
+Or run 
+```
+cargo install --path .
+```
 
 ### Linux
 
