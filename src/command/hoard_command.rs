@@ -58,10 +58,12 @@ impl HoardCommand {
         self,
         default_value: Option<String>,
         parameter_token: &str,
+        parameter_ending_token: &str,
     ) -> Self {
         let base_prompt = format!(
-            "Command to hoard ( Mark unknown parameters with {} )\n",
-            parameter_token
+            "Command to hoard ( Mark unknown parameters with '{}'. Name the parameter with any string and end it with '{}' )\n",
+            parameter_token,
+            parameter_ending_token
         );
         let command_string: String = prompt_input(&base_prompt, false, default_value);
         Self {

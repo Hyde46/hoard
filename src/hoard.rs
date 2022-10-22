@@ -130,6 +130,13 @@ impl Hoard {
                     .parameter_token
                     .clone()
                     .unwrap(),
+                &self
+                    .config
+                    .as_ref()
+                    .unwrap()
+                    .parameter_ending_token
+                    .clone()
+                    .unwrap(),
             )
             .with_namespace_input(Some(default_namespace))
             .with_name_input(name, &self.trove)
@@ -302,6 +309,13 @@ impl Hoard {
                             .as_ref()
                             .unwrap()
                             .parameter_token
+                            .clone()
+                            .unwrap(),
+                        &self
+                            .config
+                            .as_ref()
+                            .unwrap()
+                            .parameter_ending_token
                             .clone()
                             .unwrap(),
                     )
