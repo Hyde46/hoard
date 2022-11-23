@@ -13,6 +13,7 @@ mod config;
 mod filter;
 mod gui;
 mod hoard;
+mod sync_models;
 mod util;
 use hoard::Hoard;
 

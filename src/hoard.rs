@@ -1,17 +1,24 @@
 use crate::cli_commands::{Cli, Commands};
 use clap::Parser;
 use log::info;
-use reqwest::Url;
+use reqwest::{StatusCode, Url};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use url::ParseError;
+use std::fs;
 
+use crate::cli_commands::Mode;
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
+use crate::util::rem_first_and_last;
 use crate::config::HoardConfig;
-use crate::config::{load_or_build_config, save_parameter_token};
+use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
 use crate::filter::query_trove;
 use crate::gui::commands_gui;
-use crate::gui::prompts::prompt_multiselect_options;
+use crate::gui::prompts::{
+    prompt_input, prompt_multiselect_options, prompt_password, prompt_password_repeat,
+};
+use crate::sync_models::TokenResponse;
 
 #[derive(Default, Debug)]
 pub struct Hoard {
@@ -25,10 +32,10 @@ impl Hoard {
         match load_or_build_config(hoard_home_path) {
             Ok(config) => self.config = Some(config),
             Err(err) => {
-                eprintln!("ERROR: {}", err);
+                eprintln!("ERROR: {err}");
                 err.chain()
                     .skip(1)
-                    .for_each(|cause| eprintln!("because: {}", cause));
+                    .for_each(|cause| eprintln!("because: {cause}"));
                 std::process::exit(1);
             }
         };
@@ -36,7 +43,7 @@ impl Hoard {
     }
 
     pub fn start(&mut self) -> (String, bool) {
-        let mut autocomplete_command = "".to_string();
+        let mut autocomplete_command = String::new();
         let cli = Cli::parse();
 
         match &cli.command {
@@ -90,6 +97,9 @@ impl Hoard {
             }
             Commands::ShellConfig { shell } => {
                 Self::shell_config_command(shell);
+            }
+            Commands::Sync { command } => {
+                self.sync(*command);
             }
         }
 
@@ -327,7 +337,7 @@ impl Hoard {
                 self.trove.add_command(new_command);
                 self.save_trove(None);
             }
-            Err(_e) => eprintln!("Could not find command {} to edit", command_name),
+            Err(_e) => eprintln!("Could not find command {command_name} to edit"),
         }
     }
 
@@ -337,7 +347,7 @@ impl Hoard {
             "fish" => include_str!("shell/hoard.fish"),
             "zsh" => include_str!("shell/hoard.zsh"),
             s => {
-                println!("Unknown shell '{}'!\nMust be either bash, fish or zsh!", s);
+                println!("Unknown shell '{s}'!\nMust be either bash, fish or zsh!");
                 return;
             }
         };
@@ -364,6 +374,163 @@ impl Hoard {
             }
             None => info!("[DEBUG] No command config loaded"),
         };
+    }
+
+    fn regsiter_user(&mut self) {
+        println!("Registering account..");
+        let user_email = prompt_input("Email: ", false, None);
+        let user_pw: String = prompt_password_repeat("Password: ");
+        let client = reqwest::blocking::Client::new();
+        let register_url = format!(
+            "{}register",
+            self.config.clone().unwrap().sync_server_url.unwrap()
+        );
+        let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
+        let body = client
+            .post(register_url)
+            .body(register_body)
+            .header("Content-Type", "application/json")
+            .send()
+            .unwrap();
+        if body.status() == StatusCode::CREATED {
+            println!("Created new user! Check your emails to verify your account.");
+        } else {
+            println!("Something went all wrong. Try another email.");
+        }
+    }
+
+    fn login(&mut self) {
+        println!("Logging in..");
+        let user_email = prompt_input("Email: ", false, None);
+        let user_pw: String = prompt_password("Password: ");
+        let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
+        let client = reqwest::blocking::Client::new();
+        let register_url = format!(
+            "{}token/new",
+            self.config.clone().unwrap().sync_server_url.unwrap()
+        );
+        let body = client
+            .get(register_url)
+            .body(register_body)
+            .header("Content-Type", "application/json")
+            .send()
+            .unwrap();
+        if body.status() == StatusCode::CREATED {
+            let response_text = body.text().unwrap();
+            let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
+            let mut config = self.config.clone().unwrap();
+            config.api_token = Some(token.token);
+            save_hoard_config_file(&config, &config.clone().config_home_path.unwrap()).unwrap();
+            println!("Success!");
+        } else {
+            println!("Invalid Email and password combination.");
+        } 
+    }
+
+    fn get_trove_file(&self) -> Option<CommandTrove> {
+        println!("Syncing ...");
+        let token = self.config.clone().unwrap().api_token;
+        let client = reqwest::blocking::Client::new();
+        let save_url = format!(
+            "{}v1/trove",
+            self.config.clone().unwrap().sync_server_url.unwrap()
+        );
+        let body = client
+            .get(save_url)
+            .bearer_auth(token.unwrap())
+            .header("Content-Type", "text/plain")
+            .send()
+            .unwrap();
+        if body.status() == 200 {
+            // Replaced escaped new line char with byte code for linebreak
+            let escaped_string = body.text().unwrap().replace("\\n", "\x0A");
+            // Replace escaped " with unescaped version
+            let unescaped_string = escaped_string.replace("\\\"", "\"");
+            return Some(CommandTrove::load_trove_from_string(rem_first_and_last(&unescaped_string)));
+        }
+        None
+    }
+
+    fn sync_safe(&self) {
+        println!("Uploading trove...");
+        let token = self.config.clone().unwrap().api_token;
+        let client = reqwest::blocking::Client::new();
+        let save_url = format!(
+            "{}v1/trove",
+            self.config.clone().unwrap().sync_server_url.unwrap()
+        );
+        let trove_file = fs::read_to_string(self.config.clone().unwrap().trove_path.unwrap()).unwrap();
+        let body = client
+            .put(save_url)
+            .body(trove_file)
+            .bearer_auth(token.unwrap())
+            .header("Content-Type", "text/plain")
+            .send()
+            .unwrap();
+        if body.status() == 201 {
+            println!("Done!");
+        } else {
+            println!("Could not save trove. Is it a valid trove file?");
+        }
+    }
+
+    pub fn sync(&mut self, command: Option<Mode>) {
+        // Check if user is logged in
+        // Else inform the user to run `hoard sync login` first and break
+        if let Some(c) = command {
+            match c {
+                Mode::Register => self.regsiter_user(),
+                Mode::Login => {
+                    if self.is_logged_in() {
+                        println!("You are already logged in.");
+                        return;
+                    }
+                    self.login();
+                }
+                Mode::Logout => {
+                    println!("Logging out..");
+                    let mut config = self.config.clone().unwrap();
+                    config.api_token = None;
+                    save_hoard_config_file(&config, &config.clone().config_home_path.unwrap())
+                        .unwrap();
+                }
+                Mode::Save => {
+                    if !self.is_logged_in() {
+                        println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                        return;
+                    }
+                    self.sync_safe();
+                }
+            }
+        } else {
+            // `hoard sync` is run
+            // Pull trove
+            if !self.is_logged_in() {
+                println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                return;
+            }
+            let trove = self.get_trove_file();
+            if let Some(t) = trove {
+                let was_dirty = self.trove.merge_trove(&t);
+                if was_dirty {
+                    self.save_trove(None);
+                    println!("All done!");
+                    return;
+                }
+                println!("No changes");
+            } else {
+                println!("Could not fetch trove file from your account!");
+            }
+        }
+    }
+
+    fn is_logged_in(&self) -> bool {
+        if let Some(config) = self.config.clone() {
+            if config.api_token.is_none() {
+                return false;
+            }
+        }
+        true
     }
 }
 

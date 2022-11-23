@@ -12,6 +12,13 @@ pub fn translate_number_to_nth(count: u16) -> String {
     }
 }
 
+pub fn rem_first_and_last(value: &str) -> &str {
+    let mut chars = value.chars();
+    chars.next();
+    chars.next_back();
+    chars.as_str()
+}
+
 pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
     // Find substring of a string `s` from first occurence of `from` to first occurence of `to` after `from` was encountered
     // For example:

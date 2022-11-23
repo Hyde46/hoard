@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -9,6 +9,18 @@ pub struct Cli {
 
     #[command(subcommand)]
     pub command: Commands,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum Mode {
+    /// Register new hoard account
+    Register,
+    /// Log into your hoard account
+    Login,
+    /// Log out from your hoard account
+    Logout,
+    /// Push your local trove file to the synchronization server
+    Save,
 }
 
 #[derive(Subcommand)]
@@ -104,5 +116,12 @@ pub enum Commands {
         /// shell type to print the config for
         #[arg(short = 's', long)]
         shell: String,
+    },
+
+    /// Sync your trove file
+    Sync {
+        /// Synchronize your trove file on multiple clients. If no mode is selected, it will fetch your online trove file and synchronize it with your local trove file
+        #[arg(value_enum)]
+        command: Option<Mode>,
     },
 }

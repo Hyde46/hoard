@@ -1,5 +1,5 @@
 use crate::gui::theme::HoardTheme;
-use dialoguer::{Input, MultiSelect, Select};
+use dialoguer::{Input, MultiSelect, Password, Select};
 pub enum Confirmation {
     Yes,
     No,
@@ -48,6 +48,15 @@ pub fn prompt_yes_or_no(text: &str) -> Confirmation {
     }
 }
 
+pub fn prompt_select_with_options(text_prompt: &str, options: &[&str]) -> usize {
+    Select::with_theme(&HoardTheme::default())
+        .with_prompt(text_prompt)
+        .items(options)
+        .default(0)
+        .interact()
+        .unwrap()
+}
+
 pub fn prompt_input(text: &str, allow_empty: bool, default_value: Option<String>) -> String {
     // Just calls `prompt_input_validate` to not keep on typing `None` for the validator
     prompt_input_validate(
@@ -79,6 +88,23 @@ where
     }
     input.allow_empty(allow_empty);
     input.with_prompt(text).interact_text().unwrap()
+}
+
+pub fn prompt_password_repeat(text: &str) -> String {
+    let theme = HoardTheme::default();
+    Password::with_theme(&theme)
+        .with_prompt(text)
+        .with_confirmation("Repeat password", "Error: the passwords don't match.")
+        .interact()
+        .unwrap()
+}
+
+pub fn prompt_password(text: &str) -> String {
+    let theme = HoardTheme::default();
+    Password::with_theme(&theme)
+        .with_prompt(text)
+        .interact()
+        .unwrap()
 }
 
 fn take_elements_by_indices<T>(elements: &[T], indices: &[usize]) -> Vec<T>

@@ -1,6 +1,7 @@
 use crate::command::trove::CommandTrove;
 use crate::gui::prompts::{prompt_input, prompt_input_validate};
 use crate::util::string_find_next;
+use crate::gui::merge::{ConflictResolve, with_conflict_resolve_prompt};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -158,20 +159,37 @@ impl HoardCommand {
         self.with_name_input_prompt(default_value, trove, "Name your command")
     }
 
-    pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+    pub fn resolve_name_conflict(self, collision: Self, trove: &CommandTrove) -> (Option<Self>, Option<Self>) {
+        // Behaviour if a command should be added to a trove file
+        // Returns a touple of options
+        // If the first is set, add this as a new command
+        // If the second is set, remove this exact command
         let name = self.name.clone();
         let command = self.command.clone();
         let namespace = self.namespace.clone();
-        self.with_name_input_prompt(
-            default_value,
-            trove,
-            &format!(
-                "A command with same name already exists in the namespace '{}'. Enter an alternate name for '{}' with command `{}`",
-                namespace,
-                name,
-                command
-            ),
-        )
+        let colliding_command = collision.command.clone();
+        // Ask user how to resolve conflict
+        let mode: ConflictResolve = with_conflict_resolve_prompt(&name, &namespace, &command, &colliding_command);
+
+        match mode {
+            ConflictResolve::Replace => {
+                // Add new command, remove colliding command in the local trove
+                (Some(self), Some(collision))
+            }
+            ConflictResolve::Keep => {
+                // Do nothing
+                (None, None)
+            }
+            ConflictResolve::New => {
+                (Some(self.with_name_input_prompt(
+                    None,
+                    trove,
+                    &format!(
+                        "Enter a new name for command: '{command}'\nOld name: {name} in namespace: {namespace}\nEnter new name: "
+                    ),
+                )) , None)
+            }
+        }
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
