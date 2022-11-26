@@ -26,9 +26,9 @@ pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
     // Returns "#my"
     if s.contains(from) {
         let split = s.split(from).nth(1).unwrap().split(to).next().unwrap();
-        return format!("{}{}", from, split);
+        return format!("{from}{split}");
     }
-    String::from("")
+    String::new()
 }
 
 pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {

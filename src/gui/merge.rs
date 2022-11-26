@@ -4,8 +4,8 @@ use enum_iterator::{all, Sequence};
 #[derive(Sequence)]
 pub enum ConflictResolve {
     /// Describes the mode of how to handle a merge conflict by adding in a command to a trove with a name that is already present
-    
-    /// Replace the old command with the new one 
+
+    /// Replace the old command with the new one
     Replace,
     /// Keep the old command and discard the new one
     Keep,
@@ -18,12 +18,17 @@ impl ConflictResolve {
         match self {
             Self::Replace => "Replace your local command with the new one",
             Self::Keep => "Keep your local command and ignore the new one",
-            Self::New => "Keep both, but choose a new name"
+            Self::New => "Keep both, but choose a new name",
         }
     }
 }
 
-pub fn with_conflict_resolve_prompt(name: &str, namespace: &str, command_string: &str, colliding_command_string: &str) -> ConflictResolve {
+pub fn with_conflict_resolve_prompt(
+    name: &str,
+    namespace: &str,
+    command_string: &str,
+    colliding_command_string: &str,
+) -> ConflictResolve {
     let conflict_prompt = format!(
         "You already have a command with the name: {name} in namespace: {namespace}\nYour local command: {colliding_command_string}\nIncoming command: {command_string}\nWhat do you want to do?"
     );

@@ -112,23 +112,18 @@ impl HoardConfig {
 #[allow(clippy::module_name_repetitions)]
 pub fn load_or_build_config(hoard_home_path: Option<String>) -> Result<HoardConfig> {
     // First check if custom path should be used
-    match hoard_home_path {
-        // If custom path is set
-        Some(custom_path) => {
-            info!("Found custom_path {:?}", custom_path);
-            let path = PathBuf::from(custom_path);
-            load_or_build(&path)
-        }
-        // If no custom path is set. Load or build config file at $HOME
-        None => load_or_build_default_path(),
-    }
+    hoard_home_path.map_or_else(load_or_build_default_path, |custom_path| {
+        info!("Found custom_path {:?}", custom_path);
+        let path = PathBuf::from(custom_path);
+        load_or_build(&path)
+    })
 }
 
 fn load_or_build_default_path() -> Result<HoardConfig, Error> {
-    match dirs::home_dir() {
-        Some(home) => load_or_build(&home),
-        None => Err(anyhow!("No $HOME directory found for hoard config")),
-    }
+    dirs::home_dir().map_or_else(
+        || Err(anyhow!("No $HOME directory found for hoard config")),
+        |home| load_or_build(&home),
+    )
 }
 
 #[allow(clippy::useless_let_if_seq)]
@@ -231,10 +226,10 @@ pub fn save_parameter_token(
     match save_config(&new_config, path_buf.as_path()) {
         Ok(_) => true,
         Err(err) => {
-            eprintln!("ERROR: {}", err);
+            eprintln!("ERROR: {err}");
             err.chain()
                 .skip(1)
-                .for_each(|cause| eprintln!("because: {}", cause));
+                .for_each(|cause| eprintln!("because: {cause}"));
             false
         }
     }

@@ -78,7 +78,7 @@ pub fn key_handler(
                 // Save which command to replace parameters for
                 state.selected_command = Some(selected_command);
                 // Empty input for next screen
-                state.input = "".to_string();
+                state.input = String::new();
                 // return None, otherwise drawing will quit
                 return None;
             }
@@ -188,7 +188,7 @@ mod test_controls {
 
     fn create_state(commands: Vec<HoardCommand>) -> State {
         let mut state = State {
-            input: "".to_string(),
+            input: String::new(),
             commands,
             command_list_state: ListState::default(),
             namespace_tab_state: ListState::default(),

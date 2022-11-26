@@ -21,6 +21,8 @@ pub enum Mode {
     Logout,
     /// Push your local trove file to the synchronization server
     Save,
+    /// Revert the last `hoard sync` command
+    Revert,
 }
 
 #[derive(Subcommand)]
