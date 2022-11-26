@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2
+- ✨ You can now synchronize your commands across multiple terminals! Run `hoard sync --help` to start
 ## 1.1.1
 - ✨ Fully named parameters. When saving a parameter, you can now end the parameter name with `!`. This enables you to use spaces in the parameter name. Additionally, using the ending token `!` enables you to use a named parameter in a command where no space is between the parameter token and the rest of the command (Set a different token in your config)
 - ✨ Add filtered commands outpout `hoard list --json --filter <query_string>` to enable easier downstream usage

@@ -515,57 +515,55 @@ impl Hoard {
         }
     }
 
-    pub fn sync(&mut self, command: Option<Mode>) {
+    pub fn sync(&mut self, command: Mode) {
         // Check if user is logged in
         // Else inform the user to run `hoard sync login` first and break
-        if let Some(c) = command {
-            match c {
-                Mode::Register => self.regsiter_user(),
-                Mode::Login => {
-                    if self.is_logged_in() {
-                        println!("You are already logged in.");
-                        return;
-                    }
-                    self.login();
-                }
-                Mode::Logout => {
-                    println!("Logging out..");
-                    let mut config = self.config.clone().unwrap();
-                    config.api_token = None;
-                    save_hoard_config_file(&config, &config.clone().config_home_path.unwrap())
-                        .unwrap();
-                }
-                Mode::Save => {
-                    if !self.is_logged_in() {
-                        println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
-                        return;
-                    }
-                    self.sync_safe();
-                }
-                Mode::Revert => {
-                    self.revert_trove();
-                }
-            }
-        } else {
-            // `hoard sync` is run
-            // Pull trove
-            if !self.is_logged_in() {
-                println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
-                return;
-            }
-            let trove = self.get_trove_file();
-            if let Some(t) = trove {
-                // Prepare backup trove to enable reverting if merge goes all wrong, or user incorrectly removes commands they wanted to keep
-                self.save_backup_trove(None);
-                let was_dirty = self.trove.merge_trove(&t);
-                if was_dirty {
-                    self.save_trove(None);
-                    println!("All done!");
+        match command {
+            Mode::Register => self.regsiter_user(),
+            Mode::Login => {
+                if self.is_logged_in() {
+                    println!("You are already logged in.");
                     return;
                 }
-                println!("No changes");
-            } else {
-                println!("Could not fetch trove file from your account!");
+                self.login();
+            }
+            Mode::Logout => {
+                println!("Logging out..");
+                let mut config = self.config.clone().unwrap();
+                config.api_token = None;
+                save_hoard_config_file(&config, &config.clone().config_home_path.unwrap()).unwrap();
+            }
+            Mode::Save => {
+                if !self.is_logged_in() {
+                    println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                    return;
+                }
+                self.sync_safe();
+            }
+            Mode::Get => {
+                // `hoard sync` is run
+                // Pull trove
+                if !self.is_logged_in() {
+                    println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                    return;
+                }
+                let trove = self.get_trove_file();
+                if let Some(t) = trove {
+                    // Prepare backup trove to enable reverting if merge goes all wrong, or user incorrectly removes commands they wanted to keep
+                    self.save_backup_trove(None);
+                    let was_dirty = self.trove.merge_trove(&t);
+                    if was_dirty {
+                        self.save_trove(None);
+                        println!("All done!");
+                        return;
+                    }
+                    println!("No changes");
+                } else {
+                    println!("Could not fetch trove file from your account!");
+                }
+            }
+            Mode::Revert => {
+                self.revert_trove();
             }
         }
     }

@@ -21,7 +21,9 @@ pub enum Mode {
     Logout,
     /// Push your local trove file to the synchronization server
     Save,
-    /// Revert the last `hoard sync` command
+    /// Get your online trove file and merge it with your local one
+    Get,
+    /// Revert the last `hoard sync get` command
     Revert,
 }
 
@@ -120,10 +122,10 @@ pub enum Commands {
         shell: String,
     },
 
-    /// Sync your trove file
+    /// Synchronize your trove file on multiple clients. If no mode is selected, it will fetch your online trove file and synchronize it with your local trove file
     Sync {
-        /// Synchronize your trove file on multiple clients. If no mode is selected, it will fetch your online trove file and synchronize it with your local trove file
+        ///
         #[arg(value_enum)]
-        command: Option<Mode>,
+        command: Mode,
     },
 }
