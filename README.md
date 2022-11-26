@@ -200,6 +200,9 @@ However, if you are unhappy with how the merge happened, you've got the option t
 hoard sync revert
 ```
 
+If you want to host your own sync server, checkout it's [repository](https://github.com/Hyde46/trove_server).
+Then, update your config file to point to the new server location `~/.config/hoard/config.yml`
+
 #### Delete a command
 
 ```
