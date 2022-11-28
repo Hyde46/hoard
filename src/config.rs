@@ -10,7 +10,7 @@ use std::{
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const HOARD_HOMEDIR: &str = ".config/hoard";
 const HOARD_FILE: &str = "trove.yml";
-const HOARD_CONFIG: &str = "config.yml";
+pub const HOARD_CONFIG: &str = "config.yml";
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,6 +30,9 @@ pub struct HoardConfig {
     // Token to indicate the end of a named parameter
     pub parameter_ending_token: Option<String>,
     pub read_from_current_directory: Option<bool>,
+    // URL to trove sync server
+    pub sync_server_url: Option<String>,
+    pub api_token: Option<String>,
 }
 
 impl HoardConfig {
@@ -47,6 +50,8 @@ impl HoardConfig {
             parameter_token: Some(Self::default_parameter_token()),
             parameter_ending_token: Some(Self::default_ending_parameter_token()),
             read_from_current_directory: Some(Self::default_read_from_current_directory()),
+            sync_server_url: Some(Self::default_sync_server_url()),
+            api_token: None,
         }
     }
 
@@ -69,6 +74,8 @@ impl HoardConfig {
             parameter_token: self.parameter_token,
             parameter_ending_token: self.parameter_ending_token,
             read_from_current_directory: self.read_from_current_directory,
+            sync_server_url: self.sync_server_url,
+            api_token: self.api_token,
         }
     }
 
@@ -78,6 +85,10 @@ impl HoardConfig {
 
     fn default_ending_parameter_token() -> String {
         "!".to_string()
+    }
+
+    fn default_sync_server_url() -> String {
+        "https://troveserver.herokuapp.com/".to_string()
     }
 
     const fn default_read_from_current_directory() -> bool {
@@ -101,23 +112,18 @@ impl HoardConfig {
 #[allow(clippy::module_name_repetitions)]
 pub fn load_or_build_config(hoard_home_path: Option<String>) -> Result<HoardConfig> {
     // First check if custom path should be used
-    match hoard_home_path {
-        // If custom path is set
-        Some(custom_path) => {
-            info!("Found custom_path {:?}", custom_path);
-            let path = PathBuf::from(custom_path);
-            load_or_build(&path)
-        }
-        // If no custom path is set. Load or build config file at $HOME
-        None => load_or_build_default_path(),
-    }
+    hoard_home_path.map_or_else(load_or_build_default_path, |custom_path| {
+        info!("Found custom_path {:?}", custom_path);
+        let path = PathBuf::from(custom_path);
+        load_or_build(&path)
+    })
 }
 
 fn load_or_build_default_path() -> Result<HoardConfig, Error> {
-    match dirs::home_dir() {
-        Some(home) => load_or_build(&home),
-        None => Err(anyhow!("No $HOME directory found for hoard config")),
-    }
+    dirs::home_dir().map_or_else(
+        || Err(anyhow!("No $HOME directory found for hoard config")),
+        |home| load_or_build(&home),
+    )
 }
 
 #[allow(clippy::useless_let_if_seq)]
@@ -196,6 +202,9 @@ fn append_missing_default_values_to_config(
     } else if loaded_config.read_from_current_directory.is_none() {
         loaded_config.read_from_current_directory = Some(false);
         true
+    } else if loaded_config.sync_server_url.is_none() {
+        loaded_config.sync_server_url = Some(HoardConfig::default_sync_server_url());
+        true
     } else {
         false
     };
@@ -217,10 +226,10 @@ pub fn save_parameter_token(
     match save_config(&new_config, path_buf.as_path()) {
         Ok(_) => true,
         Err(err) => {
-            eprintln!("ERROR: {}", err);
+            eprintln!("ERROR: {err}");
             err.chain()
                 .skip(1)
-                .for_each(|cause| eprintln!("because: {}", cause));
+                .for_each(|cause| eprintln!("because: {cause}"));
             false
         }
     }
@@ -230,6 +239,11 @@ fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), E
     let s = serde_yaml::to_string(&config_to_save)?;
     fs::write(config_path, s).expect("Unable to write config file");
     Ok(())
+}
+
+pub fn save_hoard_config_file(config_to_save: &HoardConfig, base_path: &Path) -> Result<(), Error> {
+    let config_dir = base_path.join(HOARD_CONFIG);
+    save_config(config_to_save, &config_dir)
 }
 
 #[cfg(test)]

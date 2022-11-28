@@ -40,7 +40,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
     });
 
     let mut app_state = State {
-        input: "".to_string(),
+        input: String::new(),
         commands: trove.commands.clone(),
         command_list_state: ListState::default(),
         namespace_tab_state: ListState::default(),

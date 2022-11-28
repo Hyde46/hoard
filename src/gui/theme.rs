@@ -121,7 +121,7 @@ impl Theme for HoardTheme {
             Some(default) => write!(
                 f,
                 "{} {} ",
-                self.hint_style.apply_to(&format!("({})", default)),
+                self.hint_style.apply_to(&format!("({default})")),
                 &self.prompt_suffix
             ),
             None => write!(f, "{} ", &self.prompt_suffix),

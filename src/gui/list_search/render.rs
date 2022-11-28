@@ -102,7 +102,7 @@ pub fn draw(
         rect.render_widget(command, command_detail_chunks[2]);
         rect.render_widget(input, chunks[2]);
 
-        let help_hint = Paragraph::new(format!("Show help - {} ", HELP_KEY))
+        let help_hint = Paragraph::new(format!("Show help - {HELP_KEY} "))
             .style(Style::default().fg(Color::Rgb(
                 config.primary_color.unwrap().0,
                 config.primary_color.unwrap().1,
@@ -242,7 +242,7 @@ fn render_commands<'a>(
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
-    let query_title = format!(" hoard v{} ", VERSION);
+    let query_title = format!(" hoard v{VERSION} ");
     let input = Paragraph::new(query_string).block(
         Block::default()
             .style(Style::default().fg(Color::Rgb(

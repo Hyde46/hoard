@@ -1,4 +1,5 @@
 use crate::command::trove::CommandTrove;
+use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate};
 use crate::util::string_find_next;
 use serde::{Deserialize, Serialize};
@@ -13,12 +14,12 @@ pub struct HoardCommand {
 }
 
 impl HoardCommand {
-    pub fn default() -> Self {
+    pub const fn default() -> Self {
         Self {
-            name: "".to_string(),
-            namespace: "".to_string(),
+            name: String::new(),
+            namespace: String::new(),
             tags: None,
-            command: "".to_string(),
+            command: String::new(),
             description: None,
         }
     }
@@ -37,10 +38,7 @@ impl HoardCommand {
     }
 
     pub fn tags_as_string(&self) -> String {
-        self.tags
-            .as_ref()
-            .unwrap_or(&vec!["".to_string()])
-            .join(",")
+        self.tags.as_ref().unwrap_or(&vec![String::new()]).join(",")
     }
 
     #[allow(dead_code)]
@@ -158,20 +156,42 @@ impl HoardCommand {
         self.with_name_input_prompt(default_value, trove, "Name your command")
     }
 
-    pub fn with_alt_name_input(self, default_value: Option<String>, trove: &CommandTrove) -> Self {
+    pub fn resolve_name_conflict(
+        self,
+        collision: Self,
+        trove: &CommandTrove,
+    ) -> (Option<Self>, Option<Self>) {
+        // Behaviour if a command should be added to a trove file
+        // Returns a touple of options
+        // If the first is set, add this as a new command
+        // If the second is set, remove this exact command
         let name = self.name.clone();
         let command = self.command.clone();
         let namespace = self.namespace.clone();
-        self.with_name_input_prompt(
-            default_value,
-            trove,
-            &format!(
-                "A command with same name already exists in the namespace '{}'. Enter an alternate name for '{}' with command `{}`",
-                namespace,
-                name,
-                command
-            ),
-        )
+        let colliding_command = collision.command.clone();
+        // Ask user how to resolve conflict
+        let mode: ConflictResolve =
+            with_conflict_resolve_prompt(&name, &namespace, &command, &colliding_command);
+
+        match mode {
+            ConflictResolve::Replace => {
+                // Add new command, remove colliding command in the local trove
+                (Some(self), Some(collision))
+            }
+            ConflictResolve::Keep => {
+                // Do nothing
+                (None, None)
+            }
+            ConflictResolve::New => {
+                (Some(self.with_name_input_prompt(
+                    None,
+                    trove,
+                    &format!(
+                        "Enter a new name for command: '{command}'\nOld name: {name} in namespace: {namespace}\nEnter new name: "
+                    ),
+                )) , None)
+            }
+        }
     }
 
     pub fn with_description_input(self, default_value: Option<String>) -> Self {
@@ -376,7 +396,7 @@ mod test_parameterized {
     fn test_split_multiple() {
         let token = "#".to_string();
         let c: HoardCommand = command_struct("test # test #");
-        let expected = vec!["test ".to_string(), " test ".to_string(), "".to_string()];
+        let expected = vec!["test ".to_string(), " test ".to_string(), String::new()];
         assert_eq!(expected, c.split(&token));
     }
 

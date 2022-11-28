@@ -17,7 +17,7 @@ pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCommand> {
                 &app.parameter_ending_token,
                 parameter,
             );
-            app.input = String::from("");
+            app.input = String::new();
             if replaced_command.get_parameter_count(&app.parameter_token) == 0 {
                 return Some(replaced_command);
             }

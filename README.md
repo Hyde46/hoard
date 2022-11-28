@@ -92,7 +92,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.1.1 ./install.fish
+LATEST_RELEASE=1.2.0 ./install.fish
 ```
 
 ### Brew on MacOS
@@ -171,6 +171,37 @@ When running `hoard list` as a shell plugin and selecting a parameterized comman
 
 If there is a `trove.yml` file present in the local directory, `hoard` will only load this trove file and not display your "global" trove!
 ( Edit ~/.config/hoard/config.yml `read_from_current_directory` to disable )
+
+#### Synchronize commands with another terminal
+You can keep your commands in sync in multiple terminals by using `hoard sync`
+
+First register a new account
+```bash
+hoard sync register
+```
+
+Then login with your new account
+```bash
+hoard sync login
+```
+
+Save your local commands online
+```bash
+hoard sync save
+```
+
+Login with the same account on a different computer/terminal and then run
+```bash
+hoard sync get
+```
+This will merge your local trove file with the cloud-based one. You will get prompted how to handle collisions if there are any.
+However, if you are unhappy with how the merge happened, you've got the option to revert the latest `hoard sync get` command
+```bash
+hoard sync revert
+```
+
+If you want to host your own sync server, checkout it's [repository](https://github.com/Hyde46/trove_server).
+Then, update your config file to point to the new server location `~/.config/hoard/config.yml`
 
 #### Delete a command
 

@@ -80,7 +80,7 @@ pub fn draw(
         let split_commands: Vec<String> = split_with_delim(command_text, &split_token);
         if token == split_token {
             // If the next token to replace is not named
-            let command_parts = command_text.split_once(&token);
+            let command_parts = command_text.split_once(token);
             let mut spans: Vec<Span> = if let Some((begin, end)) = command_parts {
                 vec![
                     Span::styled(begin, command_style),

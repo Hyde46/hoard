@@ -35,8 +35,12 @@ impl CommandTrove {
     }
 
     pub fn load_trove_file(path: &Option<PathBuf>) -> Self {
-        match path {
-            Some(p) => {
+        path.clone().map_or_else(
+            || {
+                info!("[DEBUG] No trove path available. Creating new trove file");
+                Self::default()
+            },
+            |p| {
                 if p.exists() {
                     let f = std::fs::File::open(p).ok().unwrap();
                     let parsed_trove = serde_yaml::from_reader::<_, Self>(f);
@@ -44,7 +48,7 @@ impl CommandTrove {
                         Ok(trove) => trove,
                         Err(e) => {
                             println!("The supplied trove file is invalid!");
-                            println!("{:?}", e);
+                            println!("{e}");
                             Self::default()
                         }
                     }
@@ -52,12 +56,8 @@ impl CommandTrove {
                     info!("[DEBUG] No trove file found at {:?}", p);
                     Self::default()
                 }
-            }
-            None => {
-                info!("[DEBUG] No trove path available. Creating new trove file");
-                Self::default()
-            }
-        }
+            },
+        )
     }
 
     pub fn load_trove_from_string(trove_string: &str) -> Self {
@@ -65,8 +65,8 @@ impl CommandTrove {
         match parsed_trove {
             Ok(trove) => trove,
             Err(e) => {
+                println!("{e}");
                 println!("The supplied trove file is invalid!");
-                println!("{:?}", e);
                 Self::default()
             }
         }
@@ -81,20 +81,55 @@ impl CommandTrove {
         fs::write(path, s).expect("Unable to write config file");
     }
 
-    fn check_name_collision(&self, command: &HoardCommand) -> bool {
-        self.commands
+    fn check_name_collision(&self, command: &HoardCommand) -> Option<HoardCommand> {
+        let colliding_commands = self
+            .commands
             .iter()
             .filter(|&c| c.namespace == command.namespace)
-            .any(|c| c.name == command.name)
+            .filter(|&c| c.name == command.name)
+            .cloned();
+        colliding_commands.into_iter().next()
     }
 
-    pub fn add_command(&mut self, new_command: HoardCommand) {
-        let new_command = if self.check_name_collision(&new_command) {
-            new_command.with_alt_name_input(None, self)
-        } else {
-            new_command
-        };
-        self.commands.push(new_command);
+    fn is_same_command(&self, command: &HoardCommand) -> bool {
+        self.commands
+            .iter()
+            .filter(|&c| {
+                c.namespace == command.namespace
+                    && c.name == command.name
+                    && c.command == command.command
+            })
+            .count()
+            > 0
+    }
+
+    pub fn add_command(&mut self, new_command: HoardCommand) -> bool {
+        // Add a command to local trove file.
+        // Returns dirty flag, wether something got added/changed or not
+        // Returns true if there were changes
+        // Returns false if synced troved file was either empty or the exact same
+        let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) =
+            if let Some(colliding_command) = self.check_name_collision(&new_command) {
+                if self.is_same_command(&new_command) {
+                    // Dont add it to the trove since its the same command. Dont ask the user about it
+                    (None, None)
+                } else {
+                    new_command.resolve_name_conflict(colliding_command, self)
+                }
+            } else {
+                (Some(new_command), None)
+            };
+        if let Some(remove) = to_remove {
+            match self.remove_command(&remove.name) {
+                Ok(_) => {}
+                Err(e) => println!("No idea how you ended up here {e}"),
+            }
+        }
+        if let Some(c) = to_add {
+            self.commands.push(c);
+            return true;
+        }
+        false
     }
 
     pub fn remove_command(&mut self, name: &str) -> Result<(), anyhow::Error> {
@@ -145,11 +180,12 @@ impl CommandTrove {
         self.commands.is_empty()
     }
 
-    pub fn merge_trove(&mut self, other: &Self) {
+    pub fn merge_trove(&mut self, other: &Self) -> bool {
         other
             .commands
             .iter()
-            .for_each(|c| self.add_command(c.clone()));
+            .map(|c| self.add_command(c.clone()))
+            .any(|c| c)
     }
 
     pub fn print_trove(&self) {
@@ -171,7 +207,7 @@ impl CommandTrove {
                 // description
                 Cell::new(&c.description.as_ref().unwrap()[..]),
                 // tags
-                Cell::new(&c.tags.as_ref().unwrap_or(&vec!["".to_string()]).join(",")[..]),
+                Cell::new(&c.tags.as_ref().unwrap_or(&vec![String::new()]).join(",")[..]),
             ]));
         });
         // Print the table to stdout
