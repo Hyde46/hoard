@@ -21,6 +21,7 @@ pub struct State {
     pub command_list_state: ListState,
     pub namespace_tab_state: ListState,
     pub should_exit: bool,
+    pub should_delete: bool,
     pub draw_state: DrawState,
     pub control_state: ControlState,
     pub edit_selection: EditSelection,
@@ -97,6 +98,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         command_list_state: ListState::default(),
         namespace_tab_state: ListState::default(),
         should_exit: false,
+        should_delete: false,
         draw_state: DrawState::Search,
         control_state: ControlState::Search,
         edit_selection: EditSelection::Command,
@@ -158,7 +160,11 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                     trove.update_command_by_name(&output);
                     app_state.commands = trove.commands.clone();
                     app_state.control_state = ControlState::Search;
-                } else{
+                } else if app_state.should_delete {
+                    trove.remove_command(&output.name).ok();
+                    app_state.commands = trove.commands.clone();
+                    app_state.should_delete = false;
+                } else {
                     // Command has been selected
                     terminal.show_cursor()?;
                     return Ok(Some(output));

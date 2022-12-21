@@ -19,6 +19,7 @@ const HELP_CONTENT: &[(&str, &str)] = &[
     ("Next namespace tab", "<Ctrl-L> / <Right-Arrow>"),
     ("Previous namespace tab", "<Ctrl-H> / <Left-Arrow>"),
     ("Select command", "<Enter>"),
+    ("Delete command", "<Ctrl-X>"),
     ("Toggle search/edit mode", "<Tab> / <Ctrl-E>"),
     ("Toggle Command to edit in edit mode", "<Tab>"),
     ("Exit edit mode", "<Esc>"),
