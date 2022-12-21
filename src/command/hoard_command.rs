@@ -24,6 +24,30 @@ impl HoardCommand {
         }
     }
 
+    pub fn is_command_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Command can't be empty"));
+        }
+        (true, String::new())
+    }
+
+    pub fn is_name_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Name can't be empty"));
+        }
+        if c.contains(' ') {
+            return (false, String::from("Name can't contain whitespaces"));
+        }
+        (true, String::new())
+    }
+
+    pub fn are_tags_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Tags can't be empty"));
+        }
+        (true, String::new())
+    }
+
     #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         if self.name.is_empty()
@@ -77,14 +101,7 @@ impl HoardCommand {
         Self {
             name: self.name,
             namespace: self.namespace,
-            tags: Some(
-                tags.chars()
-                    .filter(|c| !c.is_whitespace())
-                    .collect::<String>()
-                    .split(',')
-                    .map(std::string::ToString::to_string)
-                    .collect(),
-            ),
+            tags: Some(string_to_tags(tags)),
             command: self.command,
             description: self.description,
         }
@@ -205,6 +222,15 @@ impl HoardCommand {
             description: Some(description_string),
         }
     }
+}
+
+pub fn string_to_tags(tags: &str) -> Vec<String> {
+    tags.chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .split(',')
+        .map(std::string::ToString::to_string)
+        .collect()
 }
 
 pub trait Parameterized {

@@ -176,6 +176,7 @@ impl Hoard {
         } else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {
+                    self.save_trove(None);
                     if let Some(c) = selected_command {
                         // Is set if a command is selected in GUI
                         if !c.command.is_empty() {

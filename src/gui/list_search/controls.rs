@@ -1,7 +1,8 @@
 use crate::command::hoard_command::{HoardCommand, Parameterized};
-use crate::gui::commands_gui::{DrawState, State};
+use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 
+#[allow(clippy::too_many_lines)]
 pub fn key_handler(
     input: Key,
     state: &mut State,
@@ -9,14 +10,40 @@ pub fn key_handler(
     namespace_tabs: &[&str],
 ) -> Option<HoardCommand> {
     match input {
-        // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+            // Definitely exit program
+            state.control_state = ControlState::Search;
             state.should_exit = true;
             None
         }
         // Show help
         Key::F(1) => {
             state.draw_state = DrawState::Help;
+            None
+        }
+        // Show help
+        Key::Ctrl('w') => {
+            state.draw_state = DrawState::Create;
+            state.edit_selection = EditSelection::Command;
+            state.new_command = Some(HoardCommand::default());
+            None
+        }
+        // Switch to edit command mode
+        Key::Ctrl('e') | Key::Char('\t') => {
+            let selected_command = state
+                .commands
+                .clone()
+                .get(
+                    state
+                        .command_list_state
+                        .selected()
+                        .expect("there is always a selected command"),
+                )
+                .expect("exists")
+                .clone();
+            state.control_state = ControlState::Edit;
+            state.selected_command = Some(selected_command);
+            state.update_string_to_edit();
             None
         }
         // Switch namespace
@@ -52,6 +79,24 @@ pub fn key_handler(
                 }
             }
             None
+        }
+        Key::Ctrl('x') => {
+            if state.commands.is_empty() {
+                return None;
+            }
+            let selected_command = state
+                .commands
+                .clone()
+                .get(
+                    state
+                        .command_list_state
+                        .selected()
+                        .expect("there is always a selected command"),
+                )
+                .expect("exists")
+                .clone();
+            state.should_delete = true;
+            Some(selected_command)
         }
         // Select command
         Key::Char('\n') => {
@@ -193,11 +238,17 @@ mod test_controls {
             command_list_state: ListState::default(),
             namespace_tab_state: ListState::default(),
             should_exit: false,
+            should_delete: false,
             draw_state: DrawState::Search,
+            control_state: ControlState::Search,
+            new_command: None,
+            edit_selection: crate::gui::commands_gui::EditSelection::Command,
+            string_to_edit: String::new(),
             parameter_token: "#".to_string(),
             parameter_ending_token: "!".to_string(),
             selected_command: None,
             provided_parameter_count: 0,
+            error_message: String::new(),
         };
 
         state.command_list_state.select(Some(0));
