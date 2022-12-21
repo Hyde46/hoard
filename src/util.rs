@@ -32,37 +32,30 @@ pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
 }
 
 pub fn split_with_delim(s: &str, delim: &str) -> Vec<String> {
-    let mut result: Vec<String> = Vec::new();
-    let s: String = s.to_string();
+    //Credits to chatGPT for simplifying this wtf
+    let mut result = Vec::new();
+    let mut start = 0;
 
-    let matched_indices: Vec<(usize, usize)> = s
-        .match_indices(delim)
-        .map(|(i, _)| (i, i + delim.len() - 1))
-        .collect();
-    let mut split_indices: Vec<(usize, usize)> = Vec::new();
-
-    // string starts with delimiter
-    if matched_indices.first().unwrap().0 != 0 {
-        split_indices.push((0, matched_indices.first().unwrap().0 - 1));
-    }
-
-    for (i, indices) in matched_indices.iter().enumerate() {
-        split_indices.push((indices.0, indices.1));
-        if let Some(peeked_index) = matched_indices.get(i + 1) {
-            split_indices.push((indices.1 + 1, peeked_index.0 - 1));
+    for (i, _) in s.match_indices(delim) {
+        if i > start {
+            result.push(s[start..i].to_string());
         }
+        result.push(delim.to_string());
+        start = i + delim.len();
     }
 
-    // Delimiter is at the end
-    if matched_indices.last().unwrap().1 != s.len() - 1 {
-        split_indices.push((matched_indices.last().unwrap().1 + 1, s.len() - 1));
+    if start < s.len() {
+        result.push(s[start..].to_string());
     }
 
-    // What the hell was I thinking
-    for (i, k) in &split_indices {
-        let slice = &s[(*i)..=(*k)];
-        result.push(slice.to_string());
+    while result.first().map_or(false, std::string::String::is_empty) {
+        result.remove(0);
     }
+
+    while result.last().map_or(false, std::string::String::is_empty) {
+        result.pop();
+    }
+
     result
 }
 
