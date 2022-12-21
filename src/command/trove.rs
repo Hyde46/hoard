@@ -12,7 +12,7 @@ use crate::config::HoardConfig;
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct CommandTrove {
     pub version: String,
     pub commands: Vec<HoardCommand>,
@@ -174,6 +174,15 @@ impl CommandTrove {
                 Ok(command)
             },
         )
+    }
+
+    pub fn update_command_by_name(&mut self, command: &HoardCommand) -> &mut Self {
+        for c in &mut self.commands.iter_mut() {
+            if c.name == command.name {
+                *c = command.clone();
+            }
+        }
+        self
     }
 
     pub fn is_empty(&self) -> bool {
