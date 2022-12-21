@@ -1,5 +1,5 @@
 use crate::command::hoard_command::{HoardCommand, Parameterized};
-use crate::gui::commands_gui::{DrawState, State};
+use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 
 pub fn key_handler(
@@ -9,14 +9,33 @@ pub fn key_handler(
     namespace_tabs: &[&str],
 ) -> Option<HoardCommand> {
     match input {
-        // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+            // Definitely exit program
+            state.control_state = ControlState::Search;
             state.should_exit = true;
             None
         }
         // Show help
         Key::F(1) => {
             state.draw_state = DrawState::Help;
+            None
+        }
+        // Switch to edit command mode
+        Key::Ctrl('e') | Key::Char('\t') => {
+            let selected_command = state
+                .commands
+                .clone()
+                .get(
+                    state
+                        .command_list_state
+                        .selected()
+                        .expect("there is always a selected command"),
+                )
+                .expect("exists")
+                .clone();
+            state.control_state = ControlState::Edit;
+            state.selected_command = Some(selected_command);
+            state.update_string_to_edit();
             None
         }
         // Switch namespace
@@ -194,6 +213,9 @@ mod test_controls {
             namespace_tab_state: ListState::default(),
             should_exit: false,
             draw_state: DrawState::Search,
+            control_state: ControlState::Search,
+            edit_selection: EditSelection::Command,
+            string_to_edit: String::new(),
             parameter_token: "#".to_string(),
             parameter_ending_token: "!".to_string(),
             selected_command: None,

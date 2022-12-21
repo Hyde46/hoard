@@ -77,14 +77,7 @@ impl HoardCommand {
         Self {
             name: self.name,
             namespace: self.namespace,
-            tags: Some(
-                tags.chars()
-                    .filter(|c| !c.is_whitespace())
-                    .collect::<String>()
-                    .split(',')
-                    .map(std::string::ToString::to_string)
-                    .collect(),
-            ),
+            tags: string_to_tags(tags),
             command: self.command,
             description: self.description,
         }
@@ -205,6 +198,17 @@ impl HoardCommand {
             description: Some(description_string),
         }
     }
+}
+
+pub fn string_to_tags(tags: &str) -> Option<Vec<String>> {
+    Some(
+        tags.chars()
+            .filter(|c| !c.is_whitespace())
+            .collect::<String>()
+            .split(',')
+            .map(std::string::ToString::to_string)
+            .collect(),
+    )
 }
 
 pub trait Parameterized {
