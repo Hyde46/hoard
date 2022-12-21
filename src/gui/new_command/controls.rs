@@ -41,12 +41,12 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     msg
                 }
                 EditSelection::Namespace => {
-                    let (_, msg) = HoardCommand::is_namespace_valid(&parameter);
-                    command.namespace = parameter.clone();
                     if parameter.is_empty() {
                         command.namespace = default_namespace.into();
+                    } else {
+                        command.namespace = parameter;
                     }
-                    msg
+                    String::new()
                 }
                 EditSelection::Description => {
                     command.description = Some(parameter);

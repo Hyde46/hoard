@@ -35,12 +35,8 @@ impl HoardCommand {
         if c.is_empty() {
             return (false, String::from("Name can't be empty"));
         }
-        (true, String::new())
-    }
-
-    pub fn is_namespace_valid(c: &str) -> (bool, String) {
-        if c.is_empty() {
-            return (false, String::from("Namespace can't be empty"));
+        if c.contains(' ') {
+            return (false, String::from("Name can't contain whitespaces"));
         }
         (true, String::new())
     }
