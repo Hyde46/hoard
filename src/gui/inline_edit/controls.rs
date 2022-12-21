@@ -19,7 +19,7 @@ pub fn key_handler(
             match state.edit_selection {
                 EditSelection::Description => edited_command.description = Some(new_string),
                 EditSelection::Command => edited_command.command = new_string,
-                EditSelection::Tags => edited_command.tags = string_to_tags(&new_string),
+                EditSelection::Tags => edited_command.tags = Some(string_to_tags(&new_string)),
                 EditSelection::Name => (),
             };
             Some(edited_command)

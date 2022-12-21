@@ -1,5 +1,5 @@
 use crate::command::hoard_command::{HoardCommand, Parameterized};
-use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
+use crate::gui::commands_gui::{ControlState, DrawState, State};
 use termion::event::Key;
 
 pub fn key_handler(
@@ -214,7 +214,7 @@ mod test_controls {
             should_exit: false,
             draw_state: DrawState::Search,
             control_state: ControlState::Search,
-            edit_selection: EditSelection::Command,
+            edit_selection: crate::gui::commands_gui::EditSelection::Command,
             string_to_edit: String::new(),
             parameter_token: "#".to_string(),
             parameter_ending_token: "!".to_string(),

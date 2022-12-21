@@ -3,7 +3,6 @@ use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::gui::commands_gui::{ControlState, EditSelection};
 use crate::gui::help::HELP_KEY;
-use termion::color::Rgb;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
