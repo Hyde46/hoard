@@ -91,6 +91,6 @@ select fav in "${foods[@]}"; do
 done
 
 # TODO: Properly check which shell is installed
-echo 'hoard shell_config zsh | source' >> ~/.zshrc
-echo 'hoard shell_config bash | source' >> ~/.zshrc
+echo 'hoard shell_config --shell zsh | source' >> ~/.zshrc
+echo 'hoard shell_config --shell bash | source' >> ~/.bashrc
 echo 'source your .bashrc/.zshrc and press <Ctrl-H> to get started with the interactive hoard UI'
