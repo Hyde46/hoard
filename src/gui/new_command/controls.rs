@@ -36,7 +36,9 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     command.name = parameter;
                     let trove = CommandTrove::from_commands(&app.commands);
                     if trove.check_name_collision(&command).is_some() {
-                        msg = String::from("Command with that name already exists in another namespace");
+                        msg = String::from(
+                            "Command with that name already exists in another namespace",
+                        );
                     }
                     msg
                 }

@@ -108,7 +108,10 @@ pub fn draw(
         let footer_chunk = Layout::default()
             .direction(Direction::Horizontal)
             .margin(0)
-            .constraints([Constraint::Percentage(footer_left), Constraint::Percentage(footer_right)])
+            .constraints([
+                Constraint::Percentage(footer_left),
+                Constraint::Percentage(footer_right),
+            ])
             .split(chunks[3]);
 
         let control_state_str = &app_state.control_state;
@@ -119,13 +122,15 @@ pub fn draw(
                 config.primary_color.unwrap().2,
             )))
             .alignment(Alignment::Left);
-        let help_hint = Paragraph::new(format!("Create <Ctrl-W> | Delete <Ctrl-X> | Help {HELP_KEY}"))
-            .style(Style::default().fg(Color::Rgb(
-                config.primary_color.unwrap().0,
-                config.primary_color.unwrap().1,
-                config.primary_color.unwrap().2,
-            )))
-            .alignment(Alignment::Right);
+        let help_hint = Paragraph::new(format!(
+            "Create <Ctrl-W> | Delete <Ctrl-X> | Help {HELP_KEY}"
+        ))
+        .style(Style::default().fg(Color::Rgb(
+            config.primary_color.unwrap().0,
+            config.primary_color.unwrap().1,
+            config.primary_color.unwrap().2,
+        )))
+        .alignment(Alignment::Right);
 
         rect.render_widget(help_hint_l, footer_chunk[0]);
         if app_state.control_state == ControlState::Search {
@@ -313,7 +318,7 @@ fn render_commands<'a>(
 
 const fn get_footer_constraints(control_state: &ControlState) -> (u16, u16) {
     match control_state {
-        ControlState::Search => (50,50),
-        ControlState::Edit => (99,1)
+        ControlState::Search => (50, 50),
+        ControlState::Edit => (99, 1),
     }
 }

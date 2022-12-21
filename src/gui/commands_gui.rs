@@ -44,8 +44,9 @@ impl State {
             EditSelection::Name => self.string_to_edit = cloned_selected_command.name,
             EditSelection::Tags => self.string_to_edit = cloned_selected_command.tags_as_string(),
             EditSelection::Description => {
-                self.string_to_edit = cloned_selected_command.description.unwrap_or_default()
+                self.string_to_edit = cloned_selected_command.description.unwrap_or_default();
             }
+
             EditSelection::Command => self.string_to_edit = cloned_selected_command.command,
             EditSelection::Namespace => (),
         };
@@ -170,7 +171,12 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                 draw_help(config, &mut terminal)?;
             }
             DrawState::Create => {
-                draw_new_command_input(&mut app_state, config, &mut terminal, &config.default_namespace)?;
+                draw_new_command_input(
+                    &mut app_state,
+                    config,
+                    &mut terminal,
+                    &config.default_namespace,
+                )?;
             }
         }
 
@@ -187,7 +193,9 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                 },
                 DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
                 DrawState::Help => key_handler_help(input, &mut app_state),
-                DrawState::Create => key_handler_create_command(input, &mut app_state, &config.default_namespace),
+                DrawState::Create => {
+                    key_handler_create_command(input, &mut app_state, &config.default_namespace)
+                }
             };
 
             if let Some(output) = command {
