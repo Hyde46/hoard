@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.3
+- ✨ Inline command editing in the GUI. Press `<TAB>` to get started. Only editing the command, its description and the tags are supported for now
 ## 1.2
 - ✨ You can now synchronize your commands across multiple terminals! Run `hoard sync --help` to start
 ## 1.1.1

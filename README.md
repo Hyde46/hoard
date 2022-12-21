@@ -92,7 +92,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.2.0 ./install.fish
+LATEST_RELEASE=1.3.0 ./install.fish
 ```
 
 ### Brew on MacOS
