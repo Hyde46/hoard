@@ -1,5 +1,5 @@
 use crate::command::hoard_command::{HoardCommand, Parameterized};
-use crate::gui::commands_gui::{ControlState, DrawState, State};
+use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 
 #[allow(clippy::too_many_lines)]
@@ -19,6 +19,13 @@ pub fn key_handler(
         // Show help
         Key::F(1) => {
             state.draw_state = DrawState::Help;
+            None
+        }
+        // Show help
+        Key::Ctrl('w') => {
+            state.draw_state = DrawState::Create;
+            state.edit_selection = EditSelection::Command;
+            state.new_command = Some(HoardCommand::default());
             None
         }
         // Switch to edit command mode
@@ -234,12 +241,14 @@ mod test_controls {
             should_delete: false,
             draw_state: DrawState::Search,
             control_state: ControlState::Search,
+            new_command: None,
             edit_selection: crate::gui::commands_gui::EditSelection::Command,
             string_to_edit: String::new(),
             parameter_token: "#".to_string(),
             parameter_ending_token: "!".to_string(),
             selected_command: None,
             provided_parameter_count: 0,
+            error_message: String::new(),
         };
 
         state.command_list_state.select(Some(0));

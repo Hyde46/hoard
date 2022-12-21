@@ -81,7 +81,7 @@ impl CommandTrove {
         fs::write(path, s).expect("Unable to write config file");
     }
 
-    fn check_name_collision(&self, command: &HoardCommand) -> Option<HoardCommand> {
+    pub fn check_name_collision(&self, command: &HoardCommand) -> Option<HoardCommand> {
         let colliding_commands = self
             .commands
             .iter()

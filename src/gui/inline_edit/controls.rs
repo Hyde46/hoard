@@ -1,11 +1,8 @@
-use crate::command::hoard_command::{HoardCommand, string_to_tags};
+use crate::command::hoard_command::{string_to_tags, HoardCommand};
 use crate::gui::commands_gui::{ControlState, EditSelection, State};
 use termion::event::Key;
 
-pub fn key_handler(
-    input: Key,
-    state: &mut State,
-) -> Option<HoardCommand> {
+pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCommand> {
     match input {
         // Quit command
         Key::Esc => {
@@ -20,7 +17,7 @@ pub fn key_handler(
                 EditSelection::Description => edited_command.description = Some(new_string),
                 EditSelection::Command => edited_command.command = new_string,
                 EditSelection::Tags => edited_command.tags = Some(string_to_tags(&new_string)),
-                EditSelection::Name => (),
+                EditSelection::Name | EditSelection::Namespace => (),
             };
             Some(edited_command)
         }
@@ -34,8 +31,8 @@ pub fn key_handler(
             state.should_exit = true;
             None
         }
-         // Handle query input
-         Key::Backspace => {
+        // Handle query input
+        Key::Backspace => {
             state.string_to_edit.pop();
             None
         }

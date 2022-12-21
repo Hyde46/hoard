@@ -24,6 +24,34 @@ impl HoardCommand {
         }
     }
 
+    pub fn is_command_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Command can't be empty"));
+        }
+        (true, String::new())
+    }
+
+    pub fn is_name_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Name can't be empty"));
+        }
+        (true, String::new())
+    }
+
+    pub fn is_namespace_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Namespace can't be empty"));
+        }
+        (true, String::new())
+    }
+
+    pub fn are_tags_valid(c: &str) -> (bool, String) {
+        if c.is_empty() {
+            return (false, String::from("Tags can't be empty"));
+        }
+        (true, String::new())
+    }
+
     #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         if self.name.is_empty()

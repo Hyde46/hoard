@@ -183,7 +183,7 @@ impl Hoard {
                             //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
                             return Some(c.command);
                         }
-                    } 
+                    }
                 }
                 Err(e) => {
                     println!("{e}");

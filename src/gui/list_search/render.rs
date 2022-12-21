@@ -148,9 +148,7 @@ fn get_color(
         config.primary_color.unwrap().2,
     );
     match app.control_state {
-        ControlState::Search => {
-            normal
-        }
+        ControlState::Search => normal,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return highlighted;
@@ -234,52 +232,64 @@ fn render_commands<'a>(
             .add_modifier(Modifier::BOLD),
     );
 
-    let command = Paragraph::new(coerce_string_by_mode(selected_command.command.clone(), app, &EditSelection::Command))
-        .style(Style::default().fg(Color::Rgb(
-            config.primary_color.unwrap().0,
-            config.primary_color.unwrap().1,
-            config.primary_color.unwrap().2,
-        )))
-        .alignment(Alignment::Left)
-        .wrap(Wrap { trim: true })
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(get_color(app, config, &EditSelection::Command)))
-                .title(" Hoarded command ")
-                .border_type(BorderType::Plain),
-        );
+    let command = Paragraph::new(coerce_string_by_mode(
+        selected_command.command.clone(),
+        app,
+        &EditSelection::Command,
+    ))
+    .style(Style::default().fg(Color::Rgb(
+        config.primary_color.unwrap().0,
+        config.primary_color.unwrap().1,
+        config.primary_color.unwrap().2,
+    )))
+    .alignment(Alignment::Left)
+    .wrap(Wrap { trim: true })
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(get_color(app, config, &EditSelection::Command)))
+            .title(" Hoarded command ")
+            .border_type(BorderType::Plain),
+    );
 
-    let tags = Paragraph::new(coerce_string_by_mode(selected_command.tags_as_string(), app, &EditSelection::Tags))
-        .style(Style::default().fg(Color::Rgb(
-            config.primary_color.unwrap().0,
-            config.primary_color.unwrap().1,
-            config.primary_color.unwrap().2,
-        )))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(get_color(app, config, &EditSelection::Tags)))
-                .title(" Tags ")
-                .border_type(BorderType::Plain),
-        );
+    let tags = Paragraph::new(coerce_string_by_mode(
+        selected_command.tags_as_string(),
+        app,
+        &EditSelection::Tags,
+    ))
+    .style(Style::default().fg(Color::Rgb(
+        config.primary_color.unwrap().0,
+        config.primary_color.unwrap().1,
+        config.primary_color.unwrap().2,
+    )))
+    .alignment(Alignment::Left)
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(get_color(app, config, &EditSelection::Tags)))
+            .title(" Tags ")
+            .border_type(BorderType::Plain),
+    );
 
-    let description = Paragraph::new(coerce_string_by_mode(selected_command.description.unwrap_or_default(), app, &EditSelection::Description))
-        .style(Style::default().fg(Color::Rgb(
-            config.primary_color.unwrap().0,
-            config.primary_color.unwrap().1,
-            config.primary_color.unwrap().2,
-        )))
-        .alignment(Alignment::Left)
-        .wrap(Wrap { trim: true })
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(get_color(app, config, &EditSelection::Description)))
-                .title(" Description ")
-                .border_type(BorderType::Plain),
-        );
+    let description = Paragraph::new(coerce_string_by_mode(
+        selected_command.description.unwrap_or_default(),
+        app,
+        &EditSelection::Description,
+    ))
+    .style(Style::default().fg(Color::Rgb(
+        config.primary_color.unwrap().0,
+        config.primary_color.unwrap().1,
+        config.primary_color.unwrap().2,
+    )))
+    .alignment(Alignment::Left)
+    .wrap(Wrap { trim: true })
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(get_color(app, config, &EditSelection::Description)))
+            .title(" Description ")
+            .border_type(BorderType::Plain),
+    );
 
     let mut query_string = config.query_prefix.clone();
     query_string.push_str(&app.input.clone()[..]);
