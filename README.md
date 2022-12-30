@@ -95,11 +95,19 @@ If you are running `fish` shell
 LATEST_RELEASE=1.3.0 ./install.fish
 ```
 
-### Brew on MacOS
+### Homebrew (macOS)
 ```
 brew tap Hyde46/hoard
 brew install hoard
 ```
+
+### MacPorts (macOS)
+```
+sudo port install hoard-cli
+```
+
+More info [here](https://ports.macports.org/port/hoard-cli/)
+
 ### Windows
 Best to install from source, good luck
 
