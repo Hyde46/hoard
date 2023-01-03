@@ -70,7 +70,7 @@ pub fn draw(
         // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
         let mut full_named_token = string_find_next(command_text, token, ending_token);
         full_named_token.push_str(ending_token);
-        // Select the split based on wether the ending token is part of the command or not
+        // Select the split based on whether the ending token is part of the command or not
         let split_token = if command_text.contains(ending_token) {
             full_named_token
         } else {
@@ -92,7 +92,7 @@ pub fn draw(
             };
             command_spans.append(&mut spans);
         } else {
-            // if the next token to replaced is named, find all other occurences and paint them too
+            // if the next token to replaced is named, find all other occurrences and paint them too
             let mut spans = split_commands
                 .iter()
                 .map(|e| {

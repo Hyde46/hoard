@@ -157,8 +157,8 @@ You can also name your parameters like this:
 ```
 echo "My name is #first and I live at #city. Did I tell you my name, #first?" 
 ```
-When putting `#first` you only have to do it once for each occurence in the command.
-A parameter name is defined as everyting followed by the token until the first space character is found.
+When putting `#first` you only have to do it once for each occurrence in the command.
+A parameter name is defined as everything followed by the token until the first space character is found.
 Alternatively you can determine where the named parameter ends by putting a `!` ( Or your customized token from your `~/.config/hoard.config.yml`)
 ```
 echo "My name is #first named parameter! and I live at #city. Did I tell you my name, #first?" 

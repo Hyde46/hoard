@@ -105,7 +105,7 @@ impl CommandTrove {
 
     pub fn add_command(&mut self, new_command: HoardCommand) -> bool {
         // Add a command to local trove file.
-        // Returns dirty flag, wether something got added/changed or not
+        // Returns dirty flag, whether something got added/changed or not
         // Returns true if there were changes
         // Returns false if synced troved file was either empty or the exact same
         let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) =

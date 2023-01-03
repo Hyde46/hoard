@@ -413,7 +413,7 @@ impl Hoard {
         });
     }
 
-    fn regsiter_user(&mut self) {
+    fn register_user(&mut self) {
         println!("Registering account..");
         let user_email = prompt_input("Email: ", false, None);
         let user_pw: String = prompt_password_repeat("Password: ");
@@ -520,7 +520,7 @@ impl Hoard {
         // Check if user is logged in
         // Else inform the user to run `hoard sync login` first and break
         match command {
-            Mode::Register => self.regsiter_user(),
+            Mode::Register => self.register_user(),
             Mode::Login => {
                 if self.is_logged_in() {
                     println!("You are already logged in.");

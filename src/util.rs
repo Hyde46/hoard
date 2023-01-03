@@ -20,7 +20,7 @@ pub fn rem_first_and_last(value: &str) -> &str {
 }
 
 pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
-    // Find substring of a string `s` from first occurence of `from` to first occurence of `to` after `from` was encountered
+    // Find substring of a string `s` from first occurrence of `from` to first occurrence of `to` after `from` was encountered
     // For example:
     // `s` = "Hello #my test" | `from` = "#" | `to` = " "
     // Returns "#my"

@@ -12,7 +12,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 1.1.1
 - ✨ Fully named parameters. When saving a parameter, you can now end the parameter name with `!`. This enables you to use spaces in the parameter name. Additionally, using the ending token `!` enables you to use a named parameter in a command where no space is between the parameter token and the rest of the command (Set a different token in your config)
 - ✨ Add filtered commands outpout `hoard list --json --filter <query_string>` to enable easier downstream usage
-- 👿 Temporarly disabled windows support. Switching the TUI backend to crossterm from termion broke zsh support on MacOS, which is deemed more important until a fix is prepared.
+- 👿 Temporarily disabled windows support. Switching the TUI backend to crossterm from termion broke zsh support on MacOS, which is deemed more important until a fix is prepared.
 ## 1.1.0
 - ✨ Named Parameters. You can now add any string after your token `#`. Tokens with the same name will be filled out automatically after being prompted once for them when selecting a command from `hoard list`
 ## 1.0.1
