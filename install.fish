@@ -75,7 +75,7 @@ function read_input
     while true
         echo "How do you wish to install hoard?"
         echo "(1) From Source with cargo"
-        echo "(2) OS-Specifc"
+        echo "(2) OS-Specific"
         echo "(3) Not at all, bye"
         read -l -P '> ' confirm
   

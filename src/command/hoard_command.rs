@@ -110,13 +110,13 @@ impl HoardCommand {
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
         let tag_validator = move |input: &String| -> Result<(), String> {
             if input.contains(' ') {
-                Err("Tags cant contain whitespaces".to_string())
+                Err("Tags can't contain whitespaces".to_string())
             } else {
                 Ok(())
             }
         };
         let tags: String = prompt_input_validate(
-            "Give your command some optional tags ( comma seperated )",
+            "Give your command some optional tags ( comma separated )",
             true,
             default_value,
             Some(tag_validator),
@@ -145,7 +145,7 @@ impl HoardCommand {
         let command_names = trove.commands.clone();
         let validator = move |input: &String| -> Result<(), String> {
             if input.contains(' ') {
-                Err("The name cant contain whitespaces".to_string())
+                Err("The name can't contain whitespaces".to_string())
             } else if command_names
                 .iter()
                 .filter(|x| x.namespace == namespace)
@@ -179,7 +179,7 @@ impl HoardCommand {
         trove: &CommandTrove,
     ) -> (Option<Self>, Option<Self>) {
         // Behaviour if a command should be added to a trove file
-        // Returns a touple of options
+        // Returns a tuple of options
         // If the first is set, add this as a new command
         // If the second is set, remove this exact command
         let name = self.name.clone();
@@ -281,7 +281,7 @@ impl Parameterized for HoardCommand {
         // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
         let mut full_named_token = string_find_next(&self.command, token, ending_token);
         full_named_token.push_str(ending_token);
-        // Select the split based on wether the ending token is part of the command or not
+        // Select the split based on whether the ending token is part of the command or not
         let split_token = if self.command.contains(ending_token) {
             full_named_token
         } else {
@@ -292,8 +292,8 @@ impl Parameterized for HoardCommand {
         for s in split {
             collected.push(s.clone());
 
-            // if token is not named replace following occurences of the token in the command with the token again.
-            // only replace all occurences of a token if it is names
+            // if token is not named replace following occurrences of the token in the command with the token again.
+            // only replace all occurrences of a token if it is names
             // this is a convoluted way of achieving this, but doing it properly would need this method to be completely reworked
             let to_push = if split_token == token {
                 token.to_string()
@@ -302,7 +302,7 @@ impl Parameterized for HoardCommand {
             };
             collected.push(parameter_iter.next().unwrap_or(&to_push).clone());
         }
-        // Always places either a token or the parmeter at the end, due to the bad loop design.
+        // Always places either a token or the parameter at the end, due to the bad loop design.
         // Just remove it at the end
         collected.pop();
         Self {
@@ -321,13 +321,13 @@ impl Parameterized for HoardCommand {
         }
         let mut command_state = self.command.clone();
         for i in 0..parameter_count {
-            let prompt_dialoge = format!(
+            let prompt_dialog = format!(
                 "Enter parameter({}) nr {} \n~> {}\n",
                 token,
                 (i + 1),
                 command_state
             );
-            let parameter = prompt_input(&prompt_dialoge, false, None);
+            let parameter = prompt_input(&prompt_dialog, false, None);
             command_state = command_state.replacen(token, &parameter, 1);
         }
         Self {

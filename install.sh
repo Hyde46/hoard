@@ -27,7 +27,7 @@ __hoard_install_with_cargo(){
         echo "cargo not found"
 		if command -v rustup &> /dev/null
 		then
-			echo "rustup was found, but cargo wasn't. Something is up with your installtion"
+			echo "rustup was found, but cargo wasn't. Something is up with your installation"
 			exit 1
 		fi
 
@@ -71,14 +71,14 @@ __hoard_detect_os(){
 }
 
 PS3='How do you wish to install hoard:  '
-foods=("From Source with cargo" "OS-Specifc" "Not at all, bye")
+foods=("From Source with cargo" "OS-Specific" "Not at all, bye")
 select fav in "${foods[@]}"; do
     case $fav in
         "From Source with cargo")
             __hoard_install_with_cargo
             break
             ;;
-        "OS-Specifc")
+        "OS-Specific")
             __hoard_detect_os
             break
             ;;

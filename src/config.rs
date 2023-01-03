@@ -177,7 +177,7 @@ fn append_missing_default_values_to_config(
 ) -> Result<(), Error> {
     // Adds configuration fields and sets the values to their default value if they are missing.
     // Mostly for legacy configuration support when new configuration options are added
-    // If any of the defaults are loaded and set, save the hoard configration to disk
+    // If any of the defaults are loaded and set, save the hoard configuration to disk
     let is_config_dirty = if loaded_config.primary_color.is_none() {
         loaded_config.primary_color = Some(HoardConfig::default_colors(0));
         true
