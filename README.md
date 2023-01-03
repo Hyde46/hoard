@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/Hyde46/hoard/actions/workflows/test.yml">
-    <img src="https://img.shields.io/github/workflow/status/hyde46/hoard/Rust?style=flat-square" />
+    <img src="https://img.shields.io/github/actions/workflow/status/hyde46/hoard/test.yml?style=flat-square" />
   </a>
   <a href="https://crates.io/crates/hoard-rs"
     ><img
