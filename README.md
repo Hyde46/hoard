@@ -95,6 +95,11 @@ If you are running `fish` shell
 LATEST_RELEASE=1.3.0 ./install.fish
 ```
 
+### AUR (Arch Linux)
+```
+paru -S hoard
+```
+
 ### Homebrew (macOS)
 ```
 brew tap Hyde46/hoard
