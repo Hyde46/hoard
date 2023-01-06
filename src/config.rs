@@ -235,6 +235,34 @@ pub fn save_parameter_token(
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct ClientResponse {
+    pub tag_name: String,
+}
+
+pub async fn compare_with_latest_version() -> bool {
+    let client = reqwest::Client::builder()
+        .user_agent(env!("CARGO_PKG_NAME"))
+        .build()
+        .unwrap();
+    if let Some(client_response) = client
+        .get("https://api.github.com/repos/Hyde46/hoard/releases/latest")
+        .send()
+        .await
+        .ok()
+    {
+        let tag_name = client_response
+            .json::<ClientResponse>()
+            .await
+            .ok()
+            .unwrap()
+            .tag_name;
+        return VERSION == &tag_name[1..];
+    } else {
+        true
+    }
+}
+
 fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {
     let s = serde_yaml::to_string(&config_to_save)?;
     fs::write(config_path, s).expect("Unable to write config file");
