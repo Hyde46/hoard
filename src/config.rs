@@ -240,7 +240,7 @@ pub struct ClientResponse {
     pub tag_name: String,
 }
 
-pub async fn compare_with_latest_version() -> bool {
+pub async fn compare_with_latest_version() -> (bool, String) {
     let client = reqwest::Client::builder()
         .user_agent(env!("CARGO_PKG_NAME"))
         .build()
@@ -257,9 +257,9 @@ pub async fn compare_with_latest_version() -> bool {
             .ok()
             .unwrap()
             .tag_name;
-        return VERSION == &tag_name[1..];
+        return (VERSION == &tag_name[1..], tag_name);
     } else {
-        true
+        (true, "".to_string())
     }
 }
 
