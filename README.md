@@ -81,6 +81,7 @@ cargo install --path .
 
 Tested on:
 - Ubuntu
+- Arch
 - EndeavourOS
 
 Install `hoard` by running
