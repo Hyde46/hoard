@@ -31,7 +31,7 @@ path = "src/main.rs"
 clap = { version = "4.0.32", features = ["derive"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.2"
-termion = "1.5.6"
+termion = "2.0.1"
 # Yaml support to save/load command pallettes
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"

@@ -609,7 +609,7 @@ dependencies = [
  "serde_yaml",
  "simple_logger",
  "tempfile",
- "termion",
+ "termion 2.0.1",
  "thiserror",
  "tokio",
  "tui",
@@ -1465,6 +1465,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "termion"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "659c1f379f3408c7e5e84c7d0da6d93404e3800b6b9d063ba24436419302ec90"
+dependencies = [
+ "libc",
+ "numtoa",
+ "redox_syscall",
+ "redox_termios",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1646,7 +1658,7 @@ dependencies = [
  "bitflags",
  "cassowary",
  "crossterm",
- "termion",
+ "termion 1.5.6",
  "unicode-segmentation",
  "unicode-width",
 ]
