@@ -47,7 +47,7 @@ impl Hoard {
     pub async fn start(&mut self) -> (String, bool) {
         if !compare_with_latest_version().await.0 {
             println!(
-                "Running hoard a newer Version {} Available at https://github.com/Hyde46/hoard \nPlease update.", compare_with_latest_version().await.1
+                "A newer Version ({}) is available at https://github.com/Hyde46/hoard \nPlease update.", compare_with_latest_version().await.1
             );
         }
         let mut autocomplete_command = String::new();
