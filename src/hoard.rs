@@ -1,4 +1,5 @@
 use crate::cli_commands::{Cli, Commands};
+use base64::engine::general_purpose;
 use clap::Parser;
 use log::info;
 use reqwest::{StatusCode, Url};
@@ -20,7 +21,7 @@ use crate::gui::prompts::{
 };
 use crate::sync_models::TokenResponse;
 use crate::util::rem_first_and_last;
-use base64::encode;
+use base64::Engine as _;
 
 #[derive(Default, Debug)]
 pub struct Hoard {
@@ -461,7 +462,7 @@ impl Hoard {
             let response_text = body.text().unwrap();
             let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
             let mut config = self.config.clone().unwrap();
-            let b64_token = encode(token.token);
+            let b64_token = general_purpose::STANDARD.encode(token.token);
             config.api_token = Some(b64_token);
             save_hoard_config_file(&config, &config.clone().config_home_path.unwrap()).unwrap();
             println!("Success!");

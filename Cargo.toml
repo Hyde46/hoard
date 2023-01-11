@@ -31,7 +31,7 @@ path = "src/main.rs"
 clap = { version = "4.0.32", features = ["derive"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.2"
-termion = "1.5.6"
+termion = "2.0.1"
 # Yaml support to save/load command pallettes
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
@@ -42,7 +42,7 @@ log = "0.4"
 eyre = "0.6"
 simple_logger = "4.0.0"
 prettytable-rs = "0.10.0"
-tui = { version = "0.19.0", features = ["termion"]}
+tui = { version = "0.19.0", features = ["termion"] }
 chrono = { version = "0.4", features = ["serde"] }
 rand = { version = "0.8.4", default-features = false, features = ["std"] }
 thiserror = "1.0"

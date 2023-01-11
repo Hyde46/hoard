@@ -14,6 +14,7 @@ use eyre::Result;
 use std::fmt;
 use std::io::stdout;
 use std::time::Duration;
+use termion::screen::IntoAlternateScreen;
 use termion::{raw::IntoRawMode, screen::AlternateScreen};
 use tui::{backend::TermionBackend, widgets::ListState, Terminal};
 
@@ -150,7 +151,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
     app_state.namespace_tab_state.select(Some(0));
 
     let stdout = stdout().into_raw_mode()?;
-    let stdout = AlternateScreen::from(stdout);
+    let stdout = AlternateScreen::from(stdout.into_alternate_screen().unwrap());
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
