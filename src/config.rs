@@ -245,11 +245,10 @@ pub async fn compare_with_latest_version() -> (bool, String) {
         .user_agent(env!("CARGO_PKG_NAME"))
         .build()
         .unwrap();
-    if let Some(client_response) = client
+    if let Ok(client_response) = client
         .get("https://api.github.com/repos/Hyde46/hoard/releases/latest")
         .send()
         .await
-        .ok()
     {
         let tag_name = client_response
             .json::<ClientResponse>()
@@ -258,9 +257,8 @@ pub async fn compare_with_latest_version() -> (bool, String) {
             .unwrap()
             .tag_name;
         return (VERSION == &tag_name[1..], tag_name);
-    } else {
-        (true, "".to_string())
     }
+    (true, String::new())
 }
 
 fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {
