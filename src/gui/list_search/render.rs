@@ -70,7 +70,11 @@ pub fn draw(
             )))
             .highlight_style(
                 Style::default()
-                    .fg(Color::Rgb(181, 118, 20))
+                    .fg(Color::Rgb(
+                        config.secondary_color.unwrap().0,
+                        config.secondary_color.unwrap().1,
+                        config.secondary_color.unwrap().2,
+                    ))
                     .add_modifier(Modifier::UNDERLINED),
             )
             .divider(Span::raw("|"));
