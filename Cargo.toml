@@ -30,7 +30,7 @@ path = "src/main.rs"
 # Command line argument parser
 clap = { version = "4.1.4", features = ["derive"] }
 # pretty dialogues in terminal
-dialoguer = "0.10.2"
+dialoguer = "0.10.3"
 termion = "2.0.1"
 # Yaml support to save/load command pallettes
 serde = { version = "1.0", features = ["derive"] }
