@@ -247,9 +247,9 @@ pub trait Parameterized {
     fn get_split_subject(&self, token: &str) -> Vec<String>;
     // Replaces parameter tokens with content from `parameters`,
     // consuming entries one by one until `parameters` is empty.
-    fn replace_parameter(self, token: &str, ending_token: &str, parameter: String) -> HoardCommand;
+    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand;
 
-    fn with_input_parameters(self, token: &str) -> HoardCommand;
+    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCommand;
 }
 
 impl Parameterized for HoardCommand {
@@ -272,7 +272,7 @@ impl Parameterized for HoardCommand {
         collected
     }
 
-    fn replace_parameter(self, token: &str, ending_token: &str, parameter: String) -> HoardCommand {
+    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand {
         let parameter_array = &[parameter.clone()];
         let mut parameter_iter = parameter_array.iter();
 
@@ -306,37 +306,28 @@ impl Parameterized for HoardCommand {
         // Just remove it at the end
         collected.pop();
         Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: self.tags,
+            name: self.name.clone(),
+            namespace: self.namespace.clone(),
+            tags: self.tags.clone(),
             command: collected.concat(),
-            description: self.description,
+            description: self.description.clone(),
         }
     }
 
-    fn with_input_parameters(self, token: &str) -> HoardCommand {
-        let parameter_count = self.get_parameter_count(token);
-        if parameter_count == 0 {
-            return self;
-        }
-        let mut command_state = self.command.clone();
-        for i in 0..parameter_count {
+    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> Self{
+        let mut param_count = 0;
+        while self.get_parameter_count(token) != 0 {
             let prompt_dialog = format!(
                 "Enter parameter({}) nr {} \n~> {}\n",
                 token,
-                (i + 1),
-                command_state
+                (param_count + 1),
+                self.command
             );
             let parameter = prompt_input(&prompt_dialog, false, None);
-            command_state = command_state.replacen(token, &parameter, 1);
+            self.command = self.replace_parameter(token, ending_token, parameter).command;
+            param_count += 1;
         }
-        Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: self.tags,
-            command: command_state,
-            description: self.description,
-        }
+        Self { name:self.name.clone(), namespace:self.namespace.clone(), tags: self.tags.clone(), command: self.command.clone(), description: self.description.clone() }
     }
 }
 

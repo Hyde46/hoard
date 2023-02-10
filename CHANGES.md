@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.3.1
+- 🐛 Fix bug, where `hoard pick` would not properly replace named parameterized commands
 ## 1.3
 - ✨ Inline command editing in the GUI. Press `<TAB>` to get started. Only editing the command, its description and the tags are supported for now
 - ✨ Inline command deletion in the GUI. Press `<Ctrl-X>` to delete a command in the GUI view

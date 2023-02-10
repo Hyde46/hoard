@@ -170,7 +170,7 @@ impl CommandTrove {
             |command| {
                 let command = command
                     .clone()
-                    .with_input_parameters(&config.parameter_token.clone().unwrap());
+                    .with_input_parameters(&config.parameter_token.clone().unwrap(), &config.parameter_ending_token.clone().unwrap());
                 Ok(command)
             },
         )
