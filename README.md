@@ -117,7 +117,7 @@ More info [here](https://ports.macports.org/port/hoard-cli/)
 ### Windows
 Best to install from source, good luck
 
-### Install Shell plugin
+## Autocomplete with Shell plugin
 
 Install `hoard` as a plugin to enable autocomplete.
 Depending on your shell, run one of the following commands.
