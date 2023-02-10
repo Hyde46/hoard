@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.3.1
 - 🐛 Fix bug, where `hoard pick` would not properly replace named parameterized commands
+- Tab highlight now also uses customizable color from config file
+- Added update checker on startup, to notify the user about a new version
 ## 1.3
 - ✨ Inline command editing in the GUI. Press `<TAB>` to get started. Only editing the command, its description and the tags are supported for now
 - ✨ Inline command deletion in the GUI. Press `<Ctrl-X>` to delete a command in the GUI view
