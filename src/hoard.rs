@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use url::ParseError;
 
-use crate::cli_commands::Mode;
+use crate::cli_commands::{ListFormat, Mode};
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::{compare_with_latest_version, HoardConfig};
@@ -71,13 +71,8 @@ impl Hoard {
                     description.clone(),
                 );
             }
-            Commands::List {
-                filter,
-                json,
-                simple,
-            } => {
-                let commands =
-                    self.list_commands(simple.to_owned(), json.to_owned(), filter.clone());
+            Commands::List { filter, format } => {
+                let commands = self.list_commands(format, filter.clone());
                 if let Some(c) = commands {
                     autocomplete_command = c;
                 }
@@ -166,19 +161,27 @@ impl Hoard {
 
     fn list_commands(
         &mut self,
-        is_simple: bool,
-        is_structured: bool,
+        format: &Option<ListFormat>,
         filter: Option<String>,
     ) -> Option<String> {
         if self.trove.is_empty() {
             println!("No command hoarded.\nRun [ hoard new ] first to hoard a command.");
-        } else if is_simple {
-            self.trove.print_trove();
-        } else if is_structured {
-            // Return list of commands in json format, filtered by `filter`
-            let query_string: String = filter.unwrap_or_default();
-            let filtered_trove = query_trove(&self.trove, &query_string);
-            return Some(filtered_trove.to_yaml());
+        } else if let Some(format) = format {
+            match format {
+                ListFormat::simple => self.trove.print_trove(),
+                ListFormat::json => {
+                    // Return list of commands in json format, filtered by `filter`
+                    let query_string: String = filter.unwrap_or_default();
+                    let filtered_trove = query_trove(&self.trove, &query_string);
+                    return Some(filtered_trove.to_json());
+                }
+                ListFormat::yaml => {
+                    // Return list of commands in yaml format, filtered by `filter`
+                    let query_string: String = filter.unwrap_or_default();
+                    let filtered_trove = query_trove(&self.trove, &query_string);
+                    return Some(filtered_trove.to_yaml());
+                }
+            }
         } else {
             match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
                 Ok(selected_command) => {

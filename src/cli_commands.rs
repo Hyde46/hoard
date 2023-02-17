@@ -1,4 +1,7 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{
+    Arg, ArgAction, ArgMatches, Args, Command, Error, FromArgMatches, Id, Parser, Subcommand,
+    ValueEnum,
+};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -25,6 +28,102 @@ pub enum Mode {
     Get,
     /// Revert the last `hoard sync get` command
     Revert,
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug)]
+pub enum ListFormat {
+    /// Format commands as table
+    simple,
+    /// Format commands as JSON
+    json,
+    /// Format commands as YAML
+    yaml,
+}
+
+impl FromArgMatches for ListFormat {
+    fn from_arg_matches(matches: &ArgMatches) -> Result<Self, Error> {
+        let mut matches = matches.clone();
+        Self::from_arg_matches_mut(&mut matches)
+    }
+
+    fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
+        match (
+            matches.get_flag("simple"),
+            matches.get_flag("json"),
+            matches.get_flag("yaml"),
+        ) {
+            (_, false, false) => Ok(Self::simple),
+            (false, true, false) => Ok(Self::json),
+            (false, false, true) => Ok(Self::yaml),
+            (_, _, _) => Err(Error::raw(
+                clap::error::ErrorKind::ValueValidation,
+                "cannot specify more than one of 'simple', 'json', or 'yaml' at once",
+            )),
+        }
+    }
+
+    fn update_from_arg_matches(&mut self, matches: &ArgMatches) -> Result<(), Error> {
+        let mut matches = matches.clone();
+        self.update_from_arg_matches_mut(&mut matches)
+    }
+
+    fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
+        match (
+            matches.get_flag("simple"),
+            matches.get_flag("json"),
+            matches.get_flag("yaml"),
+        ) {
+            (_, false, false) => {
+                *self = Self::simple;
+                Ok(())
+            }
+            (false, true, false) => {
+                *self = Self::json;
+                Ok(())
+            }
+            (false, false, true) => {
+                *self = Self::yaml;
+                Ok(())
+            }
+            (_, _, _) => Err(Error::raw(
+                clap::error::ErrorKind::ValueValidation,
+                "cannot specify more than one of 'simple', 'json', or 'yaml' at once",
+            )),
+        }
+    }
+}
+
+impl Args for ListFormat {
+    fn augment_args(cmd: Command) -> Command {
+        cmd.arg(
+            Arg::new("simple")
+                .short('s')
+                .long("simple")
+                .action(ArgAction::SetTrue)
+                .groups(["list"]),
+        )
+        .arg(
+            Arg::new("json")
+                .short('j')
+                .long("json")
+                .action(ArgAction::SetTrue)
+                .groups(["list"]),
+        )
+        .arg(
+            Arg::new("yaml")
+                .short('y')
+                .long("yaml")
+                .action(ArgAction::SetTrue)
+                .groups(["list"]),
+        )
+    }
+    fn augment_args_for_update(cmd: Command) -> Command {
+        Self::augment_args(cmd)
+    }
+    fn group_id() -> Option<clap::Id> {
+        Some(Id::from("list"))
+    }
 }
 
 #[derive(Subcommand)]
@@ -57,13 +156,9 @@ pub enum Commands {
         #[arg(short = 'f', long)]
         filter: Option<String>,
 
-        /// Return hoarded commands in structured format
-        #[arg(short = 'j', long)]
-        json: bool,
-
-        /// Return hoarded commands in a simplified table view
-        #[arg(short = 's', long)]
-        simple: bool,
+        /// Select which format to output commands. Default is "simple", which formats commands as a table
+        #[command(flatten)]
+        format: Option<ListFormat>,
     },
 
     /// Pick a command of the trove and print it
