@@ -5,10 +5,10 @@ use crate::gui::commands_gui::{ControlState, EditSelection};
 use crate::gui::help::HELP_KEY;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout};
+use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap};
+use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap, Clear};
 use tui::Terminal;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -127,7 +127,7 @@ pub fn draw(
             )))
             .alignment(Alignment::Left);
         let help_hint = Paragraph::new(format!(
-            "Create <Ctrl-W> | Delete <Ctrl-X> | Help {HELP_KEY}"
+            "Create <Ctrl-W> | Delete <Ctrl-X> | GPT <Ctrl-A> | Help {HELP_KEY}"
         ))
         .style(Style::default().fg(Color::Rgb(
             config.primary_color.unwrap().0,
@@ -140,8 +140,58 @@ pub fn draw(
         if app_state.control_state == ControlState::Search {
             rect.render_widget(help_hint, footer_chunk[1]);
         }
+
+
+        if app_state.query_gpt {
+            let msg = if app_state.openai_key_set { State::get_default_popupmsg() } else { State::get_no_api_key_popupmsg() };
+            let description = Paragraph::new(msg)
+            .style(Style::default().fg(Color::Rgb(
+                config.primary_color.unwrap().0,
+                config.primary_color.unwrap().1,
+                config.primary_color.unwrap().2,
+            )))
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true })
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(get_color(app_state, config, &EditSelection::Description)))
+                    .title("GPT")
+                    .border_type(BorderType::Plain),
+            );
+            let area = centered_rect(50, 10, size);
+            rect.render_widget(Clear, area); //this clears out the background
+            rect.render_widget(description, area);
+        }
     })?;
     Ok(())
+}
+
+/// helper function to create a centered rect using up certain percentage of the available rect `r`
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_y) / 2),
+                Constraint::Percentage(percent_y),
+                Constraint::Percentage((100 - percent_y) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_x) / 2),
+                Constraint::Percentage(percent_x),
+                Constraint::Percentage((100 - percent_x) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(popup_layout[1])[1]
 }
 
 fn get_color(
@@ -160,25 +210,25 @@ fn get_color(
         config.primary_color.unwrap().2,
     );
     match app.control_state {
-        ControlState::Search => normal,
+        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet => normal,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return highlighted;
             }
             normal
-        }
+        },
     }
 }
 
 fn coerce_string_by_mode(s: String, app: &State, command_render: &EditSelection) -> String {
     match app.control_state {
-        ControlState::Search => s,
+        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet=> s,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return app.string_to_edit.clone();
             }
             s
-        }
+        },
     }
 }
 
@@ -322,7 +372,7 @@ fn render_commands<'a>(
 
 const fn get_footer_constraints(control_state: &ControlState) -> (u16, u16) {
     match control_state {
-        ControlState::Search => (50, 50),
+        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet=> (50, 50),
         ControlState::Edit => (99, 1),
     }
 }

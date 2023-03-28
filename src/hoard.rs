@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use url::ParseError;
 
+use dotenv::dotenv;
+
 use crate::cli_commands::Mode;
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
@@ -22,7 +24,7 @@ use crate::gui::prompts::{
 use crate::sync_models::TokenResponse;
 use crate::util::rem_first_and_last;
 use base64::Engine as _;
-
+use chatgpt::prelude::ChatGPT;
 #[derive(Default, Debug)]
 pub struct Hoard {
     config: Option<HoardConfig>,
@@ -46,6 +48,7 @@ impl Hoard {
     }
 
     pub async fn start(&mut self) -> (String, bool) {
+        dotenv().ok();
         if !compare_with_latest_version().await.0 {
             println!(
                 "A newer Version ({}) is available at https://github.com/Hyde46/hoard \nPlease update.", compare_with_latest_version().await.1
@@ -160,7 +163,7 @@ impl Hoard {
             .with_name_input(name, &self.trove)
             .with_description_input(description)
             .with_tags_input(tags);
-        self.trove.add_command(new_command);
+        self.trove.add_command(new_command, true);
         self.save_trove(None);
     }
 
@@ -293,7 +296,7 @@ impl Hoard {
 
             let mut trove_for_export = CommandTrove::default();
             for command in selected_commands {
-                trove_for_export.add_command(command.clone());
+                trove_for_export.add_command(command.clone(), true);
             }
 
             trove_for_export.save_trove_file(&target_path);
@@ -343,7 +346,7 @@ impl Hoard {
                     .with_tags_input(Some(c.tags_as_string()))
                     .with_namespace_input(Some(c.namespace));
                 self.trove.remove_command(command_name).ok();
-                self.trove.add_command(new_command);
+                self.trove.add_command(new_command, true);
                 self.save_trove(None);
             }
             Err(_e) => eprintln!("Could not find command {command_name} to edit"),

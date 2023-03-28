@@ -33,6 +33,7 @@ pub struct HoardConfig {
     // URL to trove sync server
     pub sync_server_url: Option<String>,
     pub api_token: Option<String>,
+    pub gpt_api_key: Option<String>,
 }
 
 impl HoardConfig {
@@ -52,6 +53,7 @@ impl HoardConfig {
             read_from_current_directory: Some(Self::default_read_from_current_directory()),
             sync_server_url: Some(Self::default_sync_server_url()),
             api_token: None,
+            gpt_api_key: None,
         }
     }
 
@@ -76,6 +78,7 @@ impl HoardConfig {
             read_from_current_directory: self.read_from_current_directory,
             sync_server_url: self.sync_server_url,
             api_token: self.api_token,
+            gpt_api_key: self.gpt_api_key
         }
     }
 

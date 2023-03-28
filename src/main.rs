@@ -4,6 +4,8 @@ extern crate serde_yaml;
 
 #[macro_use]
 extern crate prettytable;
+extern crate dotenv;
+extern crate rand;
 
 extern crate array_tool;
 
@@ -15,6 +17,7 @@ mod gui;
 mod hoard;
 mod sync_models;
 mod util;
+mod gpt;
 use hoard::Hoard;
 
 #[tokio::main]

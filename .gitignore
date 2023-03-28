@@ -15,3 +15,8 @@
 
 /.vscode/
 **/.DS_Store
+
+# Dotenv files
+.env
+
+.idea
