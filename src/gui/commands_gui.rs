@@ -5,6 +5,8 @@ use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
 use crate::gui::inline_edit::controls::key_handler as key_handler_inline_edit;
 use crate::gui::list_search::controls::key_handler as key_handler_list_search;
+use crate::gui::list_search::gpt_controls::key_handler as key_handler_gpt_create;
+use crate::gui::list_search::key_not_set_controls::key_handler as key_handler_no_key_set;
 use crate::gui::list_search::render::draw as draw_list_search;
 use crate::gui::new_command::controls::key_handler as key_handler_create_command;
 use crate::gui::new_command::render::draw as draw_new_command_input;
@@ -17,6 +19,7 @@ use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
 use tui::{backend::TermionBackend, widgets::ListState, Terminal};
+use crate::gpt::ask_gpt;
 
 pub struct State {
     pub input: String,
@@ -35,6 +38,10 @@ pub struct State {
     pub selected_command: Option<HoardCommand>,
     pub provided_parameter_count: u16,
     pub error_message: String,
+    pub query_gpt: bool,
+    pub popup_message: String,
+    pub buffered_tick: bool,
+    pub openai_key_set: bool,
 }
 
 impl State {
@@ -53,6 +60,14 @@ impl State {
         };
         self
     }
+
+    pub fn get_default_popupmsg() -> String {
+        "Generating command with GPT ...".to_owned()
+    }
+
+    pub fn get_no_api_key_popupmsg() -> String {
+        "OpenAI API key is not set".to_owned()
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -67,6 +82,8 @@ pub enum DrawState {
 pub enum ControlState {
     Search,
     Edit,
+    GPT,
+    KeyNotSet,
 }
 
 impl fmt::Display for ControlState {
@@ -77,6 +94,8 @@ impl fmt::Display for ControlState {
                 f,
                 "Edit (<Enter> to confirm. <Tab> to switch. <Esc> to abort)"
             ),
+            Self::GPT => write!(f, "Describe your command (<Enter> to confirm. <Esc> to abort)"),
+            Self::KeyNotSet => write!(f, "(<Esc> to abort)"),
         }
     }
 }
@@ -127,6 +146,12 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         tick_rate: Duration::from_millis(200),
     });
     let trove_clone = trove.clone();
+    
+    let mut openai_api_key = std::env::var("OPENAI_API_KEY").unwrap_or_default();
+    if openai_api_key.is_empty() {
+        openai_api_key = config.gpt_api_key.clone().unwrap_or_default();
+    }
+
     let mut app_state = State {
         input: String::new(),
         commands: trove_clone.commands.clone(),
@@ -145,6 +170,10 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         selected_command: None,
         provided_parameter_count: 0,
         error_message: String::new(),
+        query_gpt: false,
+        popup_message: State::get_default_popupmsg(),
+        buffered_tick: false,
+        openai_key_set: !openai_api_key.is_empty(),
     };
 
     app_state.command_list_state.select(Some(0));
@@ -181,6 +210,21 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             }
         }
 
+        if app_state.query_gpt && app_state.control_state == ControlState::GPT {
+            if app_state.buffered_tick {
+                let gpt_command = ask_gpt(&app_state.input[..], &openai_api_key);
+                trove.add_command(gpt_command, false);
+                app_state.commands = trove.commands.clone();
+                app_state.draw_state = DrawState::Search;
+                app_state.control_state = ControlState::Search;
+                app_state.input = String::new();
+                app_state.query_gpt = false;
+                app_state.buffered_tick = false;
+            } else {
+                app_state.buffered_tick = true;
+            } 
+        }
+
         if let Event::Input(input) = events.next()? {
             let command = match app_state.draw_state {
                 DrawState::Search => match app_state.control_state {
@@ -191,6 +235,14 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                         &namespace_tabs,
                     ),
                     ControlState::Edit => key_handler_inline_edit(input, &mut app_state),
+                    ControlState::GPT => key_handler_gpt_create(
+                        input,
+                        &mut app_state
+                    ),
+                    ControlState::KeyNotSet => key_handler_no_key_set(
+                        input,
+                        &mut app_state
+                    ),
                 },
                 DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
                 DrawState::Help => key_handler_help(input, &mut app_state),
@@ -201,7 +253,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
 
             if let Some(output) = command {
                 if app_state.draw_state == DrawState::Create {
-                    trove.add_command(output);
+                    trove.add_command(output, true);
                     app_state.commands = trove.commands.clone();
                     app_state.draw_state = DrawState::Search;
                 } else if app_state.control_state == ControlState::Edit {

@@ -28,6 +28,19 @@ pub fn key_handler(
             state.new_command = Some(HoardCommand::default());
             None
         }
+        // Enter GPT mode
+        Key::Ctrl('a') => {
+            // Same drawing state, only update how control works
+            state.draw_state = DrawState::Search; 
+            if state.openai_key_set {
+                state.control_state = ControlState::GPT;
+            } else {
+                state.control_state =  ControlState::KeyNotSet;
+                state.query_gpt = true;
+            }
+            state.new_command = Some(HoardCommand::default());
+            None
+        }
         // Switch to edit command mode
         Key::Ctrl('e') | Key::Char('\t') => {
             let selected_command = state
@@ -249,6 +262,10 @@ mod test_controls {
             selected_command: None,
             provided_parameter_count: 0,
             error_message: String::new(),
+            query_gpt: false,
+            buffered_tick: false,
+            popup_message: State::get_default_popupmsg(),
+            openai_key_set: false
         };
 
         state.command_list_state.select(Some(0));

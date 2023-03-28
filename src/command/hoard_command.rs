@@ -2,6 +2,8 @@ use crate::command::trove::CommandTrove;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate};
 use crate::util::string_find_next;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,6 +175,22 @@ impl HoardCommand {
         self.with_name_input_prompt(default_value, trove, "Name your command")
     }
 
+    pub fn resolve_name_conflict_random(self) -> Self {
+        let rng = rand::thread_rng();
+        let random_string: String = rng
+            .sample_iter(&Alphanumeric)
+            .take(3)
+            .map(char::from)
+            .collect();
+        Self {
+            name: format!("{}-{random_string}", self.name),
+            namespace: self.namespace,
+            tags: self.tags,
+            command: self.command,
+            description: self.description,
+        }
+    }
+
     pub fn resolve_name_conflict(
         self,
         collision: Self,
@@ -222,6 +240,22 @@ impl HoardCommand {
             description: Some(description_string),
         }
     }
+
+    pub fn from_gpt_string(gpt_string: &str) -> Self {
+        //let mut lines = gpt_string.lines();
+        let name = "hello";
+        let namespace = "ai";
+        let tags = "ai";
+        let command = "command";
+        let description = gpt_string;
+        Self {
+            name: name.to_string(),
+            namespace: namespace.to_string(),
+            tags: Some(string_to_tags(tags)),
+            command: command.to_string(),
+            description: Some(description.to_string()),
+        }
+    }
 }
 
 pub fn string_to_tags(tags: &str) -> Vec<String> {
@@ -239,7 +273,7 @@ pub trait Parameterized {
     // Count number of parameter pointers
     fn get_parameter_count(&self, token: &str) -> usize;
     fn split(&self, token: &str) -> Vec<String>;
-    // Get parameterized Stringlike subject including parameter token
+    // Get parameterized String like subject including parameter token
     // For example, given subject with parameter token '#1':
     // 'This is a #1 with one parameter token'
     // `get_split_subject("#")` returns

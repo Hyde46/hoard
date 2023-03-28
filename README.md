@@ -45,6 +45,8 @@ just **hoard** it. With a **name** and **description** it will be much easier to
 
 `hoard` is **not** supposed to replace shell history finder like `fzf` `atuin` or similar utilities. It rather should be used in conjunction with them.
 
+Now with chatGPT integration 💎
+
 ## :love_letter: Table of contents
 
 - [📦 Install](#install)
@@ -185,6 +187,21 @@ When running `hoard list` as a shell plugin and selecting a parameterized comman
 
 If there is a `trove.yml` file present in the local directory, `hoard` will only load this trove file and not display your "global" trove!
 ( Edit ~/.config/hoard/config.yml `read_from_current_directory` to disable )
+
+#### chatGPT integration
+When running `hoard list` or through the hoard shortcut, press `Ctrl-a` to be asked for a prompt.
+Desribe what your command is supposed to do, and chatGPT will create and hoard a new command based on your prompt.
+
+If you dont already have an OpenAI account to generate an API key, head to [this](https://platform.openai.com/account/api-keys) page. ( Given the low amount of tokens consumed, this is extremly cheap. ~ 0.01$ for 30 generated commands )
+
+You either need to set the env variable
+```bash
+export OPENAI_API_KEY=abcabcabc
+```
+
+Or for a permanent solution set `gpt_api_key` in your `~/.config/hoard/config.yml`
+
+chatGPT does not always reply in the same format. Sometimes the resulting command will be added to the description. Use the edit mode `<TAB>/<Ctrl-E>` to edit the hoarded command to its correct form.
 
 #### Synchronize commands with another terminal
 You can keep your commands in sync in multiple terminals by using `hoard sync`

@@ -103,22 +103,25 @@ impl CommandTrove {
             > 0
     }
 
-    pub fn add_command(&mut self, new_command: HoardCommand) -> bool {
+    pub fn add_command(&mut self, new_command: HoardCommand, check_name_collision: bool) -> bool {
         // Add a command to local trove file.
         // Returns dirty flag, whether something got added/changed or not
         // Returns true if there were changes
         // Returns false if synced troved file was either empty or the exact same
-        let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) =
-            if let Some(colliding_command) = self.check_name_collision(&new_command) {
-                if self.is_same_command(&new_command) {
-                    // Dont add it to the trove since its the same command. Dont ask the user about it
-                    (None, None)
+            let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) = 
+                if let Some(colliding_command) = self.check_name_collision(&new_command) {
+                    if self.is_same_command(&new_command) {
+                        // Dont add it to the trove since its the same command. Dont ask the user about it
+                        (None, None)
+                    } else if !check_name_collision {
+                        let c = new_command.resolve_name_conflict_random();
+                        (Some(c), None)
+                    } else {
+                        new_command.resolve_name_conflict(colliding_command, self)
+                    }
                 } else {
-                    new_command.resolve_name_conflict(colliding_command, self)
-                }
-            } else {
-                (Some(new_command), None)
-            };
+                    (Some(new_command), None)
+                };
         if let Some(remove) = to_remove {
             match self.remove_command(&remove.name) {
                 Ok(_) => {}
@@ -193,7 +196,7 @@ impl CommandTrove {
         other
             .commands
             .iter()
-            .map(|c| self.add_command(c.clone()))
+            .map(|c| self.add_command(c.clone(), true))
             .any(|c| c)
     }
 
@@ -238,7 +241,7 @@ mod test_commands {
     fn not_empty_trove() {
         let mut trove = CommandTrove::default();
         let command = HoardCommand::default();
-        trove.add_command(command);
+        trove.add_command(command, true);
         assert!(!trove.is_empty());
     }
 
@@ -266,9 +269,9 @@ mod test_commands {
         };
 
         let mut trove = CommandTrove::default();
-        trove.add_command(command1);
-        trove.add_command(command2);
-        trove.add_command(command3);
+        trove.add_command(command1, true);
+        trove.add_command(command2, true);
+        trove.add_command(command3, true);
 
         assert_eq!(vec![namespace1, namespace2], trove.namespaces());
     }
