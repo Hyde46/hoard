@@ -1,6 +1,6 @@
 use crate::command::trove::CommandTrove;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
-use crate::gui::prompts::{prompt_input, prompt_input_validate};
+use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
 use crate::util::string_find_next;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
@@ -124,11 +124,16 @@ impl HoardCommand {
         self.with_tags_raw(&tags)
     }
 
-    pub fn with_namespace_input(self, default_namespace: Option<String>) -> Self {
-        let namespace: String = prompt_input("Namespace of the command", false, default_namespace);
+    pub fn with_namespace_input(self, selection: &[&str]) -> Self {
+        let selected: usize = prompt_select_with_options(
+            "Namespace of the command",
+            selection,
+        );
+        let selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
+        //let namespace: String = prompt_input("Namespace of the command", false, default_namespace);
         Self {
             name: self.name,
-            namespace,
+            namespace: selected_namespace,
             tags: self.tags,
             command: self.command,
             description: self.description,
