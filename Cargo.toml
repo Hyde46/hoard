@@ -28,7 +28,7 @@ path = "src/main.rs"
 
 [dependencies]
 # Command line argument parser
-clap = { version = "4.1.4", features = ["derive"] }
+clap = { version = "4.3.19", features = ["derive"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.3"
 termion = "2.0.1"
@@ -49,13 +49,14 @@ thiserror = "1.0"
 crossbeam-channel = "0.5.6"
 tokio = { version = "1.25.0", features = ["full"] }
 array_tool = "1.0.3"
-reqwest = { version = "0.11.13", features = ["blocking", "json"] }
+reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 url = { version = "2.3.1" }
 console = "0.15.5"
 enum-iterator = "1.2.0"
 base64 = "0.21.0"
-chatgpt_blocking_rs = "0.1.0"
+chatgpt_blocking_rs = "0.1.1"
 dotenv = "0.15.0"
+h2 = "0.3.20"
 
 [dev-dependencies]
 tempfile = "3.3.0"
