@@ -154,6 +154,7 @@ impl CommandTrove {
     }
 
     pub fn namespaces(&self) -> Vec<&str> {
+        // Returns all namespaces in the trove
         let mut namespaces: Vec<_> = self
             .commands
             .iter()

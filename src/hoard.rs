@@ -139,7 +139,8 @@ impl Hoard {
         command: Option<String>,
         description: Option<String>,
     ) {
-        let default_namespace = self.config.as_ref().unwrap().default_namespace.clone();
+        let trove_namespaces = self.trove.namespaces();
+        //trove_namespaces.push(&default_ns_clone);
         let new_command = HoardCommand::default()
             .with_command_string_input(
                 command,
@@ -158,7 +159,7 @@ impl Hoard {
                     .clone()
                     .unwrap(),
             )
-            .with_namespace_input(Some(default_namespace))
+            .with_namespace_input(&trove_namespaces)
             .with_name_input(name, &self.trove)
             .with_description_input(description)
             .with_tags_input(tags);
@@ -319,6 +320,8 @@ impl Hoard {
         let command_to_edit = self
             .trove
             .pick_command(self.config.as_ref().unwrap(), command_name);
+
+        let trove_namespaces = self.trove.namespaces();
         match command_to_edit {
             Ok(c) => {
                 println!("{}", c.command);
@@ -343,7 +346,7 @@ impl Hoard {
                     .with_name_input(Some(c.name.clone()), &self.trove)
                     .with_description_input(c.description.clone())
                     .with_tags_input(Some(c.tags_as_string()))
-                    .with_namespace_input(Some(c.namespace));
+                    .with_namespace_input(&trove_namespaces);
                 self.trove.remove_command(command_name).ok();
                 self.trove.add_command(new_command, true);
                 self.save_trove(None);
