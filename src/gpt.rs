@@ -38,7 +38,7 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
     cmd
 }
 
-pub fn ask_gpt(input: &str, key: &str) -> HoardCommand {
+pub fn prompt(input: &str, key: &str) -> HoardCommand {
     let query_term = input;
 
     let formatted_command = format!("

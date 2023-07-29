@@ -210,7 +210,7 @@ fn get_color(
         config.primary_color.unwrap().2,
     );
     match app.control_state {
-        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet => normal,
+        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => normal,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return highlighted;
@@ -222,7 +222,7 @@ fn get_color(
 
 fn coerce_string_by_mode(s: String, app: &State, command_render: &EditSelection) -> String {
     match app.control_state {
-        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet=> s,
+        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet=> s,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return app.string_to_edit.clone();
@@ -372,7 +372,7 @@ fn render_commands<'a>(
 
 const fn get_footer_constraints(control_state: &ControlState) -> (u16, u16) {
     match control_state {
-        ControlState::Search | ControlState::GPT | ControlState::KeyNotSet=> (50, 50),
+        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet=> (50, 50),
         ControlState::Edit => (99, 1),
     }
 }

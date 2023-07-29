@@ -18,7 +18,7 @@ where
 {
     let options_texts: Vec<S> = options.iter().map(text_extractor).collect();
 
-    if let Confirmation::Yes = prompt_yes_or_no(question) {
+    if matches!(prompt_yes_or_no(question), Confirmation::Yes) {
         let selected_indices = MultiSelect::with_theme(&HoardTheme::default())
             .with_prompt(selection_prompt)
             .items(&options_texts)

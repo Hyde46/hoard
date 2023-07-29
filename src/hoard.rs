@@ -24,7 +24,6 @@ use crate::gui::prompts::{
 use crate::sync_models::TokenResponse;
 use crate::util::rem_first_and_last;
 use base64::Engine as _;
-use chatgpt::prelude::ChatGPT;
 #[derive(Default, Debug)]
 pub struct Hoard {
     config: Option<HoardConfig>,
@@ -409,7 +408,7 @@ impl Hoard {
             let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
             let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
             if backup_trove_path.exists() {
-                if let Confirmation::Yes = prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?") {
+                if matches!(prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?"), Confirmation::Yes) {
                     let e = fs::remove_file(trove_path);
                     // make clippy happy
                     drop(e);
