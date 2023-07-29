@@ -52,7 +52,7 @@ array_tool = "1.0.3"
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 url = { version = "2.3.1" }
 console = "0.15.5"
-enum-iterator = "1.2.0"
+enum-iterator = "1.4.0"
 base64 = "0.21.0"
 chatgpt_blocking_rs = "0.1.1"
 dotenv = "0.15.0"
