@@ -33,7 +33,7 @@ pub fn key_handler(
             // Same drawing state, only update how control works
             state.draw_state = DrawState::Search; 
             if state.openai_key_set {
-                state.control_state = ControlState::GPT;
+                state.control_state = ControlState::Gpt;
             } else {
                 state.control_state =  ControlState::KeyNotSet;
                 state.query_gpt = true;

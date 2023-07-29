@@ -19,8 +19,9 @@ use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
 use tui::{backend::TermionBackend, widgets::ListState, Terminal};
-use crate::gpt::ask_gpt;
+use crate::gpt::prompt;
 
+#[allow(clippy::struct_excessive_bools)]
 pub struct State {
     pub input: String,
     pub commands: Vec<HoardCommand>,
@@ -82,7 +83,7 @@ pub enum DrawState {
 pub enum ControlState {
     Search,
     Edit,
-    GPT,
+    Gpt,
     KeyNotSet,
 }
 
@@ -94,7 +95,7 @@ impl fmt::Display for ControlState {
                 f,
                 "Edit (<Enter> to confirm. <Tab> to switch. <Esc> to abort)"
             ),
-            Self::GPT => write!(f, "Describe your command (<Enter> to confirm. <Esc> to abort)"),
+            Self::Gpt => write!(f, "Describe your command (<Enter> to confirm. <Esc> to abort)"),
             Self::KeyNotSet => write!(f, "(<Esc> to abort)"),
         }
     }
@@ -210,9 +211,9 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
             }
         }
 
-        if app_state.query_gpt && app_state.control_state == ControlState::GPT {
+        if app_state.query_gpt && app_state.control_state == ControlState::Gpt {
             if app_state.buffered_tick {
-                let gpt_command = ask_gpt(&app_state.input[..], &openai_api_key);
+                let gpt_command = prompt(&app_state.input[..], &openai_api_key);
                 trove.add_command(gpt_command, false);
                 app_state.commands = trove.commands.clone();
                 app_state.draw_state = DrawState::Search;
@@ -235,7 +236,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                         &namespace_tabs,
                     ),
                     ControlState::Edit => key_handler_inline_edit(input, &mut app_state),
-                    ControlState::GPT => key_handler_gpt_create(
+                    ControlState::Gpt => key_handler_gpt_create(
                         input,
                         &mut app_state
                     ),

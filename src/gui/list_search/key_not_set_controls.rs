@@ -1,5 +1,5 @@
-use crate::command::hoard_command::{HoardCommand};
-use crate::gui::commands_gui::{ControlState, DrawState, State};
+use crate::command::hoard_command::HoardCommand;
+use crate::gui::commands_gui::{ControlState, State};
 use termion::event::Key;
 
 #[allow(clippy::too_many_lines)]

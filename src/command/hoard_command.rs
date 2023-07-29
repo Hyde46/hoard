@@ -85,9 +85,7 @@ impl HoardCommand {
         parameter_ending_token: &str,
     ) -> Self {
         let base_prompt = format!(
-            "Command to hoard ( Mark unknown parameters with '{}'. Name the parameter with any string and end it with '{}' )\n",
-            parameter_token,
-            parameter_ending_token
+            "Command to hoard ( Mark unknown parameters with '{parameter_token}'. Name the parameter with any string and end it with '{parameter_ending_token}' )\n"
         );
         let command_string: String = prompt_input(&base_prompt, false, default_value);
         Self {
@@ -238,22 +236,6 @@ impl HoardCommand {
             tags: self.tags,
             command: self.command,
             description: Some(description_string),
-        }
-    }
-
-    pub fn from_gpt_string(gpt_string: &str) -> Self {
-        //let mut lines = gpt_string.lines();
-        let name = "hello";
-        let namespace = "ai";
-        let tags = "ai";
-        let command = "command";
-        let description = gpt_string;
-        Self {
-            name: name.to_string(),
-            namespace: namespace.to_string(),
-            tags: Some(string_to_tags(tags)),
-            command: command.to_string(),
-            description: Some(description.to_string()),
         }
     }
 }
