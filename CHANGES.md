@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.4.0
 - ✨ chatGPT integration. Generate commands which you have not yet hoarded
+- Clean up code
+- skip badly chosen release version tags
 ## 1.3.1
 - 🐛 Fix bug, where `hoard pick` would not properly replace named parameterized commands
 - Tab highlight now also uses customizable color from config file

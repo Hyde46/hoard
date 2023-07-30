@@ -95,7 +95,7 @@ Install `hoard` by running
 If you are running `fish` shell
 
 ```
-LATEST_RELEASE=1.3.2 ./install.fish
+LATEST_RELEASE=1.4.0 ./install.fish
 ```
 
 ### AUR (Arch Linux)
