@@ -2,12 +2,12 @@ use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::util::{split_with_delim, string_find_next, translate_number_to_nth};
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, Paragraph, Wrap};
-use tui::Terminal;
+use ratatui::backend::TermionBackend;
+use ratatui::layout::{Alignment, Constraint, Direction, Layout};
+use ratatui::style::{Color, Style};
+use ratatui::text::{Span, Line};
+use ratatui::widgets::{Block, Paragraph, Wrap};
+use ratatui::Terminal;
 
 pub fn draw(
     app_state: &mut State,
@@ -107,7 +107,7 @@ pub fn draw(
             command_spans.append(&mut spans);
         }
 
-        let command = Paragraph::new(Spans::from(command_spans))
+        let command = Paragraph::new(Line::from(command_spans))
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true })
             .block(Block::default().style(primary_style));

@@ -1,11 +1,11 @@
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Paragraph};
-use tui::Terminal;
+use ratatui::backend::TermionBackend;
+use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::style::{Color, Style};
+use ratatui::widgets::{Block, Paragraph};
+use ratatui::Terminal;
 
 pub fn draw(
     app_state: &mut State,

@@ -230,7 +230,7 @@ fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCommand
 #[cfg(test)]
 mod test_controls {
     use super::*;
-    use tui::widgets::ListState;
+    use ratatui::widgets::ListState;
 
     const DEFAULT_NAMESPACE: &str = "default";
 
