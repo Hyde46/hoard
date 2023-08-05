@@ -3,11 +3,11 @@ use crate::config::HoardConfig;
 use crate::gui::commands_gui::{DrawState, State};
 use termion::event::Key;
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::style::{Color, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, BorderType, Borders, List, ListItem};
-use tui::Terminal;
+use ratatui::backend::TermionBackend;
+use ratatui::style::{Color, Style};
+use ratatui::text::{Span, Line};
+use ratatui::widgets::{Block, BorderType, Borders, List, ListItem};
+use ratatui::Terminal;
 
 pub const HELP_KEY: &str = "<F1>";
 const HELP_CONTENT: &[(&str, &str)] = &[
@@ -50,7 +50,7 @@ pub fn draw(
             .iter()
             .map(|item| {
                 ListItem::new(vec![
-                    Spans::from(Span::styled(
+                    Line::from(Span::styled(
                         item.0,
                         Style::default().fg(Color::Rgb(
                             config.command_color.unwrap().0,
@@ -58,7 +58,7 @@ pub fn draw(
                             config.command_color.unwrap().2,
                         )),
                     )),
-                    Spans::from(Span::styled(
+                    Line::from(Span::styled(
                         format!("    {}", item.1),
                         Style::default().fg(Color::Rgb(
                             config.primary_color.unwrap().0,
@@ -66,7 +66,7 @@ pub fn draw(
                             config.primary_color.unwrap().2,
                         )),
                     )),
-                    Spans::from(""),
+                    Line::from(""),
                 ])
             })
             .collect();

@@ -4,12 +4,12 @@ use crate::gui::commands_gui::State;
 use crate::gui::commands_gui::{ControlState, EditSelection};
 use crate::gui::help::HELP_KEY;
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap, Clear};
-use tui::Terminal;
+use ratatui::backend::TermionBackend;
+use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui::style::{Color, Modifier, Style};
+use ratatui::text::{Span, Line};
+use ratatui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap, Clear};
+use ratatui::Terminal;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -40,7 +40,7 @@ pub fn draw(
         let menu = namespace_tabs
             .iter()
             .map(|t| {
-                Spans::from(vec![Span::styled(
+                Line::from(vec![Span::styled(
                     *t,
                     Style::default().fg(Color::Rgb(
                         config.primary_color.unwrap().0,
@@ -198,7 +198,7 @@ fn get_color(
     app: &mut State,
     config: &HoardConfig,
     command_render: &EditSelection,
-) -> tui::style::Color {
+) -> ratatui::style::Color {
     let highlighted = Color::Rgb(
         config.secondary_color.unwrap().0,
         config.secondary_color.unwrap().1,
@@ -253,7 +253,7 @@ fn render_commands<'a>(
     let items: Vec<_> = commands_list
         .iter()
         .map(|command| {
-            ListItem::new(Spans::from(vec![Span::styled(
+            ListItem::new(Line::from(vec![Span::styled(
                 command.name.clone(),
                 Style::default(),
             )]))
