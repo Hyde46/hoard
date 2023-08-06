@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.4.1
+- ✨ List available namespaces when creating a new command
+- Move from tui to ratatui. Thanks [a-kenji](https://github.com/Hyde46/hoard/pull/292)
+- 🐛 Fix a bunch of pipelines issues
 ## 1.4.0
 - ✨ chatGPT integration. Generate commands which you have not yet hoarded
 - Clean up code
