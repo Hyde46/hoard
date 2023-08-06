@@ -91,8 +91,7 @@ where
 }
 
 pub fn prompt_password_repeat(text: &str) -> String {
-    let theme = HoardTheme::default();
-    Password::with_theme(&theme)
+    Password::with_theme(&HoardTheme::default())
         .with_prompt(text)
         .with_confirmation("Repeat password", "Error: the passwords don't match.")
         .interact()
@@ -100,8 +99,7 @@ pub fn prompt_password_repeat(text: &str) -> String {
 }
 
 pub fn prompt_password(text: &str) -> String {
-    let theme = HoardTheme::default();
-    Password::with_theme(&theme)
+    Password::with_theme(&HoardTheme::default())
         .with_prompt(text)
         .interact()
         .unwrap()
