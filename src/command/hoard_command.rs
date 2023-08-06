@@ -125,12 +125,20 @@ impl HoardCommand {
     }
 
     pub fn with_namespace_input(self, selection: &[&str]) -> Self {
+        // Add "New namespace" option to selction
+        let mut selection = selection.to_vec();
+        selection.push("New namespace");
+
         let selected: usize = prompt_select_with_options(
             "Namespace of the command",
-            selection,
+            &selection,
         );
-        let selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
-        //let namespace: String = prompt_input("Namespace of the command", false, default_namespace);
+
+        let mut selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
+        if selected_namespace == "New namespace" {
+            selected_namespace = prompt_input("Namespace of the command", false, Some(String::from("default")));
+        }
+
         Self {
             name: self.name,
             namespace: selected_namespace,
