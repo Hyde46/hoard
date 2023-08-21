@@ -59,4 +59,4 @@ dotenv = "0.15.0"
 h2 = "0.3.20"
 
 [dev-dependencies]
-tempfile = "3.3.0"
+tempfile = "3.8.0"
