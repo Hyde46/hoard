@@ -2,12 +2,12 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-struct CommandError {
+pub struct CommandError {
     details: String
 }
 
 impl CommandError {
-    fn new(msg: &str) -> Self {
+    pub fn new(msg: &str) -> Self {
         Self{details: msg.to_string()}
     }
 }
