@@ -762,6 +762,7 @@ dependencies = [
  "enum-iterator",
  "eyre",
  "h2",
+ "hoardlib",
  "log",
  "prettytable-rs",
  "rand",
@@ -778,6 +779,15 @@ dependencies = [
  "thiserror",
  "tokio",
  "url",
+]
+
+[[package]]
+name = "hoardlib"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]
