@@ -47,7 +47,7 @@ chrono = { version = "0.4", features = ["serde"] }
 rand = { version = "0.8.4", features = ["std"] }
 thiserror = "1.0"
 crossbeam-channel = "0.5.8"
-tokio = { version = "1.25.0", features = ["full"] }
+tokio = { version = "1.28.2", features = ["full"] }
 array_tool = "1.0.3"
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 url = { version = "2.4.0" }
