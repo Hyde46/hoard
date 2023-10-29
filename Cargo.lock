@@ -739,6 +739,10 @@ dependencies = [
 name = "hoardlib"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "log",
+ "prettytable-rs",
+ "rand",
  "serde",
  "serde_json",
  "serde_yaml",

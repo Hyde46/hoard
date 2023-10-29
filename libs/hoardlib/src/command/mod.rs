@@ -4,6 +4,8 @@ pub mod validate;
 
 use std::time;
 use serde::{Deserialize, Serialize};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 
 use self::error::CommandError;
 
@@ -23,7 +25,7 @@ use self::error::CommandError;
 /// - `is_deleted`: A flag to indicate if the command is deleted
 /// - `namespace`: The namespace the command belongs to
 /// - `namespace_id`: The id of the namespace the command belongs to
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HoardCommand {
     /// The name of the command by which it is referenced
     pub name: String,
@@ -60,9 +62,6 @@ pub struct HoardCommand {
 
     /// The namespace the command belongs to
     pub namespace: String,
-
-    /// The id of the namespace the command belongs to
-    pub namespace_id: usize,
 }
 
 impl HoardCommand {
@@ -81,10 +80,105 @@ impl HoardCommand {
             is_hidden: false,
             is_deleted: false,
             namespace: String::new(),
-            namespace_id: 0,
         }
     }
 
+    /// Create a new HoardCommand with default values
+    /// set created, modified and last_used to the current time
+    pub fn new() -> Self {
+        let mut command = Self::default();
+        command.created = time::SystemTime::now();
+        command.modified = time::SystemTime::now();
+        command.last_used = time::SystemTime::now();
+        command
+    }
+
+    /// set the name of the command
+    pub fn with_name(self, name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the command to be stored and executed
+    pub fn with_command(self, command: &str) -> Self {
+        Self {
+            command: command.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the description the command belongs to
+    pub fn with_description(self, description: &str) -> Self {
+        Self {
+            description: description.to_string(),
+            ..self
+        }
+    }
+
+    /// set the tags of the command from a vector of strings
+    pub fn with_tags(self, tags: Vec<String>) -> Self {
+        Self {
+            tags,
+            ..self
+        }
+    }   
+
+    /// set the tags of the command from a string split by `,`
+    pub fn with_tags_raw(self, tags: &str) -> Self {
+        Self {
+            tags: tags.split(',').map(|s| s.trim().to_string()).collect(),
+            ..self
+        }
+    }
+
+    /// set the namespace of the command
+    pub fn with_namespace(self, namespace: &str) -> Self {
+        Self {
+            namespace: namespace.to_string(),
+            ..self
+        }
+    }
+
+    /// set a random suffix to the name of the command
+    pub fn with_random_name_suffix(self) -> Self {
+        let rng = rand::thread_rng();
+        let random_string: String = rng
+            .sample_iter(&Alphanumeric)
+            .take(4)
+            .map(char::from)
+            .collect();
+        Self {
+            name: format!("{}-{random_string}", self.name),
+            ..self
+        }
+    }
+
+    /// increase the usage count of the command
+    pub fn mut_increase_usage_count(&mut self) -> &mut Self {
+        self.usage_count += 1;
+        self
+    }
+
+    /// sets the favorite flag of the command
+    pub fn mut_set_favorite(&mut self, is_favorite: bool) -> &mut Self {
+        self.is_favorite = is_favorite;
+        self
+    }
+
+    /// sets the hidden flag of the command
+    pub fn mut_set_hidden(&mut self, is_hidden: bool) -> &mut Self {
+        self.is_hidden = is_hidden;
+        self
+    }
+
+    /// sets the deleted flag of the command
+    pub fn mut_set_deleted(&mut self, is_deleted: bool) -> &mut Self {
+        self.is_deleted = is_deleted;
+        self
+    }
+    
     /// Check if a command is valid
     /// A valid command must have:
     /// - A name that is not empty
@@ -156,4 +250,51 @@ impl HoardCommand {
         tags
     }
     
+}
+
+#[cfg(test)]
+mod test_commands {
+    use super::*;
+
+    #[test]
+    fn one_tag_as_string() {
+        let command = HoardCommand::default().with_tags_raw("foo");
+        let expected = "foo";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn no_tag_as_string() {
+        let command = HoardCommand::default();
+        let expected = "";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn multiple_tags_as_string() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = "foo,bar";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn parse_single_tag() {
+        let command = HoardCommand::default().with_tags_raw("foo");
+        let expected = vec!["foo".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_multiple_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo, bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
 }
