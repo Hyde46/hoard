@@ -166,4 +166,17 @@ mod test_commands {
         let expected = vec!["#param", " test ", "#param", " end"];
         assert_eq!(expected, split_with_delim(&s, "#param"));
     }
+
+    #[test]
+    fn test_numbers_to_nth() {
+        assert_eq!("first", translate_number_to_nth(0));
+        assert_eq!("second", translate_number_to_nth(1));
+        assert_eq!("third", translate_number_to_nth(2));
+        assert_eq!("fourth", translate_number_to_nth(3));
+        assert_eq!("fifth", translate_number_to_nth(4));
+        assert_eq!("sixth", translate_number_to_nth(5));
+        assert_eq!("seventh", translate_number_to_nth(6));
+        assert_eq!("eighth", translate_number_to_nth(7));
+        assert_eq!("nth", translate_number_to_nth(8));
+    }
 }
