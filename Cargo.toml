@@ -28,7 +28,7 @@ path = "src/main.rs"
 
 [dependencies]
 # Command line argument parser
-clap = { version = "4.3.22", features = ["derive"] }
+clap = { version = "4.4.8", features = ["derive"] }
 # pretty dialogues in terminal
 dialoguer = "0.10.3"
 termion = "2.0.1"
