@@ -1,5 +1,6 @@
+use regex::Regex;
+
 use crate::command::HoardCommand;
-use crate::utils::string_find_next;
 
 pub trait Parameterized {
     /// Check if parameter pointers are present
@@ -54,42 +55,11 @@ impl Parameterized for HoardCommand {
         collected
     }
 
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: &str) -> HoardCommand {
-        let parameter_array = &[parameter];
-        let mut parameter_iter = parameter_array.iter();
-        // Named parameter ending with a space
-        let named_token = string_find_next(&self.command, token, " ");
-        // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
-        let mut full_named_token = string_find_next(&self.command, token, ending_token);
-        full_named_token.push_str(ending_token);
-        // Select the split based on whether the ending token is part of the command or not
-        let split_token = if self.command.contains(ending_token) {
-            full_named_token
-        } else {
-            named_token
-        };
-        let split = self.split(&split_token);
-        let mut collected: Vec<String> = Vec::new();
-        for s in split {
-            collected.push(s.clone());
-
-            // if token is not named replace following occurrences of the token in the command with the token again.
-            // only replace all occurrences of a token if it is names
-            // this is a convoluted way of achieving this, but doing it properly would need this method to be completely reworked
-            let to_push = if split_token == token {
-                token
-            } else {
-                parameter
-            };
-            collected.push(parameter_iter.next().unwrap_or(&to_push).to_string());
-        }
-        // Always places either a token or the parameter at the end, due to the bad loop design.
-        // Just remove it at the end
-        collected.pop();
-        let mut self_clone = self.clone();
-        self_clone.command = collected.concat();
-
-        return self_clone;
+    fn replace_parameter(&self, start_token: &str, end_token: &str, replacement: &str) -> Self {
+        let pattern = format!("{}.*?{}", regex::escape(start_token), regex::escape(end_token));
+        let re = Regex::new(&pattern).unwrap();
+        let replaced = re.replace_all(&self.command, replacement);
+        HoardCommand::default().with_command(&replaced)
     }
 }
 
@@ -155,5 +125,19 @@ mod test_commands {
         let command = HoardCommand::default().with_command("test1 # test3");
         let expected = HoardCommand::default().with_command("test1 replacement test3");
         assert_eq!(expected, command.replace_parameter("#", "", "replacement"));
+    }
+
+    #[test]
+    fn test_replace_parameter_with_endtoken() {
+        let command = HoardCommand::default().with_command("test1 #thisisacommand! test3");
+        let expected = HoardCommand::default().with_command("test1 replacement test3");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+
+    #[test]
+    fn test_replace_parameter_with_endtoken_no_spaces() {
+        let command = HoardCommand::default().with_command("test1#thisisacommand!test3");
+        let expected = HoardCommand::default().with_command("test1replacementtest3");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
     }
 }
