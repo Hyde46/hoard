@@ -1,10 +1,9 @@
-
 /// Converts a string of tags into a vector of tags
 /// Tags are separated by commas
 /// # Example
 /// ```
 /// use hoardlib::utils::string_to_tags;
-/// 
+///
 /// let tags = string_to_tags("tag1,tag2,tag3");
 /// assert_eq!(tags.len(), 3);
 /// assert_eq!(tags[0], "tag1");
@@ -32,7 +31,6 @@ pub fn string_to_tags(tags: &str) -> Vec<String> {
 /// assert_eq!(expected, string_find_next(&s, &from, &to));
 /// ```
 pub fn string_find_next(s: &str, from: &str, to: &str) -> String {
-
     if s.contains(from) {
         let split = s.split(from).nth(1).unwrap().split(to).next().unwrap();
         return format!("{from}{split}");
@@ -59,7 +57,7 @@ pub fn translate_number_to_nth(count: u16) -> String {
 /// # Example
 /// ```
 /// use hoardlib::utils::rem_first_and_last;
-/// 
+///
 /// let s = "Hello";
 /// let expected = "ell";
 /// assert_eq!(expected, rem_first_and_last(&s));
@@ -75,7 +73,7 @@ pub fn rem_first_and_last(value: &str) -> &str {
 /// # Example
 /// ```
 /// use hoardlib::utils::split_with_delim;
-/// 
+///
 /// let s = "Hello,World";
 /// let expected = vec!["Hello", ",", "World"];
 /// assert_eq!(expected, split_with_delim(&s, ","));
