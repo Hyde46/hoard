@@ -4,7 +4,6 @@ use crate::command::HoardCommand;
 
 use anyhow::{anyhow, Result};
 use log::info;
-use prettytable::{color, Attr, Cell, Row, Table};
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
