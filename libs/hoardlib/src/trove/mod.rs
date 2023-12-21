@@ -13,10 +13,9 @@ use self::error::TroveError;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-
-/// Container for all stored hoard commands. 
+/// Container for all stored hoard commands.
 /// A `treasure trove` of commands
-/// 
+///
 /// A Trove can store the following parameters
 /// - `version`: The hoard version with which the commands are being stored
 ///              To potentially support migrating older collections to new ones when breaking changes happen
@@ -154,7 +153,11 @@ impl Trove {
     /// Returns `false` if the command has not been added due to a name collision that has been resolved where the trove did not change
     /// if overwrite_colliding is set to true, the name of the command will get a random string suffix to resolve the name collision before adding it to the trove
     /// if overwrite_colliding is set to false, the name collision will not be resolved and the command will not be added to the trove
-    pub fn add_command(&mut self, new_command: HoardCommand, overwrite_colliding: bool) -> Result<bool, TroveError> {
+    pub fn add_command(
+        &mut self,
+        new_command: HoardCommand,
+        overwrite_colliding: bool,
+    ) -> Result<bool, TroveError> {
         if !new_command.is_valid() {
             return Err(TroveError::new("cannot save invalid command"));
         }
@@ -195,7 +198,6 @@ impl Trove {
     pub fn is_empty(&self) -> bool {
         self.commands.is_empty()
     }
-
 }
 
 #[cfg(test)]
@@ -298,10 +300,93 @@ mod test_commands {
         // namespace has to be present now
         assert!(trove.namespaces.contains("test"));
         // remove the command
-        let val = trove.remove_command("test"); 
+        let val = trove.remove_command("test");
         assert!(val.is_ok());
         assert!(trove.is_empty());
         // namespace has to be present now
         assert!(trove.namespaces.contains("test"));
+    }
+
+    #[test]
+    fn test_add_command_with_same_name() {
+        // create a new trove, add a command, verify the command is not empty,
+        // then add the same command again and check the result.
+        let mut trove = Trove::default();
+        let mut command = HoardCommand::new();
+        command.name = "test".to_string();
+        command.namespace = "test".to_string();
+        command.command = "test".to_string();
+        let val1 = trove.add_command(command.clone(), true);
+        assert!(val1.is_ok());
+        assert!(!trove.is_empty());
+        // namespace has to be present now
+        assert!(trove.namespaces.contains("test"));
+        // add the same command again
+        let val2 = trove.add_command(command, true);
+        // check the result of adding the same command again
+        // if it overwrites the existing command, val2 should be Ok
+        // if it returns an error, val2 should be Err
+        assert!(val2.is_ok());
+    }
+
+    #[test]
+    fn test_remove_nonexistent_command() {
+        // create a new trove and try to remove a command that doesn't exist
+        let mut trove = Trove::default();
+        let val = trove.remove_command("nonexistent");
+        // check the result of removing a nonexistent command
+        // if it returns an error, val should be Err
+        // if it silently fails, val should be Ok
+        assert!(val.is_err());
+    }
+
+    #[test]
+    fn test_add_remove_commands_different_namespaces() {
+        // create a new trove, add commands in different namespaces, verify the commands are not empty,
+        // then remove the commands and check the result.
+        let mut trove = Trove::default();
+        let mut command1 = HoardCommand::new();
+        command1.name = "test1".to_string();
+        command1.namespace = "namespace1".to_string();
+        command1.command = "test1".to_string();
+        let val1 = trove.add_command(command1.clone(), true);
+        assert!(val1.is_ok());
+        assert!(!trove.is_empty());
+        // namespace1 has to be present now
+        assert!(trove.namespaces.contains("namespace1"));
+
+        let mut command2 = HoardCommand::new();
+        command2.name = "test2".to_string();
+        command2.namespace = "namespace2".to_string();
+        command2.command = "test2".to_string();
+        let val2 = trove.add_command(command2.clone(), true);
+        assert!(val2.is_ok());
+        assert!(!trove.is_empty());
+        // namespace2 has to be present now
+        assert!(trove.namespaces.contains("namespace2"));
+
+        // remove the commands
+        let val3 = trove.remove_command("test1");
+        assert!(val3.is_ok());
+        let val4 = trove.remove_command("test2");
+        assert!(val4.is_ok());
+
+        // check if trove is empty after removing the commands
+        assert!(trove.is_empty());
+    }
+
+    #[test]
+    fn test_is_empty_new_trove() {
+        // create a new trove and check if it is empty
+        let trove = Trove::default();
+        assert!(trove.is_empty());
+    }
+
+    #[test]
+    fn test_contains_new_trove() {
+        // create a new trove and check if it contains a command
+        let trove = Trove::default();
+        // Should not contain a command
+        assert!(!trove.namespaces.contains("test"));
     }
 }
