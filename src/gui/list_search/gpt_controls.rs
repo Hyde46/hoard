@@ -1,12 +1,9 @@
-use crate::command::hoard_command::{HoardCommand};
+use crate::command::hoard_command::HoardCommand;
 use crate::gui::commands_gui::{ControlState, DrawState, State};
 use termion::event::Key;
 
 #[allow(clippy::too_many_lines)]
-pub fn key_handler(
-    input: Key,
-    state: &mut State,
-) -> Option<HoardCommand> {
+pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCommand> {
     match input {
         Key::Esc => {
             // Definitely exit program

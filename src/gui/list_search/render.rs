@@ -3,13 +3,13 @@ use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::gui::commands_gui::{ControlState, EditSelection};
 use crate::gui::help::HELP_KEY;
-use termion::screen::AlternateScreen;
 use ratatui::backend::TermionBackend;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::{Span, Line};
-use ratatui::widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap, Clear};
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs, Wrap};
 use ratatui::Terminal;
+use termion::screen::AlternateScreen;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -141,24 +141,31 @@ pub fn draw(
             rect.render_widget(help_hint, footer_chunk[1]);
         }
 
-
         if app_state.query_gpt {
-            let msg = if app_state.openai_key_set { State::get_default_popupmsg() } else { State::get_no_api_key_popupmsg() };
+            let msg = if app_state.openai_key_set {
+                State::get_default_popupmsg()
+            } else {
+                State::get_no_api_key_popupmsg()
+            };
             let description = Paragraph::new(msg)
-            .style(Style::default().fg(Color::Rgb(
-                config.primary_color.unwrap().0,
-                config.primary_color.unwrap().1,
-                config.primary_color.unwrap().2,
-            )))
-            .alignment(Alignment::Center)
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(get_color(app_state, config, &EditSelection::Description)))
-                    .title("GPT")
-                    .border_type(BorderType::Plain),
-            );
+                .style(Style::default().fg(Color::Rgb(
+                    config.primary_color.unwrap().0,
+                    config.primary_color.unwrap().1,
+                    config.primary_color.unwrap().2,
+                )))
+                .alignment(Alignment::Center)
+                .wrap(Wrap { trim: true })
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .style(Style::default().fg(get_color(
+                            app_state,
+                            config,
+                            &EditSelection::Description,
+                        )))
+                        .title("GPT")
+                        .border_type(BorderType::Plain),
+                );
             let area = centered_rect(50, 10, size);
             rect.render_widget(Clear, area); //this clears out the background
             rect.render_widget(description, area);
@@ -216,19 +223,19 @@ fn get_color(
                 return highlighted;
             }
             normal
-        },
+        }
     }
 }
 
 fn coerce_string_by_mode(s: String, app: &State, command_render: &EditSelection) -> String {
     match app.control_state {
-        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet=> s,
+        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => s,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
                 return app.string_to_edit.clone();
             }
             s
-        },
+        }
     }
 }
 
@@ -372,7 +379,7 @@ fn render_commands<'a>(
 
 const fn get_footer_constraints(control_state: &ControlState) -> (u16, u16) {
     match control_state {
-        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet=> (50, 50),
+        ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => (50, 50),
         ControlState::Edit => (99, 1),
     }
 }

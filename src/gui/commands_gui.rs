@@ -1,6 +1,7 @@
 use crate::command::hoard_command::HoardCommand;
 use crate::command::trove::CommandTrove;
 use crate::config::HoardConfig;
+use crate::gpt::prompt;
 use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
 use crate::gui::inline_edit::controls::key_handler as key_handler_inline_edit;
@@ -13,13 +14,12 @@ use crate::gui::new_command::render::draw as draw_new_command_input;
 use crate::gui::parameter_input::controls::key_handler as key_handler_parameter_input;
 use crate::gui::parameter_input::render::draw as draw_parameter_input;
 use eyre::Result;
+use ratatui::{backend::TermionBackend, widgets::ListState, Terminal};
 use std::fmt;
 use std::io::stdout;
 use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
-use ratatui::{backend::TermionBackend, widgets::ListState, Terminal};
-use crate::gpt::prompt;
 
 #[allow(clippy::struct_excessive_bools)]
 pub struct State {
@@ -95,7 +95,10 @@ impl fmt::Display for ControlState {
                 f,
                 "Edit (<Enter> to confirm. <Tab> to switch. <Esc> to abort)"
             ),
-            Self::Gpt => write!(f, "Describe your command (<Enter> to confirm. <Esc> to abort)"),
+            Self::Gpt => write!(
+                f,
+                "Describe your command (<Enter> to confirm. <Esc> to abort)"
+            ),
             Self::KeyNotSet => write!(f, "(<Esc> to abort)"),
         }
     }
@@ -147,7 +150,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         tick_rate: Duration::from_millis(200),
     });
     let trove_clone = trove.clone();
-    
+
     let mut openai_api_key = std::env::var("OPENAI_API_KEY").unwrap_or_default();
     if openai_api_key.is_empty() {
         openai_api_key = config.gpt_api_key.clone().unwrap_or_default();
@@ -223,7 +226,7 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                 app_state.buffered_tick = false;
             } else {
                 app_state.buffered_tick = true;
-            } 
+            }
         }
 
         if let Event::Input(input) = events.next()? {
@@ -236,14 +239,8 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
                         &namespace_tabs,
                     ),
                     ControlState::Edit => key_handler_inline_edit(input, &mut app_state),
-                    ControlState::Gpt => key_handler_gpt_create(
-                        input,
-                        &mut app_state
-                    ),
-                    ControlState::KeyNotSet => key_handler_no_key_set(
-                        input,
-                        &mut app_state
-                    ),
+                    ControlState::Gpt => key_handler_gpt_create(input, &mut app_state),
+                    ControlState::KeyNotSet => key_handler_no_key_set(input, &mut app_state),
                 },
                 DrawState::ParameterInput => key_handler_parameter_input(input, &mut app_state),
                 DrawState::Help => key_handler_help(input, &mut app_state),

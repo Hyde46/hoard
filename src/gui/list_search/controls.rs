@@ -31,11 +31,11 @@ pub fn key_handler(
         // Enter GPT mode
         Key::Ctrl('a') => {
             // Same drawing state, only update how control works
-            state.draw_state = DrawState::Search; 
+            state.draw_state = DrawState::Search;
             if state.openai_key_set {
                 state.control_state = ControlState::Gpt;
             } else {
-                state.control_state =  ControlState::KeyNotSet;
+                state.control_state = ControlState::KeyNotSet;
                 state.query_gpt = true;
             }
             state.new_command = Some(HoardCommand::default());
@@ -199,7 +199,8 @@ fn switch_namespace(
 fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
-        .iter().filter(|&c| {
+        .iter()
+        .filter(|&c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
                 || c.tags_as_string().contains(query_term)
@@ -209,7 +210,8 @@ fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: 
                     .unwrap_or_default()
                     .contains(query_term))
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
-        }).cloned()
+        })
+        .cloned()
         .collect();
 }
 
@@ -263,7 +265,7 @@ mod test_controls {
             query_gpt: false,
             buffered_tick: false,
             popup_message: State::get_default_popupmsg(),
-            openai_key_set: false
+            openai_key_set: false,
         };
 
         state.command_list_state.select(Some(0));

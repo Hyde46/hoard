@@ -78,7 +78,7 @@ impl HoardConfig {
             read_from_current_directory: self.read_from_current_directory,
             sync_server_url: self.sync_server_url,
             api_token: self.api_token,
-            gpt_api_key: self.gpt_api_key
+            gpt_api_key: self.gpt_api_key,
         }
     }
 

@@ -108,20 +108,20 @@ impl CommandTrove {
         // Returns dirty flag, whether something got added/changed or not
         // Returns true if there were changes
         // Returns false if synced troved file was either empty or the exact same
-            let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) = 
-                if let Some(colliding_command) = self.check_name_collision(&new_command) {
-                    if self.is_same_command(&new_command) {
-                        // Dont add it to the trove since its the same command. Dont ask the user about it
-                        (None, None)
-                    } else if !check_name_collision {
-                        let c = new_command.resolve_name_conflict_random();
-                        (Some(c), None)
-                    } else {
-                        new_command.resolve_name_conflict(colliding_command, self)
-                    }
+        let (to_add, to_remove): (Option<HoardCommand>, Option<HoardCommand>) =
+            if let Some(colliding_command) = self.check_name_collision(&new_command) {
+                if self.is_same_command(&new_command) {
+                    // Dont add it to the trove since its the same command. Dont ask the user about it
+                    (None, None)
+                } else if !check_name_collision {
+                    let c = new_command.resolve_name_conflict_random();
+                    (Some(c), None)
                 } else {
-                    (Some(new_command), None)
-                };
+                    new_command.resolve_name_conflict(colliding_command, self)
+                }
+            } else {
+                (Some(new_command), None)
+            };
         if let Some(remove) = to_remove {
             match self.remove_command(&remove.name) {
                 Ok(()) => {}
@@ -172,9 +172,10 @@ impl CommandTrove {
         filtered_command.map_or_else(
             || Err(anyhow!("No matching command found with name: {}", name)),
             |command| {
-                let command = command
-                    .clone()
-                    .with_input_parameters(&config.parameter_token.clone().unwrap(), &config.parameter_ending_token.clone().unwrap());
+                let command = command.clone().with_input_parameters(
+                    &config.parameter_token.clone().unwrap(),
+                    &config.parameter_ending_token.clone().unwrap(),
+                );
                 Ok(command)
             },
         )

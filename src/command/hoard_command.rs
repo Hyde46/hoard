@@ -129,14 +129,15 @@ impl HoardCommand {
         let mut selection = selection.to_vec();
         selection.push("New namespace");
 
-        let selected: usize = prompt_select_with_options(
-            "Namespace of the command",
-            &selection,
-        );
+        let selected: usize = prompt_select_with_options("Namespace of the command", &selection);
 
-        let mut selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
+        let mut selected_namespace: String = (*selection.get(selected).unwrap()).to_string();
         if selected_namespace == "New namespace" {
-            selected_namespace = prompt_input("Namespace of the command", false, Some(String::from("default")));
+            selected_namespace = prompt_input(
+                "Namespace of the command",
+                false,
+                Some(String::from("default")),
+            );
         }
 
         Self {
@@ -276,7 +277,8 @@ pub trait Parameterized {
     fn get_split_subject(&self, token: &str) -> Vec<String>;
     // Replaces parameter tokens with content from `parameters`,
     // consuming entries one by one until `parameters` is empty.
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand;
+    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String)
+        -> HoardCommand;
 
     fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCommand;
 }
@@ -301,7 +303,12 @@ impl Parameterized for HoardCommand {
         collected
     }
 
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand {
+    fn replace_parameter(
+        &self,
+        token: &str,
+        ending_token: &str,
+        parameter: String,
+    ) -> HoardCommand {
         let parameter_array = &[parameter.clone()];
         let mut parameter_iter = parameter_array.iter();
 
@@ -343,7 +350,7 @@ impl Parameterized for HoardCommand {
         }
     }
 
-    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> Self{
+    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> Self {
         let mut param_count = 0;
         while self.get_parameter_count(token) != 0 {
             let prompt_dialog = format!(
@@ -353,10 +360,18 @@ impl Parameterized for HoardCommand {
                 self.command
             );
             let parameter = prompt_input(&prompt_dialog, false, None);
-            self.command = self.replace_parameter(token, ending_token, parameter).command;
+            self.command = self
+                .replace_parameter(token, ending_token, parameter)
+                .command;
             param_count += 1;
         }
-        Self { name:self.name.clone(), namespace:self.namespace.clone(), tags: self.tags.clone(), command: self.command.clone(), description: self.description.clone() }
+        Self {
+            name: self.name.clone(),
+            namespace: self.namespace.clone(),
+            tags: self.tags.clone(),
+            command: self.command.clone(),
+            description: self.description.clone(),
+        }
     }
 }
 

@@ -13,11 +13,11 @@ mod cli_commands;
 mod command;
 mod config;
 mod filter;
+mod gpt;
 mod gui;
 mod hoard;
 mod sync_models;
 mod util;
-mod gpt;
 use hoard::Hoard;
 
 #[tokio::main]
