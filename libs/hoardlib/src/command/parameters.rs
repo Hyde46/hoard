@@ -55,7 +55,7 @@ impl Parameterized for HoardCommand {
     }
 
     fn replace_parameter(&self, token: &str, ending_token: &str, parameter: &str) -> HoardCommand {
-        let parameter_array = &[parameter.clone()];
+        let parameter_array = &[parameter];
         let mut parameter_iter = parameter_array.iter();
         // Named parameter ending with a space
         let named_token = string_find_next(&self.command, token, " ");
