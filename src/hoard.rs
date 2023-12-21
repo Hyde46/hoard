@@ -215,7 +215,7 @@ impl Hoard {
     fn remove_command(&mut self, command_name: &str) {
         let command_result = self.trove.remove_command(command_name);
         match command_result {
-            Ok(_) => {
+            Ok(()) => {
                 println!("Removed [{command_name}]");
             }
             Err(e) => eprintln!("{e}"),
@@ -226,7 +226,7 @@ impl Hoard {
     fn remove_namespace(&mut self, namespace: &str) {
         let command_result = self.trove.remove_namespace_commands(namespace);
         match command_result {
-            Ok(_) => {
+            Ok(()) => {
                 println!("Removed all commands of namespace [{namespace}]");
             }
             Err(e) => eprintln!("{e}"),

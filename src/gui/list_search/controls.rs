@@ -199,9 +199,7 @@ fn switch_namespace(
 fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
-        .iter()
-        .cloned()
-        .filter(|c| {
+        .iter().filter(|&c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
                 || c.tags_as_string().contains(query_term)
@@ -211,7 +209,7 @@ fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: 
                     .unwrap_or_default()
                     .contains(query_term))
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
-        })
+        }).cloned()
         .collect();
 }
 

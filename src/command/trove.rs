@@ -124,7 +124,7 @@ impl CommandTrove {
                 };
         if let Some(remove) = to_remove {
             match self.remove_command(&remove.name) {
-                Ok(_) => {}
+                Ok(()) => {}
                 Err(e) => println!("No idea how you ended up here {e}"),
             }
         }

@@ -227,7 +227,7 @@ pub fn save_parameter_token(
     let path_buf = config_path.join(HOARD_CONFIG);
     new_config.parameter_token = Some(String::from(parameter_token));
     match save_config(&new_config, path_buf.as_path()) {
-        Ok(_) => true,
+        Ok(()) => true,
         Err(err) => {
             eprintln!("ERROR: {err}");
             err.chain()
