@@ -14,9 +14,9 @@ pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCommand> {
             let mut edited_command = state.selected_command.clone().unwrap();
             let new_string = state.string_to_edit.clone();
             match state.edit_selection {
-                EditSelection::Description => edited_command.description = Some(new_string),
+                EditSelection::Description => edited_command.description = new_string,
                 EditSelection::Command => edited_command.command = new_string,
-                EditSelection::Tags => edited_command.tags = Some(string_to_tags(&new_string)),
+                EditSelection::Tags => edited_command.tags = string_to_tags(&new_string),
                 EditSelection::Name | EditSelection::Namespace => (),
             };
             Some(edited_command)

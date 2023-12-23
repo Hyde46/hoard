@@ -59,8 +59,8 @@ pub fn draw(
             new_command.namespace,
             default_namespace,
             new_command.name,
-            new_command.clone().description.unwrap_or_default(),
-            new_command.tags_as_string()
+            new_command.clone().description,
+            new_command.get_tags_as_string()
         );
         let new_command = Paragraph::new(command_render)
             .style(primary_style)

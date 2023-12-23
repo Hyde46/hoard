@@ -28,12 +28,12 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
         else {}
     }
     cmd.name = name;
-    cmd.description = Some(description);
+    cmd.description = description;
     cmd.command = command.clone();
-    cmd.tags = Some(string_to_tags(&tags));
+    cmd.tags = string_to_tags(&tags);
     cmd.namespace = String::from("gpt");
     if command.is_empty() {
-        cmd.description = Some(format!("{}\n\nSomething probably went wrong parsing the GPT response:\n{gpt_string}", cmd.description.unwrap()));
+        cmd.description = format!("{}\n\nSomething probably went wrong parsing the GPT response:\n{gpt_string}", cmd.description);
     }
     cmd
 }

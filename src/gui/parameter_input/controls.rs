@@ -1,4 +1,5 @@
-use crate::command::hoard_command::{HoardCommand, Parameterized};
+use crate::command::hoard_command::HoardCommand;
+use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::State;
 use termion::event::Key;
 
@@ -15,7 +16,7 @@ pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCommand> {
             let replaced_command = command.replace_parameter(
                 &app.parameter_token,
                 &app.parameter_ending_token,
-                parameter,
+                &parameter,
             );
             app.input = String::new();
             if replaced_command.get_parameter_count(&app.parameter_token) == 0 {

@@ -315,7 +315,7 @@ fn render_commands<'a>(
     );
 
     let tags = Paragraph::new(coerce_string_by_mode(
-        selected_command.tags_as_string(),
+        selected_command.get_tags_as_string(),
         app,
         &EditSelection::Tags,
     ))
@@ -334,7 +334,7 @@ fn render_commands<'a>(
     );
 
     let description = Paragraph::new(coerce_string_by_mode(
-        selected_command.description.unwrap_or_default(),
+        selected_command.description,
         app,
         &EditSelection::Description,
     ))

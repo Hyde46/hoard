@@ -27,13 +27,21 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
             let parameter = app.input.clone();
             app.error_message = match app.edit_selection {
                 EditSelection::Command => {
-                    let (_, msg) = HoardCommand::is_command_valid(&parameter);
-                    command.command = parameter;
+                    command.command = parameter.clone();
+                    // when HoardCommand::is_command_valid(&parameter) returns an error, read out the rror and return
+                    // that else return empty string
+                    let msg = match HoardCommand::is_command_valid(&parameter) {
+                        Ok(()) => "".to_string(),
+                        Err(error) => error.to_string(),
+                    };
                     msg
                 }
                 EditSelection::Name => {
-                    let (_, mut msg) = HoardCommand::is_name_valid(&parameter);
-                    command.name = parameter;
+                    command.name = parameter.clone();
+                    let mut msg = match HoardCommand::is_name_valid(&parameter) {
+                        Ok(()) => "".to_string(),
+                        Err(error) => error.to_string(),
+                    };
                     let trove = CommandTrove::from_commands(&app.commands);
                     if trove.check_name_collision(&command).is_some() {
                         msg = String::from(
@@ -51,15 +59,18 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     String::new()
                 }
                 EditSelection::Description => {
-                    command.description = Some(parameter);
+                    command.description = parameter;
                     String::new()
                 }
                 EditSelection::Tags => {
-                    let (is_valid, msg) = HoardCommand::are_tags_valid(&parameter);
-                    if is_valid {
-                        command.tags = Some(string_to_tags(&parameter));
+                    match HoardCommand::are_tags_valid(&parameter) {
+                        Ok(()) => {command.tags = string_to_tags(&parameter); "".into()},
+                        Err(e) => {
+                            app.error_message = e.to_string();
+                            e.to_string()
+                        }
+                        
                     }
-                    msg
                 }
             };
             app.input = String::new();
