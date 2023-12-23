@@ -36,6 +36,28 @@ pub struct HoardConfig {
     pub gpt_api_key: Option<String>,
 }
 
+impl Default for HoardConfig {
+    fn default() -> Self {
+        Self {
+            version: VERSION.to_string(),
+            default_namespace: "default".to_string(),
+            config_home_path: None,
+            trove_path: None,
+            query_prefix: "  >".to_string(),
+            primary_color: Some(Self::default_colors(0)),
+            secondary_color: Some(Self::default_colors(1)),
+            tertiary_color: Some(Self::default_colors(2)),
+            command_color: Some(Self::default_colors(3)),
+            parameter_token: Some(Self::default_parameter_token()),
+            parameter_ending_token: Some(Self::default_ending_parameter_token()),
+            read_from_current_directory: Some(Self::default_read_from_current_directory()),
+            sync_server_url: Some(Self::default_sync_server_url()),
+            api_token: None,
+            gpt_api_key: None,
+        }
+    }
+}
+
 impl HoardConfig {
     pub fn new(hoard_home_path: &Path) -> Self {
         Self {
@@ -227,7 +249,7 @@ pub fn save_parameter_token(
     let path_buf = config_path.join(HOARD_CONFIG);
     new_config.parameter_token = Some(String::from(parameter_token));
     match save_config(&new_config, path_buf.as_path()) {
-        Ok(_) => true,
+        Ok(()) => true,
         Err(err) => {
             eprintln!("ERROR: {err}");
             err.chain()

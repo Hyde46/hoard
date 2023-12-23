@@ -26,7 +26,7 @@ use crate::util::rem_first_and_last;
 use base64::Engine as _;
 #[derive(Default, Debug)]
 pub struct Hoard {
-    config: Option<HoardConfig>,
+    config: HoardConfig,
     trove: CommandTrove,
 }
 
@@ -34,7 +34,7 @@ impl Hoard {
     pub fn with_config(&mut self, hoard_home_path: Option<String>) -> &mut Self {
         info!("Loading config");
         match load_or_build_config(hoard_home_path) {
-            Ok(config) => self.config = Some(config),
+            Ok(config) => self.config = config,
             Err(err) => {
                 eprintln!("ERROR: {err}");
                 err.chain()
@@ -118,18 +118,17 @@ impl Hoard {
 
     pub fn show_info(&self) {
         // Print out path to hoard config file and path to where the trove file is stored
-        if let Some(config) = &self.config {
-            if let Some(config_home_path) = &config.config_home_path {
-                println!(
-                    "🔧 Config file is located at {}",
-                    config_home_path.display()
-                );
-            }
-
-            if let Some(trove_path) = &config.trove_path {
-                println!("✨ Trove file is located at {}", trove_path.display());
-            }
+        if let Some(config_home_path) = self.config.config_home_path.clone() {
+            println!(
+                "🔧 Config file is located at {}",
+                config_home_path.display()
+            );
         }
+
+        if let Some(trove_path) = self.config.trove_path.clone() {
+            println!("✨ Trove file is located at {}", trove_path.display());
+        }
+        
     }
 
     fn new_command(
@@ -146,15 +145,11 @@ impl Hoard {
                 command,
                 &self
                     .config
-                    .as_ref()
-                    .unwrap()
                     .parameter_token
                     .clone()
                     .unwrap(),
                 &self
                     .config
-                    .as_ref()
-                    .unwrap()
                     .parameter_ending_token
                     .clone()
                     .unwrap(),
@@ -183,7 +178,7 @@ impl Hoard {
             let filtered_trove = query_trove(&self.trove, &query_string);
             return Some(filtered_trove.to_yaml());
         } else {
-            match commands_gui::run(&mut self.trove, self.config.as_ref().unwrap()) {
+            match commands_gui::run(&mut self.trove, &self.config) {
                 Ok(selected_command) => {
                     self.save_trove(None);
                     if let Some(c) = selected_command {
@@ -203,7 +198,7 @@ impl Hoard {
     }
 
     fn pick_command(&mut self, name: &str) {
-        let command_result = self.trove.pick_command(self.config.as_ref().unwrap(), name);
+        let command_result = self.trove.pick_command(&self.config, name);
         match command_result {
             Ok(c) => {
                 println!("{}", c.command);
@@ -215,7 +210,7 @@ impl Hoard {
     fn remove_command(&mut self, command_name: &str) {
         let command_result = self.trove.remove_command(command_name);
         match command_result {
-            Ok(_) => {
+            Ok(()) => {
                 println!("Removed [{command_name}]");
             }
             Err(e) => eprintln!("{e}"),
@@ -226,7 +221,7 @@ impl Hoard {
     fn remove_namespace(&mut self, namespace: &str) {
         let command_result = self.trove.remove_namespace_commands(namespace);
         match command_result {
-            Ok(_) => {
+            Ok(()) => {
                 println!("Removed all commands of namespace [{namespace}]");
             }
             Err(e) => eprintln!("{e}"),
@@ -306,11 +301,9 @@ impl Hoard {
     }
 
     pub fn set_parameter_token(&self, parameter_token: &str) {
-        if let Some(config) = &self.config {
-            if let Some(config_path) = &config.config_home_path {
-                if !save_parameter_token(config, config_path, parameter_token) {
-                    std::process::exit(1);
-                }
+        if let Some(config_path) = self.config.config_home_path.clone() {
+            if !save_parameter_token(&self.config, &config_path, parameter_token) {
+                std::process::exit(1);
             }
         }
     }
@@ -319,7 +312,7 @@ impl Hoard {
         println!("Editing {command_name}");
         let command_to_edit = self
             .trove
-            .pick_command(self.config.as_ref().unwrap(), command_name);
+            .pick_command(&self.config, command_name);
 
         let trove_namespaces = self.trove.namespaces();
         match command_to_edit {
@@ -330,15 +323,11 @@ impl Hoard {
                         Some(c.command.clone()),
                         &self
                             .config
-                            .as_ref()
-                            .unwrap()
                             .parameter_token
                             .clone()
                             .unwrap(),
                         &self
                             .config
-                            .as_ref()
-                            .unwrap()
                             .parameter_ending_token
                             .clone()
                             .unwrap(),
@@ -369,59 +358,40 @@ impl Hoard {
     }
 
     pub fn load_trove(&mut self) -> &mut Self {
-        match &self.config {
-            Some(config) => {
-                self.trove = CommandTrove::load_trove_file(&config.trove_path);
-            }
-            None => {
-                info!("[DEBUG] No command config loaded");
-            }
-        }
+        self.trove = CommandTrove::load_trove_file(&self.config.trove_path);
         self
     }
 
     pub fn save_trove(&self, path: Option<&Path>) {
-        self.config.as_ref().map_or_else(
-            || info!("[DEBUG] No command config loaded"),
-            |config| {
-                let path_to_save = path.unwrap_or_else(|| config.trove_path.as_ref().unwrap());
-                self.trove.save_trove_file(path_to_save);
-            },
-        );
+        let path_to_save = path.unwrap_or_else(|| self.config.trove_path.as_ref().unwrap());
+        self.trove.save_trove_file(path_to_save);
     }
 
     fn save_backup_trove(&self, path: Option<&Path>) {
-        self.config.as_ref().map_or_else(
-            || info!("[DEBUG] No command config loaded"),
-            |config| {
-                let backup_trove_path_str = format!(
-                    "{}.bk",
-                    config.trove_path.as_ref().unwrap().to_str().unwrap()
-                );
-                let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
-                let path_to_save = path.unwrap_or(&backup_trove_path);
-                self.trove.save_trove_file(path_to_save);
-            },
+        let backup_trove_path_str = format!(
+            "{}.bk",
+            self.config.trove_path.as_ref().unwrap().to_str().unwrap()
         );
+        let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
+        let path_to_save = path.unwrap_or(&backup_trove_path);
+        self.trove.save_trove_file(path_to_save);
     }
 
     fn revert_trove(&self) {
-        self.config.as_ref().map_or_else(|| info!("[DEBUG] No command config loaded"), |config| {
-            let trove_path = config.trove_path.as_ref().unwrap();
-            let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
-            let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
-            if backup_trove_path.exists() {
-                if matches!(prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?"), Confirmation::Yes) {
-                    let e = fs::remove_file(trove_path);
-                    // make clippy happy
-                    drop(e);
-                    fs::rename(backup_trove_path_str, trove_path).unwrap();
-                    println!("Done!");
-                } else {
-                    println!("Keeping current trove file...");
-                }
+        let trove_path = self.config.trove_path.as_ref().unwrap();
+        let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
+        let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
+        if backup_trove_path.exists() {
+            if matches!(prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?"), Confirmation::Yes) {
+                let e = fs::remove_file(trove_path);
+                // make clippy happy
+                drop(e);
+                fs::rename(backup_trove_path_str, trove_path).unwrap();
+                println!("Done!");
+            } else {
+                println!("Keeping current trove file...");
             }
-        });
+        }
     }
 
     fn register_user(&mut self) {
@@ -431,7 +401,7 @@ impl Hoard {
         let client = reqwest::blocking::Client::new();
         let register_url = format!(
             "{}register",
-            self.config.clone().unwrap().sync_server_url.unwrap()
+            self.config.sync_server_url.clone().unwrap()
         );
         let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
         let body = client
@@ -455,7 +425,7 @@ impl Hoard {
         let client = reqwest::blocking::Client::new();
         let register_url = format!(
             "{}token/new",
-            self.config.clone().unwrap().sync_server_url.unwrap()
+            self.config.sync_server_url.clone().unwrap()
         );
         let body = client
             .get(register_url)
@@ -466,10 +436,9 @@ impl Hoard {
         if body.status() == StatusCode::CREATED {
             let response_text = body.text().unwrap();
             let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
-            let mut config = self.config.clone().unwrap();
             let b64_token = general_purpose::STANDARD.encode(token.token);
-            config.api_token = Some(b64_token);
-            save_hoard_config_file(&config, &config.clone().config_home_path.unwrap()).unwrap();
+            self.config.api_token = Some(b64_token);
+            save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap()).unwrap();
             println!("Success!");
         } else {
             println!("Invalid Email and password combination.");
@@ -478,11 +447,11 @@ impl Hoard {
 
     fn get_trove_file(&self) -> Option<CommandTrove> {
         println!("Syncing ...");
-        let token = self.config.clone().unwrap().api_token;
+        let token = self.config.api_token.clone();
         let client = reqwest::blocking::Client::new();
         let save_url = format!(
             "{}v1/trove",
-            self.config.clone().unwrap().sync_server_url.unwrap()
+            self.config.sync_server_url.clone().unwrap()
         );
         let body = client
             .get(save_url)
@@ -504,14 +473,14 @@ impl Hoard {
 
     fn sync_safe(&self) {
         println!("Uploading trove...");
-        let token = self.config.clone().unwrap().api_token;
+        let token = self.config.api_token.clone();
         let client = reqwest::blocking::Client::new();
         let save_url = format!(
             "{}v1/trove",
-            self.config.clone().unwrap().sync_server_url.unwrap()
+            self.config.sync_server_url.clone().unwrap()
         );
         let trove_file =
-            fs::read_to_string(self.config.clone().unwrap().trove_path.unwrap()).unwrap();
+            fs::read_to_string(self.config.trove_path.clone().unwrap()).unwrap();
         let body = client
             .put(save_url)
             .body(trove_file)
@@ -541,9 +510,8 @@ impl Hoard {
             }
             Mode::Logout => {
                 println!("Logging out..");
-                let mut config = self.config.clone().unwrap();
-                config.api_token = None;
-                save_hoard_config_file(&config, &config.clone().config_home_path.unwrap()).unwrap();
+                self.config.api_token = None;
+                save_hoard_config_file(&self.config.clone(), &self.config.config_home_path.clone().unwrap()).unwrap();
             }
             Mode::Save => {
                 if !self.is_logged_in() {
@@ -580,13 +548,8 @@ impl Hoard {
         }
     }
 
-    fn is_logged_in(&self) -> bool {
-        if let Some(config) = self.config.clone() {
-            if config.api_token.is_none() {
-                return false;
-            }
-        }
-        true
+    const fn is_logged_in(&self) -> bool {
+        self.config.api_token.is_some()
     }
 }
 
