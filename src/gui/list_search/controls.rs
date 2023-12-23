@@ -129,7 +129,6 @@ pub fn key_handler(
                 )
                 .expect("exists")
                 .clone();
-
             // Check if parameters need to be supplied
             if selected_command.get_parameter_count(&state.parameter_token) > 0 {
                 // Set next state to draw
@@ -200,9 +199,7 @@ fn switch_namespace(
 fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
-        .iter()
-        .cloned()
-        .filter(|c| {
+        .iter().filter(|&c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
                 || c.get_tags_as_string().contains(query_term)
@@ -210,7 +207,7 @@ fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: 
                 || c.description
                     .contains(query_term))
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
-        })
+        }).cloned()
         .collect();
 }
 
@@ -233,8 +230,8 @@ mod test_controls {
 
     const DEFAULT_NAMESPACE: &str = "default";
 
-    fn create_command(name: &str, namespace: &str) -> HoardCommand {
-        HoardCommand::new().with_name(name).with_namespace(namespace)
+    fn create_command(name: &str, command: &str, namespace: &str) -> HoardCommand {
+        HoardCommand::new().with_name(name).with_command(command).with_namespace(namespace)
     }
 
     fn create_state(commands: Vec<HoardCommand>) -> State {
@@ -269,9 +266,9 @@ mod test_controls {
 
     fn test_change_command(key: Key, initial_index: usize, expected_index: usize) {
         let namespaces = vec![DEFAULT_NAMESPACE];
-        let cmd1 = create_command("first", DEFAULT_NAMESPACE);
-        let cmd2 = create_command("second", DEFAULT_NAMESPACE);
-        let cmd3 = create_command("third", DEFAULT_NAMESPACE);
+        let cmd1 = create_command("first", "", DEFAULT_NAMESPACE);
+        let cmd2 = create_command("second", "", DEFAULT_NAMESPACE);
+        let cmd3 = create_command("third", "", DEFAULT_NAMESPACE);
         let mut state = create_state(vec![cmd1, cmd2, cmd3]);
         state.command_list_state.select(Some(initial_index));
 
@@ -343,8 +340,8 @@ mod test_controls {
         let all_namespaces = vec![namespace1, namespace2];
 
         let cmd2_name = "second_command";
-        let cmd1 = create_command("first_command", namespace1);
-        let cmd2 = create_command(cmd2_name, namespace2);
+        let cmd1 = create_command("first_command", "", namespace1);
+        let cmd2 = create_command(cmd2_name, "", namespace2);
         let mut state = create_state(vec![cmd1, cmd2]);
 
         let commands = state.commands.clone();
@@ -362,8 +359,8 @@ mod test_controls {
         let all_namespaces = vec![namespace1, namespace2];
 
         let expected_command_index = 1;
-        let cmd1 = create_command("first_command", namespace2);
-        let cmd2 = create_command("second_command", namespace2);
+        let cmd1 = create_command("first_command", "", namespace2);
+        let cmd2 = create_command("second_command", "", namespace2);
         let mut state = create_state(vec![cmd1, cmd2]);
 
         let commands = state.commands.clone();
@@ -377,9 +374,9 @@ mod test_controls {
     fn pick_command_without_params() {
         let namespaces = vec![DEFAULT_NAMESPACE];
         let expected_command = "second_command";
-        let command_index = 0;
-        let cmd1 = create_command("first_command", DEFAULT_NAMESPACE);
-        let cmd2 = create_command(expected_command, DEFAULT_NAMESPACE);
+        let command_index = 1;
+        let cmd1 = create_command("first_command", "", DEFAULT_NAMESPACE);
+        let cmd2 = create_command(expected_command, "", DEFAULT_NAMESPACE);
 
         let mut state = create_state(vec![cmd1, cmd2]);
         state.command_list_state.select(Some(command_index));
@@ -388,13 +385,13 @@ mod test_controls {
         let actual_command =
             key_handler(Key::Char('\n'), &mut state, &commands, &namespaces).unwrap();
 
-        assert_eq!(expected_command, actual_command.command);
+        assert_eq!(expected_command, actual_command.name);
     }
 
     #[test]
     fn pick_command_with_params() {
         let namespaces = vec![DEFAULT_NAMESPACE];
-        let cmd = create_command("first_command #", DEFAULT_NAMESPACE);
+        let cmd = create_command("First", "first_command #", DEFAULT_NAMESPACE);
 
         let mut state = create_state(vec![cmd]);
         let commands = state.commands.clone();
