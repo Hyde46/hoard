@@ -51,9 +51,9 @@ impl State {
         let cloned_selected_command = self.commands.get(selected_idx).unwrap().clone();
         match self.edit_selection {
             EditSelection::Name => self.string_to_edit = cloned_selected_command.name,
-            EditSelection::Tags => self.string_to_edit = cloned_selected_command.tags_as_string(),
+            EditSelection::Tags => self.string_to_edit = cloned_selected_command.get_tags_as_string(),
             EditSelection::Description => {
-                self.string_to_edit = cloned_selected_command.description.unwrap_or_default();
+                self.string_to_edit = cloned_selected_command.description;
             }
 
             EditSelection::Command => self.string_to_edit = cloned_selected_command.command,

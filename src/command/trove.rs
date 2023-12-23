@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
-use crate::command::hoard_command::{HoardCommand, Parameterized};
+use crate::command::hoard_command::HoardCommand;
+use crate::command::parameters::Parameterized;
 use crate::config::HoardConfig;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -218,9 +219,9 @@ impl CommandTrove {
                 // command
                 Cell::new(&c.command[..]),
                 // description
-                Cell::new(&c.description.as_ref().unwrap()[..]),
+                Cell::new(&c.description[..]),
                 // tags
-                Cell::new(&c.tags.as_ref().unwrap_or(&vec![String::new()]).join(",")[..]),
+                Cell::new(&c.get_tags_as_string()),
             ]));
         });
         // Print the table to stdout

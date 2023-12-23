@@ -11,11 +11,9 @@ pub fn query_trove(trove: &CommandTrove, query_term: &str) -> CommandTrove {
         .filter(|c| {
             c.name.contains(query_term)
                 || c.namespace.contains(query_term)
-                || c.tags_as_string().contains(query_term)
+                || c.get_tags_as_string().contains(query_term)
                 || c.command.contains(query_term)
                 || c.description
-                    .clone()
-                    .unwrap_or_default()
                     .contains(query_term)
         })
         .collect();

@@ -1,80 +1,213 @@
 use crate::command::trove::CommandTrove;
+use crate::command::error::CommandError;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
 use crate::util::string_find_next;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::time;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+fn default_time() -> time::SystemTime {
+    time::SystemTime::now()
+}
+
+/// Storage for the saved command structure
+///
+/// A `HoardCommand` can store the following parameters
+/// - `name`: The name of the command by which it is referenced
+/// - `command`: The terminal command to be stored and executed
+/// - `description`: A description of the command for the user
+/// - `tags`: A list of tags to be used for searching
+/// - `created`: The date and time the command was created
+/// - `modified`: The date and time the command was last modified
+/// - `last_used`: The date and time the command was last used
+/// - `usage_count`: The number of times the command has been used
+/// - `is_favorite`: A flag to indicate if the command is a favorite
+/// - `is_hidden`: A flag to indicate if the command is hidden
+/// - `is_deleted`: A flag to indicate if the command is deleted
+/// - `namespace`: The namespace the command belongs to
+/// - `namespace_id`: The id of the namespace the command belongs to
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct HoardCommand {
+    /// The name of the command by which it is referenced
     pub name: String,
-    pub namespace: String,
-    pub tags: Option<Vec<String>>,
+
+    /// The terminal command to be stored and executed
     pub command: String,
-    pub description: Option<String>,
+
+    /// A description of the command for the user
+    pub description: String,
+
+    /// A list of tags to be used for searching
+    pub tags: Vec<String>,
+
+    /// The date and time the command was created
+    #[serde(default = "default_time")]
+    pub created: time::SystemTime,
+
+    /// The date and time the command was last modified
+    #[serde(default = "default_time")]
+    pub modified: time::SystemTime,
+
+    /// The date and time the command was last used
+    #[serde(default = "default_time")]
+    pub last_used: time::SystemTime,
+
+    /// The number of times the command has been used
+    #[serde(default)]
+    pub usage_count: usize,
+
+    /// A flag to indicate if the command is a favorite
+    #[serde(default)]
+    pub is_favorite: bool,
+
+    /// A flag to indicate if the command is hidden
+    #[serde(default)]
+    pub is_hidden: bool,
+
+    /// A flag to indicate if the command is deleted
+    #[serde(default)]
+    pub is_deleted: bool,
+
+    /// The namespace the command belongs to
+    pub namespace: String,
 }
 
 impl HoardCommand {
+    /// Create a new `HoardCommand` with default values
     pub const fn default() -> Self {
         Self {
             name: String::new(),
-            namespace: String::new(),
-            tags: None,
             command: String::new(),
-            description: None,
+            description: String::new(),
+            tags: Vec::new(),
+            created: time::UNIX_EPOCH,
+            modified: time::UNIX_EPOCH,
+            last_used: time::UNIX_EPOCH,
+            usage_count: 0,
+            is_favorite: false,
+            is_hidden: false,
+            is_deleted: false,
+            namespace: String::new(),
         }
     }
 
-    pub fn is_command_valid(c: &str) -> (bool, String) {
-        if c.is_empty() {
-            return (false, String::from("Command can't be empty"));
-        }
-        (true, String::new())
+    /// Create a new `HoardCommand` with default values
+    /// set created, modified and `last_used` to the current time
+    pub fn new() -> Self {
+        let mut command = Self::default();
+        command.created = time::SystemTime::now();
+        command.modified = time::SystemTime::now();
+        command.last_used = time::SystemTime::now();
+        command
     }
 
-    pub fn is_name_valid(c: &str) -> (bool, String) {
+    /// set the name of the command
+    pub fn with_name(self, name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the command to be stored and executed
+    pub fn with_command(self, command: &str) -> Self {
+        Self {
+            command: command.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the description the command belongs to
+    pub fn with_description(self, description: &str) -> Self {
+        Self {
+            description: description.to_string(),
+            ..self
+        }
+    }
+
+    /// set the tags of the command from a vector of strings
+    pub fn with_tags(self, tags: Vec<String>) -> Self {
+        Self { tags, ..self }
+    }
+
+    /// Check if a command is valid for saving
+    /// A valid command cant be an empty string
+    /// Returns a Result with the error if the command is invalid
+    pub fn is_command_valid(c: &str) -> Result<(), CommandError> {
         if c.is_empty() {
-            return (false, String::from("Name can't be empty"));
+            return Err(CommandError::new("Command can't be empty"));
+        }
+        Ok(())
+    }
+
+    /// Check if a command is valid
+    /// A valid command must have:
+    /// - A name that is not empty
+    /// - A command that is not empty
+    /// - A namespace that is not empty
+    /// - `created/modified/last_used` that is not the `UNIX_EPOCH`
+    pub fn is_valid(&self) -> bool {
+        !self.name.is_empty()
+            && !self.command.is_empty()
+            && !self.namespace.is_empty()
+            && self.created != time::UNIX_EPOCH
+            && self.modified != time::UNIX_EPOCH
+            && self.last_used != time::UNIX_EPOCH
+    }
+
+    /// Check if a name is valid for saving
+    /// A valid name cant be an empty string and can't contain whitespaces
+    /// Returns a Result with the error if the name is invalid
+    pub fn is_name_valid(c: &str) -> Result<(), CommandError> {
+        if c.is_empty() {
+            return Err(CommandError::new("Name can't be empty"));
         }
         if c.contains(' ') {
-            return (false, String::from("Name can't contain whitespaces"));
+            return Err(CommandError::new("Name can't contain whitespaces"));
         }
-        (true, String::new())
+        Ok(())
     }
 
-    pub fn are_tags_valid(c: &str) -> (bool, String) {
+    /// Check if the tags are valid for saving
+    /// A valid tag vector cant be empty
+    /// Returns a Result with the error if the tags are invalid
+    pub fn are_tags_valid(c: &str) -> Result<(), CommandError> {
         if c.is_empty() {
-            return (false, String::from("Tags can't be empty"));
+            return Err(CommandError::new("Tags can't be empty"));
         }
-        (true, String::new())
+        Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn is_complete(&self) -> bool {
-        if self.name.is_empty()
-            || self.namespace.is_empty()
-            || self.tags.is_none()
-            || self.command.is_empty()
-            || self.description.is_none()
-        {
-            return false;
+    /// Return vector of tags as a string
+    /// Tags are separated by a comma
+    /// # Example  
+    /// ```
+    /// use hoardlib::command::HoardCommand;
+    ///
+    /// let mut cmd = HoardCommand::default();
+    /// cmd.tags.push("tag1".to_string());
+    /// cmd.tags.push("tag2".to_string());
+    /// cmd.tags.push("tag3".to_string());
+    ///
+    /// assert_eq!(cmd.get_tags_as_string(), "tag1,tag2,tag3");
+    /// ```
+    pub fn get_tags_as_string(&self) -> String {
+        let mut tags = String::new();
+        for tag in &self.tags {
+            tags.push_str(tag);
+            tags.push(',');
         }
-        true
-    }
-
-    pub fn tags_as_string(&self) -> String {
-        self.tags.as_ref().unwrap_or(&vec![String::new()]).join(",")
+        tags.pop();
+        tags
     }
 
     #[allow(dead_code)]
     pub fn with_command_raw(self, command_string: &str) -> Self {
         Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: self.tags,
             command: command_string.to_string(),
-            description: self.description,
+            ..self
         }
     }
 
@@ -89,21 +222,42 @@ impl HoardCommand {
         );
         let command_string: String = prompt_input(&base_prompt, false, default_value);
         Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: self.tags,
             command: command_string,
-            description: self.description,
+            ..self
         }
     }
 
-    pub fn with_tags_raw(self, tags: &str) -> Self {
+    /// set the namespace of the command
+    pub fn with_namespace(self, namespace: &str) -> Self {
         Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: Some(string_to_tags(tags)),
-            command: self.command,
-            description: self.description,
+            namespace: namespace.to_string(),
+            ..self
+        }
+    }
+
+    /// set a random suffix to the name of the command
+    pub fn with_random_name_suffix(self) -> Self {
+        let rng = rand::thread_rng();
+        let random_string: String = rng
+            .sample_iter(&Alphanumeric)
+            .take(4)
+            .map(char::from)
+            .collect();
+        Self {
+            name: format!("{}-{random_string}", self.name),
+            ..self
+        }
+    }
+
+    /// set the tags of the command from a string split by `,`
+    pub fn with_tags_raw(self, tags: &str) -> Self {
+        // If tags are empty, just return self
+        if tags.trim().is_empty() {
+            return Self { ..self };
+        }
+        Self {
+            tags: tags.split(',').map(|s| s.trim().to_string()).collect(),
+            ..self
         }
     }
 
@@ -140,11 +294,8 @@ impl HoardCommand {
         }
 
         Self {
-            name: self.name,
             namespace: selected_namespace,
-            tags: self.tags,
-            command: self.command,
-            description: self.description,
+            ..self
         }
     }
 
@@ -175,10 +326,7 @@ impl HoardCommand {
         let name = prompt_input_validate(prompt_string, false, default_value, Some(validator));
         Self {
             name,
-            namespace: self.namespace,
-            tags: self.tags,
-            command: self.command,
-            description: self.description,
+            ..self
         }
     }
 
@@ -195,10 +343,7 @@ impl HoardCommand {
             .collect();
         Self {
             name: format!("{}-{random_string}", self.name),
-            namespace: self.namespace,
-            tags: self.tags,
-            command: self.command,
-            description: self.description,
+            ..self
         }
     }
 
@@ -240,17 +385,39 @@ impl HoardCommand {
         }
     }
 
-    pub fn with_description_input(self, default_value: Option<String>) -> Self {
+    pub fn with_description_input(self, default_value: String) -> Self {
         let description_string: String =
-            prompt_input("Describe what the command does", false, default_value);
+            prompt_input("Describe what the command does", false, Some(default_value));
         Self {
-            name: self.name,
-            namespace: self.namespace,
-            tags: self.tags,
-            command: self.command,
-            description: Some(description_string),
+            description: description_string,
+            ..self
         }
     }
+
+    /// increase the usage count of the command
+    pub fn mut_increase_usage_count(&mut self) -> &mut Self {
+        self.usage_count += 1;
+        self
+    }
+
+    /// sets the favorite flag of the command
+    pub fn mut_set_favorite(&mut self, is_favorite: bool) -> &mut Self {
+        self.is_favorite = is_favorite;
+        self
+    }
+
+    /// sets the hidden flag of the command
+    pub fn mut_set_hidden(&mut self, is_hidden: bool) -> &mut Self {
+        self.is_hidden = is_hidden;
+        self
+    }
+
+    /// sets the deleted flag of the command
+    pub fn mut_set_deleted(&mut self, is_deleted: bool) -> &mut Self {
+        self.is_deleted = is_deleted;
+        self
+    }
+
 }
 
 pub fn string_to_tags(tags: &str) -> Vec<String> {
@@ -262,103 +429,6 @@ pub fn string_to_tags(tags: &str) -> Vec<String> {
         .collect()
 }
 
-pub trait Parameterized {
-    // Check if parameter pointers are present
-    fn is_parameterized(&self, token: &str) -> bool;
-    // Count number of parameter pointers
-    fn get_parameter_count(&self, token: &str) -> usize;
-    fn split(&self, token: &str) -> Vec<String>;
-    // Get parameterized String like subject including parameter token
-    // For example, given subject with parameter token '#1':
-    // 'This is a #1 with one parameter token'
-    // `get_split_subject("#")` returns
-    // Vec['This is a ', '#', ' with one parameter token']
-    fn get_split_subject(&self, token: &str) -> Vec<String>;
-    // Replaces parameter tokens with content from `parameters`,
-    // consuming entries one by one until `parameters` is empty.
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand;
-
-    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCommand;
-}
-
-impl Parameterized for HoardCommand {
-    fn is_parameterized(&self, token: &str) -> bool {
-        self.command.contains(token)
-    }
-    fn get_parameter_count(&self, token: &str) -> usize {
-        self.command.matches(token).count()
-    }
-    fn split(&self, token: &str) -> Vec<String> {
-        self.command.split(token).map(ToString::to_string).collect()
-    }
-    fn get_split_subject(&self, token: &str) -> Vec<String> {
-        let split = self.split(token);
-        let mut collected: Vec<String> = Vec::new();
-        for s in split {
-            collected.push(s.clone());
-            collected.push(token.to_string());
-        }
-        collected
-    }
-
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: String) -> HoardCommand {
-        let parameter_array = &[parameter.clone()];
-        let mut parameter_iter = parameter_array.iter();
-
-        // Named parameter ending with a space
-        let named_token = string_find_next(&self.command, token, " ");
-        // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
-        let mut full_named_token = string_find_next(&self.command, token, ending_token);
-        full_named_token.push_str(ending_token);
-        // Select the split based on whether the ending token is part of the command or not
-        let split_token = if self.command.contains(ending_token) {
-            full_named_token
-        } else {
-            named_token
-        };
-        let split = self.split(&split_token);
-        let mut collected: Vec<String> = Vec::new();
-        for s in split {
-            collected.push(s.clone());
-
-            // if token is not named replace following occurrences of the token in the command with the token again.
-            // only replace all occurrences of a token if it is names
-            // this is a convoluted way of achieving this, but doing it properly would need this method to be completely reworked
-            let to_push = if split_token == token {
-                token.to_string()
-            } else {
-                parameter.clone()
-            };
-            collected.push(parameter_iter.next().unwrap_or(&to_push).clone());
-        }
-        // Always places either a token or the parameter at the end, due to the bad loop design.
-        // Just remove it at the end
-        collected.pop();
-        Self {
-            name: self.name.clone(),
-            namespace: self.namespace.clone(),
-            tags: self.tags.clone(),
-            command: collected.concat(),
-            description: self.description.clone(),
-        }
-    }
-
-    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> Self{
-        let mut param_count = 0;
-        while self.get_parameter_count(token) != 0 {
-            let prompt_dialog = format!(
-                "Enter parameter({}) nr {} \n~> {}\n",
-                token,
-                (param_count + 1),
-                self.command
-            );
-            let parameter = prompt_input(&prompt_dialog, false, None);
-            self.command = self.replace_parameter(token, ending_token, parameter).command;
-            param_count += 1;
-        }
-        Self { name:self.name.clone(), namespace:self.namespace.clone(), tags: self.tags.clone(), command: self.command.clone(), description: self.description.clone() }
-    }
-}
 
 #[cfg(test)]
 mod test_commands {
@@ -368,137 +438,75 @@ mod test_commands {
     fn one_tag_as_string() {
         let command = HoardCommand::default().with_tags_raw("foo");
         let expected = "foo";
-        assert_eq!(expected, command.tags_as_string());
+        assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn no_tag_as_string() {
         let command = HoardCommand::default();
         let expected = "";
-        assert_eq!(expected, command.tags_as_string());
+        assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn multiple_tags_as_string() {
         let command = HoardCommand::default().with_tags_raw("foo,bar");
         let expected = "foo,bar";
-        assert_eq!(expected, command.tags_as_string());
+        assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn parse_single_tag() {
         let command = HoardCommand::default().with_tags_raw("foo");
-        let expected = Some(vec!["foo".to_string()]);
-        assert_eq!(expected, command.tags);
-    }
-
-    #[test]
-    fn parse_no_tag() {
-        let command = HoardCommand::default();
-        let expected = None;
+        let expected = vec!["foo".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_multiple_tags() {
         let command = HoardCommand::default().with_tags_raw("foo,bar");
-        let expected = Some(vec!["foo".to_string(), "bar".to_string()]);
+        let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_whitespace_in_tags() {
         let command = HoardCommand::default().with_tags_raw("foo, bar");
-        let expected = Some(vec!["foo".to_string(), "bar".to_string()]);
+        let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
-}
-
-#[cfg(test)]
-mod test_parameterized {
-    use super::*;
-
-    fn command_struct(command: &str) -> HoardCommand {
-        HoardCommand::default().with_command_raw(command)
+    #[test]
+    fn parse_no_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
     }
 
     #[test]
-    fn test_split() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test # test");
-        let expected = vec!["test ".to_string(), " test".to_string()];
-        assert_eq!(expected, c.split(&token));
+    fn parse_multiple_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,   bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
     }
 
     #[test]
-    fn test_split_empty() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test  test");
-        let expected = vec!["test  test".to_string()];
-        assert_eq!(expected, c.split(&token));
+    fn parse_special_characters_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo@, bar#");
+        let expected = vec!["foo@".to_string(), "bar#".to_string()];
+        assert_eq!(expected, command.tags);
     }
 
     #[test]
-    fn test_split_multiple() {
-        let token = "#".to_string();
-        let c: HoardCommand = command_struct("test # test #");
-        let expected = vec!["test ".to_string(), " test ".to_string(), String::new()];
-        assert_eq!(expected, c.split(&token));
+    fn parse_empty_string() {
+        let command = HoardCommand::default().with_tags_raw("");
+        let expected: Vec<String> = Vec::new();
+        assert_eq!(expected, command.tags);
     }
 
     #[test]
-    fn test_replace_parameter() {
-        let token = "#".to_string();
-        let ending_token = "!".to_string();
-        let c: HoardCommand = command_struct("test # bar");
-        let to_replace = "foo".to_string();
-        let expected = "test foo bar".to_string();
-        assert_eq!(
-            expected,
-            c.replace_parameter(&token, &ending_token, to_replace)
-                .command
-        );
-    }
-
-    #[test]
-    fn test_replace_last_parameter() {
-        let token = "#".to_string();
-        let ending_token = "!".to_string();
-        let c: HoardCommand = command_struct("test foo #");
-        let to_replace = "bar".to_string();
-        let expected = "test foo bar".to_string();
-        assert_eq!(
-            expected,
-            c.replace_parameter(&token, &ending_token, to_replace)
-                .command
-        );
-    }
-
-    #[test]
-    fn test_replace_parameter_ending() {
-        let token = "#".to_string();
-        let ending_token = "!".to_string();
-        let c: HoardCommand = command_struct("test foo #toremove!suffix");
-        let to_replace = "prefix".to_string();
-        let expected = "test foo prefixsuffix".to_string();
-        assert_eq!(
-            expected,
-            c.replace_parameter(&token, &ending_token, to_replace)
-                .command
-        );
-    }
-
-    #[test]
-    fn test_replace_parameter_ending_space() {
-        let token = "#".to_string();
-        let ending_token = "!".to_string();
-        let c: HoardCommand = command_struct("test foo #name with space! suffix");
-        let to_replace = "prefix".to_string();
-        let expected = "test foo prefix suffix".to_string();
-        assert_eq!(
-            expected,
-            c.replace_parameter(&token, &ending_token, to_replace)
-                .command
-        );
+    fn parse_string_with_only_whitespaces() {
+        let command = HoardCommand::default().with_tags_raw("   ");
+        let expected: Vec<String> = Vec::new();
+        assert_eq!(expected, command.tags);
     }
 }

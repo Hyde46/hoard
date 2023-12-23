@@ -156,7 +156,7 @@ impl Hoard {
             )
             .with_namespace_input(&trove_namespaces)
             .with_name_input(name, &self.trove)
-            .with_description_input(description)
+            .with_description_input(description.unwrap_or_default())
             .with_tags_input(tags);
         self.trove.add_command(new_command, true);
         self.save_trove(None);
@@ -334,7 +334,7 @@ impl Hoard {
                     )
                     .with_name_input(Some(c.name.clone()), &self.trove)
                     .with_description_input(c.description.clone())
-                    .with_tags_input(Some(c.tags_as_string()))
+                    .with_tags_input(Some(c.get_tags_as_string()))
                     .with_namespace_input(&trove_namespaces);
                 self.trove.remove_command(command_name).ok();
                 self.trove.add_command(new_command, true);

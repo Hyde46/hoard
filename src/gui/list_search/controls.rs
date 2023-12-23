@@ -1,4 +1,5 @@
-use crate::command::hoard_command::{HoardCommand, Parameterized};
+use crate::command::hoard_command::HoardCommand;
+use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 
@@ -204,11 +205,9 @@ fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: 
         .filter(|c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
-                || c.tags_as_string().contains(query_term)
+                || c.get_tags_as_string().contains(query_term)
                 || c.command.contains(query_term)
                 || c.description
-                    .clone()
-                    .unwrap_or_default()
                     .contains(query_term))
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
         })
@@ -235,13 +234,7 @@ mod test_controls {
     const DEFAULT_NAMESPACE: &str = "default";
 
     fn create_command(name: &str, namespace: &str) -> HoardCommand {
-        HoardCommand {
-            name: name.to_string(),
-            namespace: namespace.to_string(),
-            tags: None,
-            command: name.to_string(),
-            description: None,
-        }
+        HoardCommand::new().with_name(name).with_namespace(namespace)
     }
 
     fn create_state(commands: Vec<HoardCommand>) -> State {
@@ -384,7 +377,7 @@ mod test_controls {
     fn pick_command_without_params() {
         let namespaces = vec![DEFAULT_NAMESPACE];
         let expected_command = "second_command";
-        let command_index = 1;
+        let command_index = 0;
         let cmd1 = create_command("first_command", DEFAULT_NAMESPACE);
         let cmd2 = create_command(expected_command, DEFAULT_NAMESPACE);
 
