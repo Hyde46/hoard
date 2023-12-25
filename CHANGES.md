@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.4.3
+- 🧹 Cleanup and refactor a bunch of code
+- 🧪 Add more tests to make sure factor is safe
 ## 1.4.2
 - 🐛 Fix a lifetime longevity issue around theming password prompts 
 ## 1.4.1
