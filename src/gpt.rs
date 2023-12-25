@@ -1,4 +1,4 @@
-use crate::command::{HoardCmd, string_to_tags};
+use crate::core::{HoardCmd, string_to_tags};
 use chatgpt::prelude::*;
 
 pub fn from_gpt_string(gpt_string: &str) -> HoardCmd {

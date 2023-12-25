@@ -1,5 +1,5 @@
-use crate::command::HoardCmd;
-use crate::command::parameters::Parameterized;
+use crate::core::HoardCmd;
+use crate::core::parameters::Parameterized;
 use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 

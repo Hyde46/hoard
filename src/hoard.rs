@@ -7,12 +7,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use url::ParseError;
-
 use dotenv::dotenv;
 
 use crate::cli_commands::Mode;
-use crate::command::HoardCmd;
-use crate::command::trove::Trove;
+use crate::core::HoardCmd;
+use crate::core::trove::Trove;
 use crate::config::{compare_with_latest_version, HoardConfig};
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
 use crate::filter::query_trove;

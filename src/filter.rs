@@ -1,5 +1,5 @@
-use crate::command::HoardCmd;
-use crate::command::trove::Trove;
+use crate::core::HoardCmd;
+use crate::core::trove::Trove;
 
 pub fn query_trove(trove: &Trove, query_term: &str) -> Trove {
     // Filter out commands of `trove` based on `query_string`

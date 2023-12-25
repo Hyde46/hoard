@@ -10,7 +10,7 @@ extern crate rand;
 extern crate array_tool;
 
 mod cli_commands;
-mod command;
+mod core;
 mod config;
 mod filter;
 mod gui;
