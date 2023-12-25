@@ -1,4 +1,4 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::gui::commands_gui::{ControlState, EditSelection};
@@ -234,7 +234,7 @@ fn coerce_string_by_mode(s: String, app: &State, command_render: &EditSelection)
 
 #[allow(clippy::too_many_lines)]
 fn render_commands<'a>(
-    commands_list: &[HoardCommand],
+    commands_list: &[HoardCmd],
     app: &mut State,
     config: &HoardConfig,
 ) -> (
@@ -260,13 +260,13 @@ fn render_commands<'a>(
         })
         .collect();
 
-    let selected_command: HoardCommand = commands_list
+    let selected_command: HoardCmd = commands_list
         .get(
             app.command_list_state
                 .selected()
                 .expect("there is always a selected command"),
         )
-        .get_or_insert(&HoardCommand::default())
+        .get_or_insert(&HoardCmd::default())
         .clone();
 
     if selected_command.name.is_empty() {

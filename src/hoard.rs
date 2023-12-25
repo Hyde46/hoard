@@ -11,7 +11,7 @@ use url::ParseError;
 use dotenv::dotenv;
 
 use crate::cli_commands::Mode;
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::trove::Trove;
 use crate::config::{compare_with_latest_version, HoardConfig};
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
@@ -140,7 +140,7 @@ impl Hoard {
     ) {
         let trove_namespaces = self.trove.namespaces();
         //trove_namespaces.push(&default_ns_clone);
-        let new_command = HoardCommand::default()
+        let new_command = HoardCmd::default()
             .with_command_string_input(
                 command,
                 &self
@@ -318,7 +318,7 @@ impl Hoard {
         match command_to_edit {
             Ok(c) => {
                 println!("{}", c.command);
-                let new_command = HoardCommand::default()
+                let new_command = HoardCmd::default()
                     .with_command_string_input(
                         Some(c.command.clone()),
                         &self

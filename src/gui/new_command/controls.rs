@@ -1,12 +1,12 @@
-use crate::command::{string_to_tags, HoardCommand};
+use crate::command::{string_to_tags, HoardCmd};
 use crate::command::trove::Trove;
 use crate::gui::commands_gui::{DrawState, EditSelection, State};
 use termion::event::Key;
 
-pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Option<HoardCommand> {
+pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Option<HoardCmd> {
     // Make sure there is an empty command set
     if app.new_command.is_none() {
-        app.new_command = Some(HoardCommand::default());
+        app.new_command = Some(HoardCmd::default());
     }
     match input {
         Key::Esc => {
@@ -28,9 +28,9 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
             app.error_message = match app.edit_selection {
                 EditSelection::Command => {
                     command.command = parameter.clone();
-                    // when HoardCommand::is_command_valid(&parameter) returns an error, read out the rror and return
+                    // when HoardCmd::is_command_valid(&parameter) returns an error, read out the rror and return
                     // that else return empty string
-                    let msg = match HoardCommand::is_command_valid(&parameter) {
+                    let msg = match HoardCmd::is_command_valid(&parameter) {
                         Ok(()) => "".to_string(),
                         Err(error) => error.to_string(),
                     };
@@ -38,7 +38,7 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                 }
                 EditSelection::Name => {
                     command.name = parameter.clone();
-                    let mut msg = match HoardCommand::is_name_valid(&parameter) {
+                    let mut msg = match HoardCmd::is_name_valid(&parameter) {
                         Ok(()) => "".to_string(),
                         Err(error) => error.to_string(),
                     };
@@ -63,7 +63,7 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     String::new()
                 }
                 EditSelection::Tags => {
-                    match HoardCommand::are_tags_valid(&parameter) {
+                    match HoardCmd::are_tags_valid(&parameter) {
                         Ok(()) => {command.tags = string_to_tags(&parameter); "".into()},
                         Err(e) => {
                             app.error_message = e.to_string();

@@ -1,7 +1,7 @@
 use regex::Regex;
 
 use crate::gui::prompts::prompt_input;
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 
 pub trait Parameterized {
     /// Check if parameter pointers are present
@@ -28,12 +28,12 @@ pub trait Parameterized {
     fn split_inclusive_token(&self, token: &str) -> Vec<String>;
     /// Replaces parameter tokens with content from `parameters`,
     /// consuming entries one by one until `parameters` is empty.
-    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: &str) -> HoardCommand;
+    fn replace_parameter(&self, token: &str, ending_token: &str, parameter: &str) -> HoardCmd;
     /// Prompts user for input parameters
-    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCommand;
+    fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCmd;
 }
 
-impl Parameterized for HoardCommand {
+impl Parameterized for HoardCmd {
     fn is_parameterized(&self, token: &str) -> bool {
         self.command.contains(token)
     }
@@ -88,75 +88,75 @@ mod test_commands {
 
     #[test]
     fn test_get_parameter_count() {
-        let command = HoardCommand::default().with_command("test test test");
+        let command = HoardCmd::default().with_command("test test test");
         assert_eq!(3, command.get_parameter_count("test"));
     }
 
     #[test]
     fn test_split() {
-        let command = HoardCommand::default().with_command("test1 test2 test3");
+        let command = HoardCmd::default().with_command("test1 test2 test3");
         let expected = vec!["test1", "test2", "test3"];
         assert_eq!(expected, command.split(" "));
     }
 
     #[test]
     fn test_split_inclusive_token() {
-        let command = HoardCommand::default().with_command("test1 test2 test3");
+        let command = HoardCmd::default().with_command("test1 test2 test3");
         let expected = vec!["test1", " ", "test2", " ", "test3"];
         assert_eq!(expected, command.split_inclusive_token(" "));
     }
     #[test]
     fn test_split_inclusive_token_multiple_spaces() {
-        let command = HoardCommand::default().with_command("test1   test2   test3");
+        let command = HoardCmd::default().with_command("test1   test2   test3");
         let expected = vec!["test1", "   ", "test2", "   ", "test3"];
         assert_eq!(expected, command.split_inclusive_token("   "));
     }
 
     #[test]
     fn test_split_inclusive_token_no_spaces() {
-        let command = HoardCommand::default().with_command("test1test2test3");
+        let command = HoardCmd::default().with_command("test1test2test3");
         let expected = vec!["test1test2test3"];
         assert_eq!(expected, command.split_inclusive_token(" "));
     }
 
     #[test]
     fn test_split_inclusive_token_special_characters() {
-        let command = HoardCommand::default().with_command("test1@test2@test3");
+        let command = HoardCmd::default().with_command("test1@test2@test3");
         let expected = vec!["test1", "@", "test2", "@", "test3"];
         assert_eq!(expected, command.split_inclusive_token("@"));
     }
     #[test]
     fn test_split_inclusive_token_start() {
-        let command = HoardCommand::default().with_command(" test1 test2 test3");
+        let command = HoardCmd::default().with_command(" test1 test2 test3");
         let expected = vec![" ", "test1", " ", "test2", " ", "test3"];
         assert_eq!(expected, command.split_inclusive_token(" "));
     }
 
     #[test]
     fn test_split_inclusive_token_end() {
-        let command = HoardCommand::default().with_command("test1 test2 test3 ");
+        let command = HoardCmd::default().with_command("test1 test2 test3 ");
         let expected = vec!["test1", " ", "test2", " ", "test3", " "];
         assert_eq!(expected, command.split_inclusive_token(" "));
     }
 
     #[test]
     fn test_replace_parameter() {
-        let command = HoardCommand::default().with_command("test1 # test3");
-        let expected = HoardCommand::default().with_command("test1 replacement test3");
+        let command = HoardCmd::default().with_command("test1 # test3");
+        let expected = HoardCmd::default().with_command("test1 replacement test3");
         assert_eq!(expected, command.replace_parameter("#", "", "replacement"));
     }
 
     #[test]
     fn test_replace_parameter_with_endtoken() {
-        let command = HoardCommand::default().with_command("test1 #thisisacommand! test3");
-        let expected = HoardCommand::default().with_command("test1 replacement test3");
+        let command = HoardCmd::default().with_command("test1 #thisisacommand! test3");
+        let expected = HoardCmd::default().with_command("test1 replacement test3");
         assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
     }
 
     #[test]
     fn test_replace_parameter_with_endtoken_no_spaces() {
-        let command = HoardCommand::default().with_command("test1#thisisacommand!test3");
-        let expected = HoardCommand::default().with_command("test1replacementtest3");
+        let command = HoardCmd::default().with_command("test1#thisisacommand!test3");
+        let expected = HoardCmd::default().with_command("test1replacementtest3");
         assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
     }
 }

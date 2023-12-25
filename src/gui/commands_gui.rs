@@ -1,4 +1,4 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::trove::Trove;
 use crate::config::HoardConfig;
 use crate::gui::event::{Config, Event, Events};
@@ -24,7 +24,7 @@ use crate::gpt::prompt;
 #[allow(clippy::struct_excessive_bools)]
 pub struct State {
     pub input: String,
-    pub commands: Vec<HoardCommand>,
+    pub commands: Vec<HoardCmd>,
     pub command_list_state: ListState,
     pub namespace_tab_state: ListState,
     pub should_exit: bool,
@@ -32,11 +32,11 @@ pub struct State {
     pub draw_state: DrawState,
     pub control_state: ControlState,
     pub edit_selection: EditSelection,
-    pub new_command: Option<HoardCommand>,
+    pub new_command: Option<HoardCmd>,
     pub string_to_edit: String,
     pub parameter_token: String,
     pub parameter_ending_token: String,
-    pub selected_command: Option<HoardCommand>,
+    pub selected_command: Option<HoardCmd>,
     pub provided_parameter_count: u16,
     pub error_message: String,
     pub query_gpt: bool,
@@ -142,7 +142,7 @@ impl EditSelection {
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCommand>> {
+pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });

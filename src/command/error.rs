@@ -2,11 +2,11 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct CommandError {
+pub struct HoardErr {
     details: String,
 }
 
-impl CommandError {
+impl HoardErr {
     pub fn new(msg: &str) -> Self {
         Self {
             details: msg.to_string(),
@@ -14,38 +14,13 @@ impl CommandError {
     }
 }
 
-impl fmt::Display for CommandError {
+impl fmt::Display for HoardErr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.details)
     }
 }
 
-impl Error for CommandError {
-    fn description(&self) -> &str {
-        &self.details
-    }
-}
-
-#[derive(Debug)]
-pub struct TroveError {
-    details: String,
-}
-
-impl TroveError {
-    pub fn new(msg: &str) -> Self {
-        Self {
-            details: msg.to_string(),
-        }
-    }
-}
-
-impl fmt::Display for TroveError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.details)
-    }
-}
-
-impl Error for TroveError {
+impl Error for HoardErr {
     fn description(&self) -> &str {
         &self.details
     }

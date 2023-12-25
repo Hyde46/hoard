@@ -1,9 +1,9 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::State;
 use termion::event::Key;
 
-pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCommand> {
+pub fn key_handler(input: Key, app: &mut State) -> Option<HoardCmd> {
     match input {
         // Quit command
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {

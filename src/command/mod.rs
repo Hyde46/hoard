@@ -3,7 +3,7 @@ pub mod error;
 pub mod parameters;
 
 use crate::command::trove::Trove;
-use crate::command::error::CommandError;
+use crate::command::error::HoardErr;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
 use rand::distributions::Alphanumeric;
@@ -17,7 +17,7 @@ fn default_time() -> time::SystemTime {
 
 /// Storage for the saved command structure
 ///
-/// A `HoardCommand` can store the following parameters
+/// A `HoardCmd` can store the following parameters
 /// - `name`: The name of the command by which it is referenced
 /// - `command`: The terminal command to be stored and executed
 /// - `description`: A description of the command for the user
@@ -32,7 +32,7 @@ fn default_time() -> time::SystemTime {
 /// - `namespace`: The namespace the command belongs to
 /// - `namespace_id`: The id of the namespace the command belongs to
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HoardCommand {
+pub struct HoardCmd {
     /// The name of the command by which it is referenced
     pub name: String,
 
@@ -77,7 +77,7 @@ pub struct HoardCommand {
     pub namespace: String,
 }
 
-impl PartialEq for HoardCommand {
+impl PartialEq for HoardCmd {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name && 
         self.namespace == other.namespace &&
@@ -87,8 +87,8 @@ impl PartialEq for HoardCommand {
     }
 }
 
-impl HoardCommand {
-    /// Create a new `HoardCommand` with default values
+impl HoardCmd {
+    /// Create a new `HoardCmd` with default values
     pub fn default() -> Self {
         Self {
             name: String::new(),
@@ -138,9 +138,9 @@ impl HoardCommand {
     /// Check if a command is valid for saving
     /// A valid command cant be an empty string
     /// Returns a Result with the error if the command is invalid
-    pub fn is_command_valid(c: &str) -> Result<(), CommandError> {
+    pub fn is_command_valid(c: &str) -> Result<(), HoardErr> {
         if c.is_empty() {
-            return Err(CommandError::new("Command can't be empty"));
+            return Err(HoardErr::new("Command can't be empty"));
         }
         Ok(())
     }
@@ -163,12 +163,12 @@ impl HoardCommand {
     /// Check if a name is valid for saving
     /// A valid name cant be an empty string and can't contain whitespaces
     /// Returns a Result with the error if the name is invalid
-    pub fn is_name_valid(c: &str) -> Result<(), CommandError> {
+    pub fn is_name_valid(c: &str) -> Result<(), HoardErr> {
         if c.is_empty() {
-            return Err(CommandError::new("Name can't be empty"));
+            return Err(HoardErr::new("Name can't be empty"));
         }
         if c.contains(' ') {
-            return Err(CommandError::new("Name can't contain whitespaces"));
+            return Err(HoardErr::new("Name can't contain whitespaces"));
         }
         Ok(())
     }
@@ -176,9 +176,9 @@ impl HoardCommand {
     /// Check if the tags are valid for saving
     /// A valid tag vector cant be empty
     /// Returns a Result with the error if the tags are invalid
-    pub fn are_tags_valid(c: &str) -> Result<(), CommandError> {
+    pub fn are_tags_valid(c: &str) -> Result<(), HoardErr> {
         if c.is_empty() {
-            return Err(CommandError::new("Tags can't be empty"));
+            return Err(HoardErr::new("Tags can't be empty"));
         }
         Ok(())
     }
@@ -187,9 +187,9 @@ impl HoardCommand {
     /// Tags are separated by a comma
     /// # Example  
     /// ```
-    /// use hoardlib::command::HoardCommand;
+    /// use hoardlib::command::HoardCmd;
     ///
-    /// let mut cmd = HoardCommand::default();
+    /// let mut cmd = HoardCmd::default();
     /// cmd.tags.push("tag1".to_string());
     /// cmd.tags.push("tag2".to_string());
     /// cmd.tags.push("tag3".to_string());
@@ -439,76 +439,76 @@ mod test_commands {
 
     #[test]
     fn one_tag_as_string() {
-        let command = HoardCommand::default().with_tags_raw("foo");
+        let command = HoardCmd::default().with_tags_raw("foo");
         let expected = "foo";
         assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn no_tag_as_string() {
-        let command = HoardCommand::default();
+        let command = HoardCmd::default();
         let expected = "";
         assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn multiple_tags_as_string() {
-        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let command = HoardCmd::default().with_tags_raw("foo,bar");
         let expected = "foo,bar";
         assert_eq!(expected, command.get_tags_as_string());
     }
 
     #[test]
     fn parse_single_tag() {
-        let command = HoardCommand::default().with_tags_raw("foo");
+        let command = HoardCmd::default().with_tags_raw("foo");
         let expected = vec!["foo".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_multiple_tags() {
-        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let command = HoardCmd::default().with_tags_raw("foo,bar");
         let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_whitespace_in_tags() {
-        let command = HoardCommand::default().with_tags_raw("foo, bar");
+        let command = HoardCmd::default().with_tags_raw("foo, bar");
         let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
     #[test]
     fn parse_no_whitespace_in_tags() {
-        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let command = HoardCmd::default().with_tags_raw("foo,bar");
         let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_multiple_whitespace_in_tags() {
-        let command = HoardCommand::default().with_tags_raw("foo,   bar");
+        let command = HoardCmd::default().with_tags_raw("foo,   bar");
         let expected = vec!["foo".to_string(), "bar".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_special_characters_in_tags() {
-        let command = HoardCommand::default().with_tags_raw("foo@, bar#");
+        let command = HoardCmd::default().with_tags_raw("foo@, bar#");
         let expected = vec!["foo@".to_string(), "bar#".to_string()];
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_empty_string() {
-        let command = HoardCommand::default().with_tags_raw("");
+        let command = HoardCmd::default().with_tags_raw("");
         let expected: Vec<String> = Vec::new();
         assert_eq!(expected, command.tags);
     }
 
     #[test]
     fn parse_string_with_only_whitespaces() {
-        let command = HoardCommand::default().with_tags_raw("   ");
+        let command = HoardCmd::default().with_tags_raw("   ");
         let expected: Vec<String> = Vec::new();
         assert_eq!(expected, command.tags);
     }
