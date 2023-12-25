@@ -11,8 +11,8 @@ use url::ParseError;
 use dotenv::dotenv;
 
 use crate::cli_commands::Mode;
-use crate::command::hoard_command::HoardCommand;
-use crate::command::trove::CommandTrove;
+use crate::command::HoardCommand;
+use crate::command::trove::Trove;
 use crate::config::{compare_with_latest_version, HoardConfig};
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
 use crate::filter::query_trove;
@@ -27,7 +27,7 @@ use base64::Engine as _;
 #[derive(Default, Debug)]
 pub struct Hoard {
     config: HoardConfig,
-    trove: CommandTrove,
+    trove: Trove,
 }
 
 impl Hoard {
@@ -233,7 +233,7 @@ impl Hoard {
         match Url::parse(path) {
             Ok(url) => match reqwest_trove(url) {
                 Ok(trove_string) => {
-                    let imported_trove = CommandTrove::load_trove_from_string(&trove_string[..]);
+                    let imported_trove = Trove::load_trove_from_string(&trove_string[..]);
                     self.trove.merge_trove(&imported_trove);
                     self.save_trove(None);
                 }
@@ -243,7 +243,7 @@ impl Hoard {
             },
             Err(err) => {
                 if err == ParseError::RelativeUrlWithoutBase {
-                    let imported_trove = CommandTrove::load_trove_file(&Some(PathBuf::from(path)));
+                    let imported_trove = Trove::load_trove_file(&Some(PathBuf::from(path)));
                     self.trove.merge_trove(&imported_trove);
                     self.save_trove(None);
                 } else {
@@ -289,7 +289,7 @@ impl Hoard {
                 return;
             }
 
-            let mut trove_for_export = CommandTrove::default();
+            let mut trove_for_export = Trove::default();
             for command in selected_commands {
                 trove_for_export.add_command(command.clone(), true);
             }
@@ -358,7 +358,7 @@ impl Hoard {
     }
 
     pub fn load_trove(&mut self) -> &mut Self {
-        self.trove = CommandTrove::load_trove_file(&self.config.trove_path);
+        self.trove = Trove::load_trove_file(&self.config.trove_path);
         self
     }
 
@@ -445,7 +445,7 @@ impl Hoard {
         }
     }
 
-    fn get_trove_file(&self) -> Option<CommandTrove> {
+    fn get_trove_file(&self) -> Option<Trove> {
         println!("Syncing ...");
         let token = self.config.api_token.clone();
         let client = reqwest::blocking::Client::new();
@@ -464,7 +464,7 @@ impl Hoard {
             let escaped_string = body.text().unwrap().replace("\\n", "\x0A");
             // Replace escaped " with unescaped version
             let unescaped_string = escaped_string.replace("\\\"", "\"");
-            return Some(CommandTrove::load_trove_from_string(rem_first_and_last(
+            return Some(Trove::load_trove_from_string(rem_first_and_last(
                 &unescaped_string,
             )));
         }

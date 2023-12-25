@@ -1,4 +1,4 @@
-use crate::command::hoard_command::{string_to_tags, HoardCommand};
+use crate::command::{string_to_tags, HoardCommand};
 use crate::gui::commands_gui::{ControlState, EditSelection, State};
 use termion::event::Key;
 

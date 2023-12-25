@@ -1,5 +1,5 @@
-use crate::command::hoard_command::{string_to_tags, HoardCommand};
-use crate::command::trove::CommandTrove;
+use crate::command::{string_to_tags, HoardCommand};
+use crate::command::trove::Trove;
 use crate::gui::commands_gui::{DrawState, EditSelection, State};
 use termion::event::Key;
 
@@ -42,8 +42,8 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                         Ok(()) => "".to_string(),
                         Err(error) => error.to_string(),
                     };
-                    let trove = CommandTrove::from_commands(&app.commands);
-                    if trove.check_name_collision(&command).is_some() {
+                    let trove = Trove::from_commands(&app.commands);
+                    if trove.get_command_collision(&command).is_some() {
                         msg = String::from(
                             "Command with that name already exists in another namespace",
                         );

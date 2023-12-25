@@ -1,5 +1,515 @@
-#[allow(clippy::module_name_repetitions)]
-pub mod hoard_command;
 pub mod trove;
 pub mod error;
 pub mod parameters;
+
+use crate::command::trove::Trove;
+use crate::command::error::CommandError;
+use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
+use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+use serde::{Deserialize, Serialize};
+use std::time;
+
+fn default_time() -> time::SystemTime {
+    time::SystemTime::now()
+}
+
+/// Storage for the saved command structure
+///
+/// A `HoardCommand` can store the following parameters
+/// - `name`: The name of the command by which it is referenced
+/// - `command`: The terminal command to be stored and executed
+/// - `description`: A description of the command for the user
+/// - `tags`: A list of tags to be used for searching
+/// - `created`: The date and time the command was created
+/// - `modified`: The date and time the command was last modified
+/// - `last_used`: The date and time the command was last used
+/// - `usage_count`: The number of times the command has been used
+/// - `is_favorite`: A flag to indicate if the command is a favorite
+/// - `is_hidden`: A flag to indicate if the command is hidden
+/// - `is_deleted`: A flag to indicate if the command is deleted
+/// - `namespace`: The namespace the command belongs to
+/// - `namespace_id`: The id of the namespace the command belongs to
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HoardCommand {
+    /// The name of the command by which it is referenced
+    pub name: String,
+
+    /// The terminal command to be stored and executed
+    pub command: String,
+
+    /// A description of the command for the user
+    pub description: String,
+
+    /// A list of tags to be used for searching
+    pub tags: Vec<String>,
+
+    /// The date and time the command was created
+    #[serde(default = "default_time")]
+    pub created: time::SystemTime,
+
+    /// The date and time the command was last modified
+    #[serde(default = "default_time")]
+    pub modified: time::SystemTime,
+
+    /// The date and time the command was last used
+    #[serde(default = "default_time")]
+    pub last_used: time::SystemTime,
+
+    /// The number of times the command has been used
+    #[serde(default)]
+    pub usage_count: usize,
+
+    /// A flag to indicate if the command is a favorite
+    #[serde(default)]
+    pub is_favorite: bool,
+
+    /// A flag to indicate if the command is hidden
+    #[serde(default)]
+    pub is_hidden: bool,
+
+    /// A flag to indicate if the command is deleted
+    #[serde(default)]
+    pub is_deleted: bool,
+
+    /// The namespace the command belongs to
+    pub namespace: String,
+}
+
+impl PartialEq for HoardCommand {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && 
+        self.namespace == other.namespace &&
+        self.command == other.command &&
+        self.description == other.description &&
+        self.tags == other.tags
+    }
+}
+
+impl HoardCommand {
+    /// Create a new `HoardCommand` with default values
+    pub fn default() -> Self {
+        Self {
+            name: String::new(),
+            command: String::new(),
+            description: String::new(),
+            tags: Vec::new(),
+            created: time::SystemTime::now(),
+            modified: time::SystemTime::now(),
+            last_used: time::SystemTime::now(),
+            usage_count: 0,
+            is_favorite: false,
+            is_hidden: false,
+            is_deleted: false,
+            namespace: String::new(),
+        }
+    }
+
+    /// set the name of the command
+    pub fn with_name(self, name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the command to be stored and executed
+    pub fn with_command(self, command: &str) -> Self {
+        Self {
+            command: command.to_string(),
+            ..self
+        }
+    }
+
+    /// Set the description the command belongs to
+    pub fn with_description(self, description: &str) -> Self {
+        Self {
+            description: description.to_string(),
+            ..self
+        }
+    }
+
+    /// set the tags of the command from a vector of strings
+    pub fn with_tags(self, tags: Vec<String>) -> Self {
+        Self { tags, ..self }
+    }
+
+    /// Check if a command is valid for saving
+    /// A valid command cant be an empty string
+    /// Returns a Result with the error if the command is invalid
+    pub fn is_command_valid(c: &str) -> Result<(), CommandError> {
+        if c.is_empty() {
+            return Err(CommandError::new("Command can't be empty"));
+        }
+        Ok(())
+    }
+
+    /// Check if a command is valid
+    /// A valid command must have:
+    /// - A name that is not empty
+    /// - A command that is not empty
+    /// - A namespace that is not empty
+    /// - `created/modified/last_used` that is not the `UNIX_EPOCH`
+    pub fn is_valid(&self) -> bool {
+        !self.name.is_empty()
+            && !self.command.is_empty()
+            && !self.namespace.is_empty()
+            && self.created != time::UNIX_EPOCH
+            && self.modified != time::UNIX_EPOCH
+            && self.last_used != time::UNIX_EPOCH
+    }
+
+    /// Check if a name is valid for saving
+    /// A valid name cant be an empty string and can't contain whitespaces
+    /// Returns a Result with the error if the name is invalid
+    pub fn is_name_valid(c: &str) -> Result<(), CommandError> {
+        if c.is_empty() {
+            return Err(CommandError::new("Name can't be empty"));
+        }
+        if c.contains(' ') {
+            return Err(CommandError::new("Name can't contain whitespaces"));
+        }
+        Ok(())
+    }
+
+    /// Check if the tags are valid for saving
+    /// A valid tag vector cant be empty
+    /// Returns a Result with the error if the tags are invalid
+    pub fn are_tags_valid(c: &str) -> Result<(), CommandError> {
+        if c.is_empty() {
+            return Err(CommandError::new("Tags can't be empty"));
+        }
+        Ok(())
+    }
+
+    /// Return vector of tags as a string
+    /// Tags are separated by a comma
+    /// # Example  
+    /// ```
+    /// use hoardlib::command::HoardCommand;
+    ///
+    /// let mut cmd = HoardCommand::default();
+    /// cmd.tags.push("tag1".to_string());
+    /// cmd.tags.push("tag2".to_string());
+    /// cmd.tags.push("tag3".to_string());
+    ///
+    /// assert_eq!(cmd.get_tags_as_string(), "tag1,tag2,tag3");
+    /// ```
+    pub fn get_tags_as_string(&self) -> String {
+        let mut tags = String::new();
+        for tag in &self.tags {
+            tags.push_str(tag);
+            tags.push(',');
+        }
+        tags.pop();
+        tags
+    }
+
+    #[allow(dead_code)]
+    pub fn with_command_raw(self, command_string: &str) -> Self {
+        Self {
+            command: command_string.to_string(),
+            ..self
+        }
+    }
+
+    pub fn with_command_string_input(
+        self,
+        default_value: Option<String>,
+        parameter_token: &str,
+        parameter_ending_token: &str,
+    ) -> Self {
+        let base_prompt = format!(
+            "Command to hoard ( Mark unknown parameters with '{parameter_token}'. Name the parameter with any string and end it with '{parameter_ending_token}' )\n"
+        );
+        let command_string: String = prompt_input(&base_prompt, false, default_value);
+        Self {
+            command: command_string,
+            ..self
+        }
+    }
+
+    /// set the namespace of the command
+    pub fn with_namespace(self, namespace: &str) -> Self {
+        Self {
+            namespace: namespace.to_string(),
+            ..self
+        }
+    }
+
+    /// set a random suffix to the name of the command
+    pub fn with_random_name_suffix(self) -> Self {
+        let rng = rand::thread_rng();
+        let random_string: String = rng
+            .sample_iter(&Alphanumeric)
+            .take(4)
+            .map(char::from)
+            .collect();
+        Self {
+            name: format!("{}-{random_string}", self.name),
+            ..self
+        }
+    }
+
+    /// set the tags of the command from a string split by `,`
+    pub fn with_tags_raw(self, tags: &str) -> Self {
+        // If tags are empty, just return self
+        if tags.trim().is_empty() {
+            return Self { ..self };
+        }
+        Self {
+            tags: tags.split(',').map(|s| s.trim().to_string()).collect(),
+            ..self
+        }
+    }
+
+    pub fn with_tags_input(self, default_value: Option<String>) -> Self {
+        let tag_validator = move |input: &String| -> Result<(), String> {
+            if input.contains(' ') {
+                Err("Tags can't contain whitespaces".to_string())
+            } else {
+                Ok(())
+            }
+        };
+        let tags: String = prompt_input_validate(
+            "Give your command some optional tags ( comma separated )",
+            true,
+            default_value,
+            Some(tag_validator),
+        );
+        self.with_tags_raw(&tags)
+    }
+
+    pub fn with_namespace_input(self, selection: &[&str]) -> Self {
+        // Add "New namespace" option to selction
+        let mut selection = selection.to_vec();
+        selection.push("New namespace");
+
+        let selected: usize = prompt_select_with_options(
+            "Namespace of the command",
+            &selection,
+        );
+
+        let mut selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
+        if selected_namespace == "New namespace" {
+            selected_namespace = prompt_input("Namespace of the command", false, Some(String::from("default")));
+        }
+
+        Self {
+            namespace: selected_namespace,
+            ..self
+        }
+    }
+
+    fn with_name_input_prompt(
+        self,
+        default_value: Option<String>,
+        trove: &Trove,
+        prompt_string: &str,
+    ) -> Self {
+        let namespace = self.namespace.clone();
+        let command_names = trove.commands.clone();
+        let validator = move |input: &String| -> Result<(), String> {
+            if input.contains(' ') {
+                Err("The name can't contain whitespaces".to_string())
+            } else if command_names
+                .iter()
+                .filter(|x| x.namespace == namespace)
+                .any(|x| x.name == *input)
+            {
+                Err(
+                    "A command with same name exists in the this namespace. Input a different name"
+                        .to_string(),
+                )
+            } else {
+                Ok(())
+            }
+        };
+        let name = prompt_input_validate(prompt_string, false, default_value, Some(validator));
+        Self {
+            name,
+            ..self
+        }
+    }
+
+    pub fn with_name_input(self, default_value: Option<String>, trove: &Trove) -> Self {
+        self.with_name_input_prompt(default_value, trove, "Name your command")
+    }
+
+    pub fn resolve_name_conflict_random(self) -> Self {
+        let rng = rand::thread_rng();
+        let random_string: String = rng
+            .sample_iter(&Alphanumeric)
+            .take(3)
+            .map(char::from)
+            .collect();
+        Self {
+            name: format!("{}-{random_string}", self.name),
+            ..self
+        }
+    }
+
+    pub fn resolve_name_conflict(
+        self,
+        collision: Self,
+        trove: &Trove,
+    ) -> (Option<Self>, Option<Self>) {
+        // Behaviour if a command should be added to a trove file
+        // Returns a tuple of options
+        // If the first is set, add this as a new command
+        // If the second is set, remove this exact command
+        let name = self.name.clone();
+        let command = self.command.clone();
+        let namespace = self.namespace.clone();
+        let colliding_command = collision.command.clone();
+        // Ask user how to resolve conflict
+        let mode: ConflictResolve =
+            with_conflict_resolve_prompt(&name, &namespace, &command, &colliding_command);
+
+        match mode {
+            ConflictResolve::Replace => {
+                // Add new command, remove colliding command in the local trove
+                (Some(self), Some(collision))
+            }
+            ConflictResolve::Keep => {
+                // Do nothing
+                (None, None)
+            }
+            ConflictResolve::New => {
+                (Some(self.with_name_input_prompt(
+                    None,
+                    trove,
+                    &format!(
+                        "Enter a new name for command: '{command}'\nOld name: {name} in namespace: {namespace}\nEnter new name: "
+                    ),
+                )) , None)
+            }
+        }
+    }
+
+    pub fn with_description_input(self, default_value: String) -> Self {
+        let description_string: String =
+            prompt_input("Describe what the command does", false, Some(default_value));
+        Self {
+            description: description_string,
+            ..self
+        }
+    }
+
+    /// increase the usage count of the command
+    pub fn mut_increase_usage_count(&mut self) -> &mut Self {
+        self.usage_count += 1;
+        self
+    }
+
+    /// sets the favorite flag of the command
+    pub fn mut_set_favorite(&mut self, is_favorite: bool) -> &mut Self {
+        self.is_favorite = is_favorite;
+        self
+    }
+
+    /// sets the hidden flag of the command
+    pub fn mut_set_hidden(&mut self, is_hidden: bool) -> &mut Self {
+        self.is_hidden = is_hidden;
+        self
+    }
+
+    /// sets the deleted flag of the command
+    pub fn mut_set_deleted(&mut self, is_deleted: bool) -> &mut Self {
+        self.is_deleted = is_deleted;
+        self
+    }
+
+}
+
+pub fn string_to_tags(tags: &str) -> Vec<String> {
+    tags.chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .split(',')
+        .map(std::string::ToString::to_string)
+        .collect()
+}
+
+
+#[cfg(test)]
+mod test_commands {
+    use super::*;
+
+    #[test]
+    fn one_tag_as_string() {
+        let command = HoardCommand::default().with_tags_raw("foo");
+        let expected = "foo";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn no_tag_as_string() {
+        let command = HoardCommand::default();
+        let expected = "";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn multiple_tags_as_string() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = "foo,bar";
+        assert_eq!(expected, command.get_tags_as_string());
+    }
+
+    #[test]
+    fn parse_single_tag() {
+        let command = HoardCommand::default().with_tags_raw("foo");
+        let expected = vec!["foo".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_multiple_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo, bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+    #[test]
+    fn parse_no_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_multiple_whitespace_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo,   bar");
+        let expected = vec!["foo".to_string(), "bar".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_special_characters_in_tags() {
+        let command = HoardCommand::default().with_tags_raw("foo@, bar#");
+        let expected = vec!["foo@".to_string(), "bar#".to_string()];
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_empty_string() {
+        let command = HoardCommand::default().with_tags_raw("");
+        let expected: Vec<String> = Vec::new();
+        assert_eq!(expected, command.tags);
+    }
+
+    #[test]
+    fn parse_string_with_only_whitespaces() {
+        let command = HoardCommand::default().with_tags_raw("   ");
+        let expected: Vec<String> = Vec::new();
+        assert_eq!(expected, command.tags);
+    }
+}
