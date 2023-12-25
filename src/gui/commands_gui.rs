@@ -21,17 +21,17 @@ use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
 
-#[allow(clippy::struct_excessive_bools, clippy::struct_field_names)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct State {
     pub buffered_tick: bool,
-    pub command_list_state: ListState,
+    pub command_list: ListState,
     pub commands: Vec<HoardCmd>,
-    pub control_state: ControlState,
-    pub draw_state: DrawState,
+    pub control: ControlState,
+    pub draw: DrawState,
     pub edit_selection: EditSelection,
     pub error_message: String,
     pub input: String,
-    pub namespace_tab_state: ListState,
+    pub namespace_tab: ListState,
     pub new_command: Option<HoardCmd>,
     pub openai_key_set: bool,
     pub parameter_ending_token: String,
@@ -47,7 +47,7 @@ pub struct State {
 
 impl State {
     pub fn update_string_to_edit(&mut self) -> &mut Self {
-        let selected_idx = self.command_list_state.selected().unwrap();
+        let selected_idx = self.command_list.selected().unwrap();
         let cloned_selected_command = self.commands.get(selected_idx).unwrap().clone();
         match self.edit_selection {
             EditSelection::Name => self.string_to_edit = cloned_selected_command.name,
@@ -161,12 +161,12 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
     let mut app_state = State {
         input: String::new(),
         commands: trove_clone.commands.clone(),
-        command_list_state: ListState::default(),
-        namespace_tab_state: ListState::default(),
+        command_list: ListState::default(),
+        namespace_tab: ListState::default(),
         should_exit: false,
         should_delete: false,
-        draw_state: DrawState::Search,
-        control_state: ControlState::Search,
+        draw: DrawState::Search,
+        control: ControlState::Search,
         edit_selection: EditSelection::Command,
         new_command: None,
         string_to_edit: String::new(),
@@ -182,8 +182,8 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
         openai_key_set: !openai_api_key.is_empty(),
     };
 
-    app_state.command_list_state.select(Some(0));
-    app_state.namespace_tab_state.select(Some(0));
+    app_state.command_list.select(Some(0));
+    app_state.namespace_tab.select(Some(0));
 
     let stdout = stdout().into_raw_mode()?;
     let stdout = stdout.into_alternate_screen().unwrap();
@@ -196,7 +196,7 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
     namespace_tabs.insert(0, "All");
     loop {
         // Draw GUI
-        match app_state.draw_state {
+        match app_state.draw {
             DrawState::Search => {
                 draw_list_search(&mut app_state, config, &namespace_tabs, &mut terminal)?;
             }
@@ -216,13 +216,13 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
             }
         }
 
-        if app_state.query_gpt && app_state.control_state == ControlState::Gpt {
+        if app_state.query_gpt && app_state.control == ControlState::Gpt {
             if app_state.buffered_tick {
                 let gpt_command = prompt(&app_state.input[..], &openai_api_key);
                 let _ = trove.add_command(gpt_command, false);
                 app_state.commands = trove.commands.clone();
-                app_state.draw_state = DrawState::Search;
-                app_state.control_state = ControlState::Search;
+                app_state.draw = DrawState::Search;
+                app_state.control = ControlState::Search;
                 app_state.input = String::new();
                 app_state.query_gpt = false;
                 app_state.buffered_tick = false;
@@ -232,8 +232,8 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
         }
 
         if let Event::Input(input) = events.next()? {
-            let command = match app_state.draw_state {
-                DrawState::Search => match app_state.control_state {
+            let command = match app_state.draw {
+                DrawState::Search => match app_state.control {
                     ControlState::Search => key_handler_list_search(
                         input,
                         &mut app_state,
@@ -252,15 +252,15 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
             };
 
             if let Some(output) = command {
-                if app_state.draw_state == DrawState::Create {
+                if app_state.draw == DrawState::Create {
                     let _ = trove.add_command(output, true);
                     app_state.commands = trove.commands.clone();
-                    app_state.draw_state = DrawState::Search;
-                } else if app_state.control_state == ControlState::Edit {
+                    app_state.draw = DrawState::Search;
+                } else if app_state.control == ControlState::Edit {
                     // Command has been edited
                     trove.update_command_by_name(&output);
                     app_state.commands = trove.commands.clone();
-                    app_state.control_state = ControlState::Search;
+                    app_state.control = ControlState::Search;
                 } else if app_state.should_delete {
                     trove.remove_command(&output.name).ok();
                     app_state.commands = trove.commands.clone();

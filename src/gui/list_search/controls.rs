@@ -13,18 +13,18 @@ pub fn key_handler(
     match input {
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
             // Definitely exit program
-            state.control_state = ControlState::Search;
+            state.control = ControlState::Search;
             state.should_exit = true;
             None
         }
         // Show help
         Key::F(1) => {
-            state.draw_state = DrawState::Help;
+            state.draw = DrawState::Help;
             None
         }
         // Show help
         Key::Ctrl('w') => {
-            state.draw_state = DrawState::Create;
+            state.draw = DrawState::Create;
             state.edit_selection = EditSelection::Command;
             state.new_command = Some(HoardCmd::default());
             None
@@ -32,11 +32,11 @@ pub fn key_handler(
         // Enter GPT mode
         Key::Ctrl('a') => {
             // Same drawing state, only update how control works
-            state.draw_state = DrawState::Search;
+            state.draw = DrawState::Search;
             if state.openai_key_set {
-                state.control_state = ControlState::Gpt;
+                state.control = ControlState::Gpt;
             } else {
-                state.control_state = ControlState::KeyNotSet;
+                state.control = ControlState::KeyNotSet;
                 state.query_gpt = true;
             }
             state.new_command = Some(HoardCmd::default());
@@ -49,27 +49,27 @@ pub fn key_handler(
                 .clone()
                 .get(
                     state
-                        .command_list_state
+                        .command_list
                         .selected()
                         .expect("there is always a selected command"),
                 )
                 .expect("exists")
                 .clone();
-            state.control_state = ControlState::Edit;
+            state.control = ControlState::Edit;
             state.selected_command = Some(selected_command);
             state.update_string_to_edit();
             None
         }
         // Switch namespace
         Key::Left | Key::Ctrl('h') => {
-            if let Some(selected) = state.namespace_tab_state.selected() {
+            if let Some(selected) = state.namespace_tab.selected() {
                 let new_selected_tab = previous_index(selected, namespace_tabs.len());
                 switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
             }
             None
         }
         Key::Right | Key::Ctrl('l') => {
-            if let Some(selected) = state.namespace_tab_state.selected() {
+            if let Some(selected) = state.namespace_tab.selected() {
                 let new_selected_tab = next_index(selected, namespace_tabs.len());
                 switch_namespace(state, new_selected_tab, namespace_tabs, trove_commands);
             }
@@ -78,18 +78,18 @@ pub fn key_handler(
         // Switch command
         Key::Up | Key::Ctrl('y' | 'p') => {
             if !state.commands.is_empty() {
-                if let Some(selected) = state.command_list_state.selected() {
+                if let Some(selected) = state.command_list.selected() {
                     let new_selected = previous_index(selected, state.commands.len());
-                    state.command_list_state.select(Some(new_selected));
+                    state.command_list.select(Some(new_selected));
                 }
             }
             None
         }
         Key::Down | Key::Ctrl('.' | 'n') => {
             if !state.commands.is_empty() {
-                if let Some(selected) = state.command_list_state.selected() {
+                if let Some(selected) = state.command_list.selected() {
                     let new_selected = next_index(selected, state.commands.len());
-                    state.command_list_state.select(Some(new_selected));
+                    state.command_list.select(Some(new_selected));
                 }
             }
             None
@@ -103,7 +103,7 @@ pub fn key_handler(
                 .clone()
                 .get(
                     state
-                        .command_list_state
+                        .command_list
                         .selected()
                         .expect("there is always a selected command"),
                 )
@@ -123,7 +123,7 @@ pub fn key_handler(
                 .clone()
                 .get(
                     state
-                        .command_list_state
+                        .command_list
                         .selected()
                         .expect("there is always a selected command"),
                 )
@@ -132,7 +132,7 @@ pub fn key_handler(
             // Check if parameters need to be supplied
             if selected_command.get_parameter_count(&state.parameter_token) > 0 {
                 // Set next state to draw
-                state.draw_state = DrawState::ParameterInput;
+                state.draw = DrawState::ParameterInput;
                 // Save which command to replace parameters for
                 state.selected_command = Some(selected_command);
                 // Empty input for next screen
@@ -179,7 +179,7 @@ fn switch_namespace(
     namespaces: &[&str],
     commands: &[HoardCmd],
 ) {
-    state.namespace_tab_state.select(Some(index_to_select));
+    state.namespace_tab.select(Some(index_to_select));
 
     let selected_namespace = namespaces
         .get(index_to_select)
@@ -193,7 +193,7 @@ fn switch_namespace(
         state.commands.len() - 1
     };
 
-    state.command_list_state.select(Some(new_selected_command));
+    state.command_list.select(Some(new_selected_command));
 }
 
 fn apply_search(state: &mut State, all_commands: &[HoardCmd], selected_tab: &str) {
@@ -216,7 +216,7 @@ fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCmd]) {
     let selected_tab = namespaces
         .get(
             state
-                .namespace_tab_state
+                .namespace_tab
                 .selected()
                 .expect("Always a namespace selected"),
         )
@@ -242,12 +242,12 @@ mod test_controls {
         let mut state = State {
             input: String::new(),
             commands,
-            command_list_state: ListState::default(),
-            namespace_tab_state: ListState::default(),
+            command_list: ListState::default(),
+            namespace_tab: ListState::default(),
             should_exit: false,
             should_delete: false,
-            draw_state: DrawState::Search,
-            control_state: ControlState::Search,
+            draw: DrawState::Search,
+            control: ControlState::Search,
             new_command: None,
             edit_selection: crate::gui::commands_gui::EditSelection::Command,
             string_to_edit: String::new(),
@@ -262,8 +262,8 @@ mod test_controls {
             openai_key_set: false,
         };
 
-        state.command_list_state.select(Some(0));
-        state.namespace_tab_state.select(Some(0));
+        state.command_list.select(Some(0));
+        state.namespace_tab.select(Some(0));
 
         state
     }
@@ -274,11 +274,11 @@ mod test_controls {
         let cmd2 = create_command("second", "", DEFAULT_NAMESPACE);
         let cmd3 = create_command("third", "", DEFAULT_NAMESPACE);
         let mut state = create_state(vec![cmd1, cmd2, cmd3]);
-        state.command_list_state.select(Some(initial_index));
+        state.command_list.select(Some(initial_index));
 
         let commands = state.commands.clone();
         key_handler(key, &mut state, &commands, &namespaces);
-        let new_selected_index = state.command_list_state.selected();
+        let new_selected_index = state.command_list.selected();
 
         assert_eq!(expected_index, new_selected_index.unwrap());
     }
@@ -286,11 +286,11 @@ mod test_controls {
     fn test_change_namespace(key: Key, initial_index: usize, expected_index: usize) {
         let namespaces = vec!["first", "second", "third"];
         let mut state = create_state(vec![]);
-        state.namespace_tab_state.select(Some(initial_index));
+        state.namespace_tab.select(Some(initial_index));
 
         let commands = state.commands.clone();
         key_handler(key, &mut state, &commands, &namespaces);
-        let new_selected_index = state.namespace_tab_state.selected();
+        let new_selected_index = state.namespace_tab.selected();
 
         assert_eq!(expected_index, new_selected_index.unwrap());
     }
@@ -369,7 +369,7 @@ mod test_controls {
 
         let commands = state.commands.clone();
         key_handler(Key::Right, &mut state, &commands, &all_namespaces);
-        let selected_command_index = state.command_list_state.selected().unwrap();
+        let selected_command_index = state.command_list.selected().unwrap();
 
         assert_eq!(expected_command_index, selected_command_index);
     }
@@ -383,7 +383,7 @@ mod test_controls {
         let cmd2 = create_command(expected_command, "", DEFAULT_NAMESPACE);
 
         let mut state = create_state(vec![cmd1, cmd2]);
-        state.command_list_state.select(Some(command_index));
+        state.command_list.select(Some(command_index));
 
         let commands = state.commands.clone();
         let actual_command =
@@ -401,7 +401,7 @@ mod test_controls {
         let commands = state.commands.clone();
         key_handler(Key::Char('\n'), &mut state, &commands, &namespaces);
 
-        assert_eq!(DrawState::ParameterInput, state.draw_state);
+        assert_eq!(DrawState::ParameterInput, state.draw);
     }
 
     #[test]
@@ -428,6 +428,6 @@ mod test_controls {
 
         key_handler(Key::F(1), &mut state, &[], &[]);
 
-        assert_eq!(DrawState::Help, state.draw_state);
+        assert_eq!(DrawState::Help, state.draw);
     }
 }

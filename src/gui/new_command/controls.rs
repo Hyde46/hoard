@@ -10,7 +10,7 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
     }
     match input {
         Key::Esc => {
-            app.draw_state = DrawState::Search;
+            app.draw = DrawState::Search;
             app.new_command = None;
             app.edit_selection = EditSelection::Command;
             None
