@@ -1,13 +1,13 @@
-use crate::core::HoardCmd;
 use crate::config::HoardConfig;
+use crate::core::HoardCmd;
 use crate::gui::commands_gui::{DrawState, State};
-use termion::event::Key;
-use termion::screen::AlternateScreen;
 use ratatui::backend::TermionBackend;
 use ratatui::style::{Color, Style};
-use ratatui::text::{Span, Line};
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, BorderType, Borders, List, ListItem};
 use ratatui::Terminal;
+use termion::event::Key;
+use termion::screen::AlternateScreen;
 
 pub const HELP_KEY: &str = "<F1>";
 const HELP_CONTENT: &[(&str, &str)] = &[

@@ -1,5 +1,5 @@
-use crate::core::HoardCmd;
 use crate::core::parameters::Parameterized;
+use crate::core::HoardCmd;
 use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
 
@@ -32,11 +32,11 @@ pub fn key_handler(
         // Enter GPT mode
         Key::Ctrl('a') => {
             // Same drawing state, only update how control works
-            state.draw_state = DrawState::Search; 
+            state.draw_state = DrawState::Search;
             if state.openai_key_set {
                 state.control_state = ControlState::Gpt;
             } else {
-                state.control_state =  ControlState::KeyNotSet;
+                state.control_state = ControlState::KeyNotSet;
                 state.query_gpt = true;
             }
             state.new_command = Some(HoardCmd::default());
@@ -199,15 +199,16 @@ fn switch_namespace(
 fn apply_search(state: &mut State, all_commands: &[HoardCmd], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
-        .iter().filter(|&c| {
+        .iter()
+        .filter(|&c| {
             (c.name.contains(query_term)
                 || c.namespace.contains(query_term)
                 || c.get_tags_as_string().contains(query_term)
                 || c.command.contains(query_term)
-                || c.description
-                    .contains(query_term))
+                || c.description.contains(query_term))
                 && (c.namespace.clone() == *selected_tab || selected_tab == "All")
-        }).cloned()
+        })
+        .cloned()
         .collect();
 }
 
@@ -231,7 +232,10 @@ mod test_controls {
     const DEFAULT_NAMESPACE: &str = "default";
 
     fn create_command(name: &str, command: &str, namespace: &str) -> HoardCmd {
-        HoardCmd::default().with_name(name).with_command(command).with_namespace(namespace)
+        HoardCmd::default()
+            .with_name(name)
+            .with_command(command)
+            .with_namespace(namespace)
     }
 
     fn create_state(commands: Vec<HoardCmd>) -> State {
@@ -255,7 +259,7 @@ mod test_controls {
             query_gpt: false,
             buffered_tick: false,
             popup_message: State::get_default_popupmsg(),
-            openai_key_set: false
+            openai_key_set: false,
         };
 
         state.command_list_state.select(Some(0));

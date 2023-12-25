@@ -1,5 +1,5 @@
-use crate::core::HoardCmd;
 use crate::core::parameters::Parameterized;
+use crate::core::HoardCmd;
 use crate::gui::commands_gui::State;
 use termion::event::Key;
 

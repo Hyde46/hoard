@@ -1,5 +1,5 @@
-use crate::core::{string_to_tags, HoardCmd};
 use crate::core::trove::Trove;
+use crate::core::{string_to_tags, HoardCmd};
 use crate::gui::commands_gui::{DrawState, EditSelection, State};
 use termion::event::Key;
 
@@ -61,16 +61,16 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     command.description = parameter;
                     String::new()
                 }
-                EditSelection::Tags => {
-                    match HoardCmd::are_tags_valid(&parameter) {
-                        Ok(()) => {command.tags = string_to_tags(&parameter); String::new()},
-                        Err(e) => {
-                            app.error_message = e.to_string();
-                            e.to_string()
-                        }
-                        
+                EditSelection::Tags => match HoardCmd::are_tags_valid(&parameter) {
+                    Ok(()) => {
+                        command.tags = string_to_tags(&parameter);
+                        String::new()
                     }
-                }
+                    Err(e) => {
+                        app.error_message = e.to_string();
+                        e.to_string()
+                    }
+                },
             };
             app.input = String::new();
             if !app.error_message.is_empty() {

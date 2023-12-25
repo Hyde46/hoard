@@ -1,9 +1,9 @@
-pub mod trove;
 pub mod error;
 pub mod parameters;
+pub mod trove;
 
-use crate::core::trove::Trove;
 use crate::core::error::HoardErr;
+use crate::core::trove::Trove;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
 use rand::distributions::Alphanumeric;
@@ -79,11 +79,11 @@ pub struct HoardCmd {
 
 impl PartialEq for HoardCmd {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && 
-        self.namespace == other.namespace &&
-        self.command == other.command &&
-        self.description == other.description &&
-        self.tags == other.tags
+        self.name == other.name
+            && self.namespace == other.namespace
+            && self.command == other.command
+            && self.description == other.description
+            && self.tags == other.tags
     }
 }
 
@@ -290,14 +290,15 @@ impl HoardCmd {
         let mut selection = selection.to_vec();
         selection.push("New namespace");
 
-        let selected: usize = prompt_select_with_options(
-            "Namespace of the command",
-            &selection,
-        );
+        let selected: usize = prompt_select_with_options("Namespace of the command", &selection);
 
-        let mut selected_namespace:String = (*selection.get(selected).unwrap()).to_string();
+        let mut selected_namespace: String = (*selection.get(selected).unwrap()).to_string();
         if selected_namespace == "New namespace" {
-            selected_namespace = prompt_input("Namespace of the command", false, Some(String::from("default")));
+            selected_namespace = prompt_input(
+                "Namespace of the command",
+                false,
+                Some(String::from("default")),
+            );
         }
 
         Self {
@@ -331,10 +332,7 @@ impl HoardCmd {
             }
         };
         let name = prompt_input_validate(prompt_string, false, default_value, Some(validator));
-        Self {
-            name,
-            ..self
-        }
+        Self { name, ..self }
     }
 
     pub fn with_name_input(self, default_value: Option<String>, trove: &Trove) -> Self {
@@ -430,7 +428,6 @@ impl HoardCmd {
         self.is_deleted = is_deleted;
         self
     }
-
 }
 
 pub fn string_to_tags(tags: &str) -> Vec<String> {
@@ -441,7 +438,6 @@ pub fn string_to_tags(tags: &str) -> Vec<String> {
         .map(std::string::ToString::to_string)
         .collect()
 }
-
 
 #[cfg(test)]
 mod test_commands {

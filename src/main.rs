@@ -10,14 +10,14 @@ extern crate rand;
 extern crate array_tool;
 
 mod cli_commands;
-mod core;
 mod config;
+mod core;
 mod filter;
+mod gpt;
 mod gui;
 mod hoard;
 mod sync_models;
 mod util;
-mod gpt;
 use hoard::Hoard;
 
 #[tokio::main]
