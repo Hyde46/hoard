@@ -1,4 +1,4 @@
-use crate::command::hoard_command::HoardCommand;
+use crate::command::HoardCommand;
 use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::State;
 use termion::event::Key;

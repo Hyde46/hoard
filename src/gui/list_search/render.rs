@@ -1,4 +1,4 @@
-use crate::command::hoard_command::HoardCommand;
+use crate::command::HoardCommand;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::gui::commands_gui::{ControlState, EditSelection};

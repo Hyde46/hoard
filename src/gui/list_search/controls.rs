@@ -1,4 +1,4 @@
-use crate::command::hoard_command::HoardCommand;
+use crate::command::HoardCommand;
 use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
@@ -231,7 +231,7 @@ mod test_controls {
     const DEFAULT_NAMESPACE: &str = "default";
 
     fn create_command(name: &str, command: &str, namespace: &str) -> HoardCommand {
-        HoardCommand::new().with_name(name).with_command(command).with_namespace(namespace)
+        HoardCommand::default().with_name(name).with_command(command).with_namespace(namespace)
     }
 
     fn create_state(commands: Vec<HoardCommand>) -> State {

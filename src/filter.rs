@@ -1,7 +1,7 @@
-use crate::command::hoard_command::HoardCommand;
-use crate::command::trove::CommandTrove;
+use crate::command::HoardCommand;
+use crate::command::trove::Trove;
 
-pub fn query_trove(trove: &CommandTrove, query_term: &str) -> CommandTrove {
+pub fn query_trove(trove: &Trove, query_term: &str) -> Trove {
     // Filter out commands of `trove` based on `query_string`
     // Construct QueryString object from &str object to validate / extract special parameters
     let commands: Vec<HoardCommand> = trove
@@ -17,5 +17,5 @@ pub fn query_trove(trove: &CommandTrove, query_term: &str) -> CommandTrove {
                     .contains(query_term)
         })
         .collect();
-    CommandTrove::from_commands(&commands)
+    Trove::from_commands(&commands)
 }

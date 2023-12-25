@@ -1,5 +1,5 @@
-use crate::command::hoard_command::HoardCommand;
-use crate::command::trove::CommandTrove;
+use crate::command::HoardCommand;
+use crate::command::trove::Trove;
 use crate::config::HoardConfig;
 use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};
@@ -142,7 +142,7 @@ impl EditSelection {
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<HoardCommand>> {
+pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCommand>> {
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(200),
     });
