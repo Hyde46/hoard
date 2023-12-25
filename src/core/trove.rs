@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
-use crate::core::HoardCmd;
-use crate::core::parameters::Parameterized;
 use crate::config::HoardConfig;
 use crate::core::error::HoardErr;
+use crate::core::parameters::Parameterized;
+use crate::core::HoardCmd;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -40,7 +40,7 @@ impl Default for Trove {
 }
 
 impl Trove {
-     /// Create a new Trove from a vector of commands
+    /// Create a new Trove from a vector of commands
     /// attaches the current hoard version to the collection
     pub fn from_commands(commands: &[HoardCmd]) -> Self {
         // Iterate through all commands, read out the namespace and collect them in the namespace hashset
@@ -136,7 +136,6 @@ impl Trove {
             > 0
     }
 
-
     /// Add a command to trove file
     /// Returns `true` if the command has been added
     /// Returns `false` if the command has not been added due to a name collision that has been resolved where the trove did not change
@@ -223,9 +222,10 @@ impl Trove {
         filtered_command.map_or_else(
             || Err(anyhow!("No matching command found with name: {}", name)),
             |command| {
-                let command = command
-                    .clone()
-                    .with_input_parameters(&config.parameter_token.clone().unwrap(), &config.parameter_ending_token.clone().unwrap());
+                let command = command.clone().with_input_parameters(
+                    &config.parameter_token.clone().unwrap(),
+                    &config.parameter_ending_token.clone().unwrap(),
+                );
                 Ok(command)
             },
         )
@@ -293,7 +293,10 @@ mod test_commands {
     #[test]
     fn not_empty_trove() {
         let mut trove = Trove::default();
-        let command = HoardCmd::default().with_name("test").with_namespace("test-namespace").with_command("echo 'test'");
+        let command = HoardCmd::default()
+            .with_name("test")
+            .with_namespace("test-namespace")
+            .with_command("echo 'test'");
         let val = trove.add_command(command, true);
         assert!(val.is_ok());
         assert!(!trove.is_empty());

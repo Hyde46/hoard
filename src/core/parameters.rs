@@ -1,35 +1,138 @@
 use regex::Regex;
 
-use crate::gui::prompts::prompt_input;
 use crate::core::HoardCmd;
+use crate::gui::prompts::prompt_input;
 
 pub trait Parameterized {
-    /// Check if parameter pointers are present
-    /// For example, given subject with parameter token '#1':
-    /// 'This is a #1 with one parameter token'
-    /// `is_parameterized("#")` returns `true`
+    /// Checks if the command string contains a specific token.
+    ///
+    /// This function takes a token and checks if the command string contains this token.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the token to be checked.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a boolean. It returns true if the command string contains the token,
+    /// and false otherwise.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default()::with_command("echo $");
+    /// assert!(command.is_parameterized("$"));
+    /// ```
+
     fn is_parameterized(&self, token: &str) -> bool;
-    /// Count number of parameter pointers
-    /// For example, given subject with parameter token '#1':
-    /// 'This is a #1 with one parameter token'
-    /// `get_parameter_count("#")` returns `1`
+    /// Counts the number of occurrences of a specific token in the command string.
+    ///
+    /// This function takes a token and counts how many times this token appears in the command string.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the token to be counted.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a usize representing the number of times the token appears in the command string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default()::with_command("echo $ $");
+    /// assert_eq!(command.get_parameter_count("$"), 2);
+    /// ```
+
     fn get_parameter_count(&self, token: &str) -> usize;
-    /// Split subject into vector of Strings
-    /// For example, given subject with parameter token '#1':
-    /// 'This is a #1 with one parameter token'
-    /// `split("#")` returns
-    /// Vec["This is a ", " with one parameter token"]
+    /// Splits the command string into a vector of substrings at each occurrence of a specific token.
+    ///
+    /// This function takes a token and splits the command string into a vector of substrings
+    /// where each split is made at the token. The token itself is not included in the resulting substrings.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the token at which to split the command string.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a Vec<String> where each element is a substring of the original command string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default()::with_command("This is a #1 with one parameter token");
+    /// assert_eq!(command.split("#"), vec!["This is a ", " with one parameter token"]);
+    /// ```
     fn split(&self, token: &str) -> Vec<String>;
-    /// Get parameterized String like subject including parameter token
-    /// For example, given subject with parameter token '#1':
-    /// 'This is a #1 with one parameter token'
-    /// `get_split_subject("#")` returns
-    /// Vec["This is a ", "#", " with one parameter token"]
+
+    /// Splits the command string into a vector of substrings at each occurrence of a specific token including the toke.
+    ///
+    /// This function takes a token and splits the command string into a vector of substrings
+    /// where each split is made at the token. The token itself is included in the resulting substrings.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the token at which to split the command string.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a Vec<String> where each element is a substring of the original command string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default()::with_command("This is a #1 with one parameter token");
+    /// assert_eq!(command.split("#"), vec!["This is a ", "#1", " with one parameter token"]);
+    /// ```
     fn split_inclusive_token(&self, token: &str) -> Vec<String>;
-    /// Replaces parameter tokens with content from `parameters`,
-    /// consuming entries one by one until `parameters` is empty.
+
+    /// Replaces a parameter, identified by start and end tokens, in the command string with a given value.
+    ///
+    /// This function takes start and end tokens, and a value. It constructs a regex pattern from the tokens,
+    /// and replaces all occurrences of the pattern in the command string with the given value.
+    ///
+    /// # Arguments
+    ///
+    /// * `start_token` - A string slice that holds the start token of the parameter.
+    /// * `end_token` - A string slice that holds the end token of the parameter.
+    /// * `value` - A string slice that holds the value to replace the parameter with.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a new instance of the command with the replaced parameter.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default()::with_command("echo #param1$");
+    /// let replaced_command = command.replace_parameter("#", "$", "Hello, world!");
+    /// assert_eq!(replaced_command.get_command(), "echo Hello, world!");
+    /// ```
     fn replace_parameter(&self, token: &str, ending_token: &str, parameter: &str) -> HoardCmd;
-    /// Prompts user for input parameters
+
+    /// Replaces all occurrences of a parameter, identified by a token and an ending token, in the command string with user input.
+    ///
+    /// This function takes a token and an ending token. It prompts the user for input for each occurrence of the parameter
+    /// in the command string and replaces the parameter with the user's input.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A string slice that holds the token of the parameter.
+    /// * `ending_token` - A string slice that holds the ending token of the parameter.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a new instance of the command with the replaced parameters.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut command = HoardCmd::default()::with_command("echo #param1$");
+    /// command = command.with_input_parameters("#", "$");
+    /// // The user is prompted for input for each occurrence of the parameter.
+    /// // The command string is updated with the user's input.
+    /// ```
     fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> HoardCmd;
 }
 
@@ -58,10 +161,14 @@ impl Parameterized for HoardCmd {
         collected
     }
 
-    fn replace_parameter(&self, start_token: &str, end_token: &str, replacement: &str) -> Self {
-        let pattern = format!("{}.*?{}", regex::escape(start_token), regex::escape(end_token));
+    fn replace_parameter(&self, start_token: &str, end_token: &str, value: &str) -> Self {
+        let pattern = format!(
+            "{}.*?{}",
+            regex::escape(start_token),
+            regex::escape(end_token)
+        );
         let re = Regex::new(&pattern).unwrap();
-        let replaced = re.replace_all(&self.command, replacement);
+        let replaced = re.replace_all(&self.command, value);
         Self::default().with_command(&replaced)
     }
 
@@ -75,7 +182,9 @@ impl Parameterized for HoardCmd {
                 self.command
             );
             let parameter = prompt_input(&prompt_dialog, false, None);
-            self.command = self.replace_parameter(token, ending_token, &parameter).command;
+            self.command = self
+                .replace_parameter(token, ending_token, &parameter)
+                .command;
             param_count += 1;
         }
         self.clone()

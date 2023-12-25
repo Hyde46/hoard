@@ -1,13 +1,13 @@
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
 use crate::util::{split_with_delim, string_find_next, translate_number_to_nth};
-use termion::screen::AlternateScreen;
 use ratatui::backend::TermionBackend;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
-use ratatui::text::{Span, Line};
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Terminal;
+use termion::screen::AlternateScreen;
 
 pub fn draw(
     app_state: &State,

@@ -1,5 +1,5 @@
-use crate::core::HoardCmd;
 use crate::core::trove::Trove;
+use crate::core::HoardCmd;
 
 pub fn query_trove(trove: &Trove, query_term: &str) -> Trove {
     // Filter out commands of `trove` based on `query_string`
@@ -13,8 +13,7 @@ pub fn query_trove(trove: &Trove, query_term: &str) -> Trove {
                 || c.namespace.contains(query_term)
                 || c.get_tags_as_string().contains(query_term)
                 || c.command.contains(query_term)
-                || c.description
-                    .contains(query_term)
+                || c.description.contains(query_term)
         })
         .collect();
     Trove::from_commands(&commands)

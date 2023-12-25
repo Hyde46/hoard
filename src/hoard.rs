@@ -1,19 +1,19 @@
 use crate::cli_commands::{Cli, Commands};
 use base64::engine::general_purpose;
 use clap::Parser;
+use dotenv::dotenv;
 use log::info;
 use reqwest::{StatusCode, Url};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use url::ParseError;
-use dotenv::dotenv;
 
 use crate::cli_commands::Mode;
-use crate::core::HoardCmd;
-use crate::core::trove::Trove;
 use crate::config::{compare_with_latest_version, HoardConfig};
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
+use crate::core::trove::Trove;
+use crate::core::HoardCmd;
 use crate::filter::query_trove;
 use crate::gui::commands_gui;
 use crate::gui::prompts::{
@@ -127,7 +127,6 @@ impl Hoard {
         if let Some(trove_path) = self.config.trove_path.clone() {
             println!("✨ Trove file is located at {}", trove_path.display());
         }
-        
     }
 
     fn new_command(
@@ -142,16 +141,8 @@ impl Hoard {
         let new_command = HoardCmd::default()
             .with_command_string_input(
                 command,
-                &self
-                    .config
-                    .parameter_token
-                    .clone()
-                    .unwrap(),
-                &self
-                    .config
-                    .parameter_ending_token
-                    .clone()
-                    .unwrap(),
+                &self.config.parameter_token.clone().unwrap(),
+                &self.config.parameter_ending_token.clone().unwrap(),
             )
             .with_namespace_input(&trove_namespaces)
             .with_name_input(name, &self.trove)
@@ -309,9 +300,7 @@ impl Hoard {
 
     fn edit_command(&mut self, command_name: &str) {
         println!("Editing {command_name}");
-        let command_to_edit = self
-            .trove
-            .pick_command(&self.config, command_name);
+        let command_to_edit = self.trove.pick_command(&self.config, command_name);
 
         let trove_namespaces = self.trove.namespaces();
         match command_to_edit {
@@ -320,16 +309,8 @@ impl Hoard {
                 let new_command = HoardCmd::default()
                     .with_command_string_input(
                         Some(c.command.clone()),
-                        &self
-                            .config
-                            .parameter_token
-                            .clone()
-                            .unwrap(),
-                        &self
-                            .config
-                            .parameter_ending_token
-                            .clone()
-                            .unwrap(),
+                        &self.config.parameter_token.clone().unwrap(),
+                        &self.config.parameter_ending_token.clone().unwrap(),
                     )
                     .with_name_input(Some(c.name.clone()), &self.trove)
                     .with_description_input(c.description.clone())
@@ -398,10 +379,7 @@ impl Hoard {
         let user_email = prompt_input("Email: ", false, None);
         let user_pw: String = prompt_password_repeat("Password: ");
         let client = reqwest::blocking::Client::new();
-        let register_url = format!(
-            "{}register",
-            self.config.sync_server_url.clone().unwrap()
-        );
+        let register_url = format!("{}register", self.config.sync_server_url.clone().unwrap());
         let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
         let body = client
             .post(register_url)
@@ -422,10 +400,7 @@ impl Hoard {
         let user_pw: String = prompt_password("Password: ");
         let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
         let client = reqwest::blocking::Client::new();
-        let register_url = format!(
-            "{}token/new",
-            self.config.sync_server_url.clone().unwrap()
-        );
+        let register_url = format!("{}token/new", self.config.sync_server_url.clone().unwrap());
         let body = client
             .get(register_url)
             .body(register_body)
@@ -437,7 +412,8 @@ impl Hoard {
             let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
             let b64_token = general_purpose::STANDARD.encode(token.token);
             self.config.api_token = Some(b64_token);
-            save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap()).unwrap();
+            save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap())
+                .unwrap();
             println!("Success!");
         } else {
             println!("Invalid Email and password combination.");
@@ -448,10 +424,7 @@ impl Hoard {
         println!("Syncing ...");
         let token = self.config.api_token.clone();
         let client = reqwest::blocking::Client::new();
-        let save_url = format!(
-            "{}v1/trove",
-            self.config.sync_server_url.clone().unwrap()
-        );
+        let save_url = format!("{}v1/trove", self.config.sync_server_url.clone().unwrap());
         let body = client
             .get(save_url)
             .bearer_auth(token.unwrap())
@@ -474,12 +447,8 @@ impl Hoard {
         println!("Uploading trove...");
         let token = self.config.api_token.clone();
         let client = reqwest::blocking::Client::new();
-        let save_url = format!(
-            "{}v1/trove",
-            self.config.sync_server_url.clone().unwrap()
-        );
-        let trove_file =
-            fs::read_to_string(self.config.trove_path.clone().unwrap()).unwrap();
+        let save_url = format!("{}v1/trove", self.config.sync_server_url.clone().unwrap());
+        let trove_file = fs::read_to_string(self.config.trove_path.clone().unwrap()).unwrap();
         let body = client
             .put(save_url)
             .body(trove_file)
@@ -510,7 +479,11 @@ impl Hoard {
             Mode::Logout => {
                 println!("Logging out..");
                 self.config.api_token = None;
-                save_hoard_config_file(&self.config.clone(), &self.config.config_home_path.clone().unwrap()).unwrap();
+                save_hoard_config_file(
+                    &self.config.clone(),
+                    &self.config.config_home_path.clone().unwrap(),
+                )
+                .unwrap();
             }
             Mode::Save => {
                 if !self.is_logged_in() {
