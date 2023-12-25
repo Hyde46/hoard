@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::{fs, path::Path, path::PathBuf};
 
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::parameters::Parameterized;
 use crate::config::HoardConfig;
-use crate::command::error::TroveError;
+use crate::command::error::HoardErr;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -19,12 +19,12 @@ const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// A Trove can store the following parameters
 /// - `version`: The hoard version with which the commands are being stored
 ///              To potentially support migrating older collections to new ones when breaking changes happen
-/// - `commands`: Vector of `HoardCommand`s, the stored commands
+/// - `commands`: Vector of `HoardCmd`s, the stored commands
 /// - `namespaces`: Set of all namespaces used in the collection
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Trove {
     pub version: String,
-    pub commands: Vec<HoardCommand>,
+    pub commands: Vec<HoardCmd>,
     pub namespaces: HashSet<String>,
 }
 
@@ -42,7 +42,7 @@ impl Default for Trove {
 impl Trove {
      /// Create a new Trove from a vector of commands
     /// attaches the current hoard version to the collection
-    pub fn from_commands(commands: &[HoardCommand]) -> Self {
+    pub fn from_commands(commands: &[HoardCmd]) -> Self {
         // Iterate through all commands, read out the namespace and collect them in the namespace hashset
         let namespaces: HashSet<String> = commands
             .iter()
@@ -107,10 +107,10 @@ impl Trove {
         fs::write(path, s).expect("Unable to write config file");
     }
 
-    /// Given a `HoardCommand`, check if there is a command with the same name and namespace already in the collection
+    /// Given a `HoardCmd`, check if there is a command with the same name and namespace already in the collection
     /// If there is, return the colliding command
     /// If there is not, return `None`
-    pub fn get_command_collision(&self, command: &HoardCommand) -> Option<HoardCommand> {
+    pub fn get_command_collision(&self, command: &HoardCmd) -> Option<HoardCmd> {
         let colliding_commands = self
             .commands
             .iter()
@@ -120,11 +120,11 @@ impl Trove {
         colliding_commands.into_iter().next()
     }
 
-    /// Given a `HoardCommand`, check if there is a command with the same name, namespace and saved command already in the collection.
+    /// Given a `HoardCmd`, check if there is a command with the same name, namespace and saved command already in the collection.
     /// A command with those same parameters is considered to be the same command
     /// If there is, return `true`
     /// If there is not, return `false`
-    fn is_command_present(&self, command: &HoardCommand) -> bool {
+    fn is_command_present(&self, command: &HoardCmd) -> bool {
         self.commands
             .iter()
             .filter(|&c| {
@@ -144,11 +144,11 @@ impl Trove {
     /// if `overwrite_colliding` is set to false, the name collision will not be resolved and the command will not be added to the trove
     pub fn add_command(
         &mut self,
-        new_command: HoardCommand,
+        new_command: HoardCmd,
         overwrite_colliding: bool,
-    ) -> Result<bool, TroveError> {
+    ) -> Result<bool, HoardErr> {
         if !new_command.is_valid() {
-            return Err(TroveError::new("cannot save invalid command"));
+            return Err(HoardErr::new("cannot save invalid command"));
         }
         let dirty = match self.get_command_collision(&new_command) {
             // Collision is present, but its the same command, do nothing
@@ -218,8 +218,8 @@ impl Trove {
         namespaces
     }
 
-    pub fn pick_command(&self, config: &HoardConfig, name: &str) -> Result<HoardCommand> {
-        let filtered_command: Option<&HoardCommand> = self.commands.iter().find(|c| c.name == name);
+    pub fn pick_command(&self, config: &HoardConfig, name: &str) -> Result<HoardCmd> {
+        let filtered_command: Option<&HoardCmd> = self.commands.iter().find(|c| c.name == name);
         filtered_command.map_or_else(
             || Err(anyhow!("No matching command found with name: {}", name)),
             |command| {
@@ -231,7 +231,7 @@ impl Trove {
         )
     }
 
-    pub fn update_command_by_name(&mut self, command: &HoardCommand) -> &mut Self {
+    pub fn update_command_by_name(&mut self, command: &HoardCmd) -> &mut Self {
         for c in &mut self.commands.iter_mut() {
             if c.name == command.name {
                 *c = command.clone();
@@ -293,7 +293,7 @@ mod test_commands {
     #[test]
     fn not_empty_trove() {
         let mut trove = Trove::default();
-        let command = HoardCommand::default().with_name("test").with_namespace("test-namespace").with_command("echo 'test'");
+        let command = HoardCmd::default().with_name("test").with_namespace("test-namespace").with_command("echo 'test'");
         let val = trove.add_command(command, true);
         assert!(val.is_ok());
         assert!(!trove.is_empty());
@@ -304,25 +304,25 @@ mod test_commands {
         let namespace1 = "NAMESPACE1";
         let namespace2 = "NAMESPACE2";
 
-        let command1 = HoardCommand {
+        let command1 = HoardCmd {
             name: "name1".to_string(),
             namespace: namespace1.to_string(),
             command: "command1".to_string(),
-            ..HoardCommand::default()
+            ..HoardCmd::default()
         };
 
-        let command2 = HoardCommand {
+        let command2 = HoardCmd {
             name: "name2".to_string(),
             namespace: namespace2.to_string(),
             command: "command2".to_string(),
-            ..HoardCommand::default()
+            ..HoardCmd::default()
         };
 
-        let command3 = HoardCommand {
+        let command3 = HoardCmd {
             name: "name3".to_string(),
             namespace: namespace1.to_string(),
             command: "command3".to_string(),
-            ..HoardCommand::default()
+            ..HoardCmd::default()
         };
 
         let mut trove = Trove::default();

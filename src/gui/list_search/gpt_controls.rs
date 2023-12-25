@@ -1,4 +1,4 @@
-use crate::command::{HoardCommand};
+use crate::command::{HoardCmd};
 use crate::gui::commands_gui::{ControlState, DrawState, State};
 use termion::event::Key;
 
@@ -6,7 +6,7 @@ use termion::event::Key;
 pub fn key_handler(
     input: Key,
     state: &mut State,
-) -> Option<HoardCommand> {
+) -> Option<HoardCmd> {
     match input {
         Key::Esc => {
             // Definitely exit program

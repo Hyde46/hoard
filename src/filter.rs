@@ -1,10 +1,10 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::trove::Trove;
 
 pub fn query_trove(trove: &Trove, query_term: &str) -> Trove {
     // Filter out commands of `trove` based on `query_string`
     // Construct QueryString object from &str object to validate / extract special parameters
-    let commands: Vec<HoardCommand> = trove
+    let commands: Vec<HoardCmd> = trove
         .commands
         .clone()
         .into_iter()

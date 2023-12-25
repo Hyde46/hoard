@@ -1,4 +1,4 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::command::parameters::Parameterized;
 use crate::gui::commands_gui::{ControlState, DrawState, EditSelection, State};
 use termion::event::Key;
@@ -7,9 +7,9 @@ use termion::event::Key;
 pub fn key_handler(
     input: Key,
     state: &mut State,
-    trove_commands: &[HoardCommand],
+    trove_commands: &[HoardCmd],
     namespace_tabs: &[&str],
-) -> Option<HoardCommand> {
+) -> Option<HoardCmd> {
     match input {
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
             // Definitely exit program
@@ -26,7 +26,7 @@ pub fn key_handler(
         Key::Ctrl('w') => {
             state.draw_state = DrawState::Create;
             state.edit_selection = EditSelection::Command;
-            state.new_command = Some(HoardCommand::default());
+            state.new_command = Some(HoardCmd::default());
             None
         }
         // Enter GPT mode
@@ -39,7 +39,7 @@ pub fn key_handler(
                 state.control_state =  ControlState::KeyNotSet;
                 state.query_gpt = true;
             }
-            state.new_command = Some(HoardCommand::default());
+            state.new_command = Some(HoardCmd::default());
             None
         }
         // Switch to edit command mode
@@ -177,7 +177,7 @@ fn switch_namespace(
     state: &mut State,
     index_to_select: usize,
     namespaces: &[&str],
-    commands: &[HoardCommand],
+    commands: &[HoardCmd],
 ) {
     state.namespace_tab_state.select(Some(index_to_select));
 
@@ -196,7 +196,7 @@ fn switch_namespace(
     state.command_list_state.select(Some(new_selected_command));
 }
 
-fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: &str) {
+fn apply_search(state: &mut State, all_commands: &[HoardCmd], selected_tab: &str) {
     let query_term = &state.input[..];
     state.commands = all_commands
         .iter().filter(|&c| {
@@ -211,7 +211,7 @@ fn apply_search(state: &mut State, all_commands: &[HoardCommand], selected_tab: 
         .collect();
 }
 
-fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCommand]) {
+fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCmd]) {
     let selected_tab = namespaces
         .get(
             state
@@ -230,11 +230,11 @@ mod test_controls {
 
     const DEFAULT_NAMESPACE: &str = "default";
 
-    fn create_command(name: &str, command: &str, namespace: &str) -> HoardCommand {
-        HoardCommand::default().with_name(name).with_command(command).with_namespace(namespace)
+    fn create_command(name: &str, command: &str, namespace: &str) -> HoardCmd {
+        HoardCmd::default().with_name(name).with_command(command).with_namespace(namespace)
     }
 
-    fn create_state(commands: Vec<HoardCommand>) -> State {
+    fn create_state(commands: Vec<HoardCmd>) -> State {
         let mut state = State {
             input: String::new(),
             commands,

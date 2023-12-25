@@ -1,8 +1,8 @@
-use crate::command::{string_to_tags, HoardCommand};
+use crate::command::{string_to_tags, HoardCmd};
 use crate::gui::commands_gui::{ControlState, EditSelection, State};
 use termion::event::Key;
 
-pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCommand> {
+pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCmd> {
     match input {
         // Quit command
         Key::Esc => {

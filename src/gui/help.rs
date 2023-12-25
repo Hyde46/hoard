@@ -1,4 +1,4 @@
-use crate::command::HoardCommand;
+use crate::command::HoardCmd;
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::{DrawState, State};
 use termion::event::Key;
@@ -77,7 +77,7 @@ pub fn draw(
     Ok(())
 }
 
-pub fn key_handler(_input: Key, app: &mut State) -> Option<HoardCommand> {
+pub fn key_handler(_input: Key, app: &mut State) -> Option<HoardCmd> {
     app.draw_state = DrawState::Search;
     None
 }

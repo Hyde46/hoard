@@ -1,8 +1,8 @@
-use crate::command::{HoardCommand, string_to_tags};
+use crate::command::{HoardCmd, string_to_tags};
 use chatgpt::prelude::*;
 
-pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
-    let mut cmd = HoardCommand::default();
+pub fn from_gpt_string(gpt_string: &str) -> HoardCmd {
+    let mut cmd = HoardCmd::default();
     let mut name: String = "Something_went_wrong".to_owned();
     let mut tags: String = String::new();
     // If something goes wrong, we'll just use this as the description. So the user sees what's going on
@@ -38,7 +38,7 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
     cmd
 }
 
-pub fn prompt(input: &str, key: &str) -> HoardCommand {
+pub fn prompt(input: &str, key: &str) -> HoardCmd {
     let query_term = input;
 
     let formatted_command = format!("
