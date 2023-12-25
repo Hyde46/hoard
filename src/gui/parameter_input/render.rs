@@ -10,7 +10,7 @@ use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Terminal;
 
 pub fn draw(
-    app_state: &mut State,
+    app_state: &State,
     config: &HoardConfig,
     terminal: &mut Terminal<
         TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,

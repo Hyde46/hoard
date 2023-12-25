@@ -21,28 +21,28 @@ use termion::screen::IntoAlternateScreen;
 use ratatui::{backend::TermionBackend, widgets::ListState, Terminal};
 use crate::gpt::prompt;
 
-#[allow(clippy::struct_excessive_bools)]
+#[allow(clippy::struct_excessive_bools, clippy::struct_field_names)]
 pub struct State {
-    pub input: String,
-    pub commands: Vec<HoardCmd>,
-    pub command_list_state: ListState,
-    pub namespace_tab_state: ListState,
-    pub should_exit: bool,
-    pub should_delete: bool,
-    pub draw_state: DrawState,
-    pub control_state: ControlState,
-    pub edit_selection: EditSelection,
-    pub new_command: Option<HoardCmd>,
-    pub string_to_edit: String,
-    pub parameter_token: String,
-    pub parameter_ending_token: String,
-    pub selected_command: Option<HoardCmd>,
-    pub provided_parameter_count: u16,
-    pub error_message: String,
-    pub query_gpt: bool,
-    pub popup_message: String,
     pub buffered_tick: bool,
+    pub command_list_state: ListState,
+    pub commands: Vec<HoardCmd>,
+    pub control_state: ControlState,
+    pub draw_state: DrawState,
+    pub edit_selection: EditSelection,
+    pub error_message: String,
+    pub input: String,
+    pub namespace_tab_state: ListState,
+    pub new_command: Option<HoardCmd>,
     pub openai_key_set: bool,
+    pub parameter_ending_token: String,
+    pub parameter_token: String,
+    pub popup_message: String,
+    pub provided_parameter_count: u16,
+    pub query_gpt: bool,
+    pub selected_command: Option<HoardCmd>,
+    pub should_delete: bool,
+    pub should_exit: bool,
+    pub string_to_edit: String,
 }
 
 impl State {
@@ -193,17 +193,17 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
         // Draw GUI
         match app_state.draw_state {
             DrawState::Search => {
-                draw_list_search(&mut app_state, config, &mut namespace_tabs, &mut terminal)?;
+                draw_list_search(&mut app_state, config, &namespace_tabs, &mut terminal)?;
             }
             DrawState::ParameterInput => {
-                draw_parameter_input(&mut app_state, config, &mut terminal)?;
+                draw_parameter_input(&app_state, config, &mut terminal)?;
             }
             DrawState::Help => {
                 draw_help(config, &mut terminal)?;
             }
             DrawState::Create => {
                 draw_new_command_input(
-                    &mut app_state,
+                    &app_state,
                     config,
                     &mut terminal,
                     &config.default_namespace,
@@ -214,7 +214,7 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
         if app_state.query_gpt && app_state.control_state == ControlState::Gpt {
             if app_state.buffered_tick {
                 let gpt_command = prompt(&app_state.input[..], &openai_api_key);
-                trove.add_command(gpt_command, false);
+                let _ = trove.add_command(gpt_command, false);
                 app_state.commands = trove.commands.clone();
                 app_state.draw_state = DrawState::Search;
                 app_state.control_state = ControlState::Search;
@@ -254,7 +254,7 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
 
             if let Some(output) = command {
                 if app_state.draw_state == DrawState::Create {
-                    trove.add_command(output, true);
+                    let _ = trove.add_command(output, true);
                     app_state.commands = trove.commands.clone();
                     app_state.draw_state = DrawState::Search;
                 } else if app_state.control_state == ControlState::Edit {

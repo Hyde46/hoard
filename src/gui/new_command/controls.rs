@@ -30,16 +30,15 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                     command.command = parameter.clone();
                     // when HoardCmd::is_command_valid(&parameter) returns an error, read out the rror and return
                     // that else return empty string
-                    let msg = match HoardCmd::is_command_valid(&parameter) {
-                        Ok(()) => "".to_string(),
+                    match HoardCmd::is_command_valid(&parameter) {
+                        Ok(()) => String::new(),
                         Err(error) => error.to_string(),
-                    };
-                    msg
+                    }
                 }
                 EditSelection::Name => {
                     command.name = parameter.clone();
                     let mut msg = match HoardCmd::is_name_valid(&parameter) {
-                        Ok(()) => "".to_string(),
+                        Ok(()) => String::new(),
                         Err(error) => error.to_string(),
                     };
                     let trove = Trove::from_commands(&app.commands);
@@ -64,7 +63,7 @@ pub fn key_handler(input: Key, app: &mut State, default_namespace: &str) -> Opti
                 }
                 EditSelection::Tags => {
                     match HoardCmd::are_tags_valid(&parameter) {
-                        Ok(()) => {command.tags = string_to_tags(&parameter); "".into()},
+                        Ok(()) => {command.tags = string_to_tags(&parameter); String::new()},
                         Err(e) => {
                             app.error_message = e.to_string();
                             e.to_string()

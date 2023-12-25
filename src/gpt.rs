@@ -25,7 +25,6 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCmd {
         }
         else if line.starts_with("command: > ") { command = line.strip_prefix("command: > ").unwrap().to_owned() }
         else if line.starts_with("command: ") { command = line.strip_prefix("command: ").unwrap().to_owned() }
-        else {}
     }
     cmd.name = name;
     cmd.description = description;
