@@ -1,5 +1,5 @@
-use crate::command::HoardCmd;
-use crate::command::trove::Trove;
+use crate::core::HoardCmd;
+use crate::core::trove::Trove;
 use crate::config::HoardConfig;
 use crate::gui::event::{Config, Event, Events};
 use crate::gui::help::{draw as draw_help, key_handler as key_handler_help};

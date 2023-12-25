@@ -1,7 +1,7 @@
 use regex::Regex;
 
 use crate::gui::prompts::prompt_input;
-use crate::command::HoardCmd;
+use crate::core::HoardCmd;
 
 pub trait Parameterized {
     /// Check if parameter pointers are present

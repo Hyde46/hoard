@@ -1,4 +1,4 @@
-use crate::command::HoardCmd;
+use crate::core::HoardCmd;
 use crate::gui::commands_gui::{ControlState, DrawState, State};
 use termion::event::Key;
 

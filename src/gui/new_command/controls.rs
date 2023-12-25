@@ -1,5 +1,5 @@
-use crate::command::{string_to_tags, HoardCmd};
-use crate::command::trove::Trove;
+use crate::core::{string_to_tags, HoardCmd};
+use crate::core::trove::Trove;
 use crate::gui::commands_gui::{DrawState, EditSelection, State};
 use termion::event::Key;
 

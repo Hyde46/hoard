@@ -2,8 +2,8 @@ pub mod trove;
 pub mod error;
 pub mod parameters;
 
-use crate::command::trove::Trove;
-use crate::command::error::HoardErr;
+use crate::core::trove::Trove;
+use crate::core::error::HoardErr;
 use crate::gui::merge::{with_conflict_resolve_prompt, ConflictResolve};
 use crate::gui::prompts::{prompt_input, prompt_input_validate, prompt_select_with_options};
 use rand::distributions::Alphanumeric;
