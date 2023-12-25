@@ -216,7 +216,29 @@ impl HoardCmd {
             ..self
         }
     }
-
+    /// Prompts the user for a command string, with optional default value and parameter tokens.
+    ///
+    /// This function prompts the user for a command string. The user can mark unknown parameters with a specified token
+    /// and name the parameter with any string, ending it with a specified ending token. An optional default value can be provided.
+    ///
+    /// # Arguments
+    ///
+    /// * `default_value` - An Option that holds a default value for the command string.
+    /// * `parameter_token` - A string slice that holds the token to mark unknown parameters.
+    /// * `parameter_ending_token` - A string slice that holds the token to end the parameter name.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a new instance of the command with the user-inputted command string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default();
+    /// let command_with_input = command.with_command_string_input(None, "#", "$");
+    /// // The user is prompted for a command string.
+    /// // The command string is updated with the user's input.
+    /// ```
     pub fn with_command_string_input(
         self,
         default_value: Option<String>,
@@ -268,6 +290,27 @@ impl HoardCmd {
         }
     }
 
+    /// Prompts the user for tags, with an optional default value, and validates the input.
+    ///
+    /// This function prompts the user for tags, which are comma-separated. The input is validated to ensure that
+    /// it does not contain any whitespaces. An optional default value can be provided.
+    ///
+    /// # Arguments
+    ///
+    /// * `default_value` - An Option that holds a default value for the tags.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a new instance of the command with the user-inputted tags.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default();
+    /// let command_with_tags = command.with_tags_input(Some("default-tag"));
+    /// // The user is prompted for tags.
+    /// // The tags are updated with the user's input.
+    /// ```
     pub fn with_tags_input(self, default_value: Option<String>) -> Self {
         let tag_validator = move |input: &String| -> Result<(), String> {
             if input.contains(' ') {
@@ -354,6 +397,31 @@ impl HoardCmd {
     }
 
     #[allow(dead_code)]
+    /// Resolves a name conflict when a command should be added to a trove file.
+    ///
+    /// This function takes a command with a conflicting name and a reference to a trove. It prompts the user to resolve the conflict
+    /// by either replacing the existing command, keeping the existing command, or providing a new name for the new command.
+    ///
+    /// # Arguments
+    ///
+    /// * `collision` - A command that has a name conflict with the current command.
+    /// * `trove` - A reference to a trove where the command should be added.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a tuple of options. If the first option is set, the new command should be added. If the second option is set,
+    /// the existing command should be removed.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let command = HoardCmd::default().with_command("echo Hello, world!");
+    /// let colliding_command = HoardCmd::default().with_command("echo Hello, world!");
+    /// let trove = Trove::new();
+    /// let (add_command, remove_command) = command.resolve_name_conflict(colliding_command, &trove);
+    /// // The user is prompted to resolve the conflict.
+    /// // The commands to add and remove are determined based on the user's input.
+    /// ```
     pub fn resolve_name_conflict(
         self,
         collision: Self,
