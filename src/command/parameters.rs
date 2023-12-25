@@ -18,13 +18,13 @@ pub trait Parameterized {
     /// For example, given subject with parameter token '#1':
     /// 'This is a #1 with one parameter token'
     /// `split("#")` returns
-    /// Vec['This is a ', ' with one parameter token']
+    /// Vec["This is a ", " with one parameter token"]
     fn split(&self, token: &str) -> Vec<String>;
     /// Get parameterized String like subject including parameter token
     /// For example, given subject with parameter token '#1':
     /// 'This is a #1 with one parameter token'
     /// `get_split_subject("#")` returns
-    /// Vec['This is a ', '#', ' with one parameter token']
+    /// Vec["This is a ", "#", " with one parameter token"]
     fn split_inclusive_token(&self, token: &str) -> Vec<String>;
     /// Replaces parameter tokens with content from `parameters`,
     /// consuming entries one by one until `parameters` is empty.

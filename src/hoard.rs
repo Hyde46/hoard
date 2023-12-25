@@ -158,7 +158,7 @@ impl Hoard {
             .with_name_input(name, &self.trove)
             .with_description_input(description.unwrap_or_default())
             .with_tags_input(tags);
-        self.trove.add_command(new_command, true);
+        let _ = self.trove.add_command(new_command, true);
         self.save_trove(None);
     }
 
@@ -291,7 +291,7 @@ impl Hoard {
 
             let mut trove_for_export = Trove::default();
             for command in selected_commands {
-                trove_for_export.add_command(command.clone(), true);
+                let _ = trove_for_export.add_command(command.clone(), true);
             }
 
             trove_for_export.save_trove_file(&target_path);
@@ -337,7 +337,7 @@ impl Hoard {
                     .with_tags_input(Some(c.get_tags_as_string()))
                     .with_namespace_input(&trove_namespaces);
                 self.trove.remove_command(command_name).ok();
-                self.trove.add_command(new_command, true);
+                let _ = self.trove.add_command(new_command, true);
                 self.save_trove(None);
             }
             Err(_e) => eprintln!("Could not find command {command_name} to edit"),
