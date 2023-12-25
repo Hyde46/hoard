@@ -78,6 +78,6 @@ pub fn draw(
 }
 
 pub fn key_handler(_input: Key, app: &mut State) -> Option<HoardCmd> {
-    app.draw_state = DrawState::Search;
+    app.draw = DrawState::Search;
     None
 }

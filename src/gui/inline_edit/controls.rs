@@ -7,7 +7,7 @@ pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCmd> {
         // Quit command
         Key::Esc => {
             // Only exit the edit mode
-            state.control_state = ControlState::Search;
+            state.control = ControlState::Search;
             None
         }
         Key::Char('\n') => {

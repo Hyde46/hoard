@@ -7,7 +7,7 @@ pub fn key_handler(input: Key, state: &mut State) -> Option<HoardCmd> {
     match input {
         Key::Esc => {
             // Definitely exit program
-            state.control_state = ControlState::Search;
+            state.control = ControlState::Search;
             state.query_gpt = false;
             None
         }

@@ -54,7 +54,7 @@ pub fn draw(
         let tabs = Tabs::new(menu)
             .select(
                 app_state
-                    .namespace_tab_state
+                    .namespace_tab
                     .selected()
                     .expect("Always a namespace selected"),
             )
@@ -101,14 +101,14 @@ pub fn draw(
         rect.render_stateful_widget(
             commands,
             commands_chunks[0],
-            &mut app_state.command_list_state,
+            &mut app_state.command_list,
         );
         rect.render_widget(tags_widget, command_detail_chunks[0]);
         rect.render_widget(description, command_detail_chunks[1]);
         rect.render_widget(command, command_detail_chunks[2]);
         rect.render_widget(input, chunks[2]);
 
-        let (footer_left, footer_right) = get_footer_constraints(&app_state.control_state);
+        let (footer_left, footer_right) = get_footer_constraints(&app_state.control);
         let footer_chunk = Layout::default()
             .direction(Direction::Horizontal)
             .margin(0)
@@ -118,8 +118,8 @@ pub fn draw(
             ])
             .split(chunks[3]);
 
-        let control_state_str = &app_state.control_state;
-        let help_hint_l = Paragraph::new(format!("{control_state_str}"))
+        let control_str = &app_state.control;
+        let help_hint_l = Paragraph::new(format!("{control_str}"))
             .style(Style::default().fg(Color::Rgb(
                 config.primary_color.unwrap().0,
                 config.primary_color.unwrap().1,
@@ -137,7 +137,7 @@ pub fn draw(
         .alignment(Alignment::Right);
 
         rect.render_widget(help_hint_l, footer_chunk[0]);
-        if app_state.control_state == ControlState::Search {
+        if app_state.control == ControlState::Search {
             rect.render_widget(help_hint, footer_chunk[1]);
         }
 
@@ -216,7 +216,7 @@ fn get_color(
         config.primary_color.unwrap().1,
         config.primary_color.unwrap().2,
     );
-    match app.control_state {
+    match app.control {
         ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => normal,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
@@ -228,7 +228,7 @@ fn get_color(
 }
 
 fn coerce_string_by_mode(s: String, app: &State, command_render: &EditSelection) -> String {
-    match app.control_state {
+    match app.control {
         ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => s,
         ControlState::Edit => {
             if command_render == &app.edit_selection {
@@ -269,7 +269,7 @@ fn render_commands<'a>(
 
     let selected_command: HoardCmd = commands_list
         .get(
-            app.command_list_state
+            app.command_list
                 .selected()
                 .expect("there is always a selected command"),
         )
@@ -283,7 +283,7 @@ fn render_commands<'a>(
         } else {
             commands_list.len() - 1
         };
-        app.command_list_state.select(Some(new_selection));
+        app.command_list.select(Some(new_selection));
     }
 
     let list = List::new(items).block(commands).highlight_style(
@@ -377,8 +377,8 @@ fn render_commands<'a>(
     (list, command, tags, description, input)
 }
 
-const fn get_footer_constraints(control_state: &ControlState) -> (u16, u16) {
-    match control_state {
+const fn get_footer_constraints(control: &ControlState) -> (u16, u16) {
+    match control {
         ControlState::Search | ControlState::Gpt | ControlState::KeyNotSet => (50, 50),
         ControlState::Edit => (99, 1),
     }
