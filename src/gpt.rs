@@ -58,7 +58,7 @@ Reply with a made up name for the command ( Example: '> find_and_replace' ).
 Also a very short explanation without any formatting. ( Example: '> Does this thing')
 After the the explanation add the command. ( Example: '> mv #file! #target!')
 Come up with up to 3 tags for the command ( Example: '> git,filesystem' )
-If there are any parameters, enclose them with !parameter_name#
+If there are any parameters, enclose them with #parameter_name!
 This is the format how to reply:
 
 name:<command name>
