@@ -275,13 +275,12 @@ pub async fn compare_with_latest_version() -> (bool, String) {
         .send()
         .await
     {
-        let tag_name = client_response
-            .json::<ClientResponse>()
-            .await
-            .ok()
-            .unwrap()
-            .tag_name;
-        return (VERSION == &tag_name[1..], tag_name);
+        if let Ok(release) = client_response.json::<ClientResponse>().await {
+            let tag_name = release.tag_name;
+            if !tag_name.is_empty() {
+                return (VERSION == &tag_name[1..], tag_name);
+            }
+        }
     }
     (true, String::new())
 }
