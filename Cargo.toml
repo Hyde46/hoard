@@ -1,6 +1,6 @@
 [package]
 name = "hoard-rs"
-version = "1.4.3"
+version = "2.0.0"
 edition = "2021"
 readme = "README.md"
 license = "MIT"
@@ -8,9 +8,6 @@ authors = ["Denis Heid"]
 description = "hoard - cli command organizer written in Rust"
 homepage = "https://hyde46.github.io/hoard/"
 repository = "https://github.com/Hyde46/hoard"
-
-[dependencies.hoardlib]
-path = "libs/hoardlib"
 
 [package.metadata.deb]
 maintainer = "Denis Heid"

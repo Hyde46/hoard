@@ -746,7 +746,7 @@ checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
 
 [[package]]
 name = "hoard-rs"
-version = "1.4.3"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "array_tool",
@@ -762,7 +762,6 @@ dependencies = [
  "enum-iterator",
  "eyre",
  "h2",
- "hoardlib",
  "log",
  "prettytable-rs",
  "rand",
@@ -779,20 +778,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "url",
-]
-
-[[package]]
-name = "hoardlib"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "log",
- "prettytable-rs",
- "rand",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
 ]
 
 [[package]]
