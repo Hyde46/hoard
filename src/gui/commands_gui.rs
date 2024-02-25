@@ -21,7 +21,7 @@ use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
 
-#[allow(clippy::struct_excessive_bools)]
+#[allow(clippy::struct_excessive_bools, clippy::struct_field_names)]
 pub struct State {
     pub buffered_tick: bool,
     pub command_list: ListState,
