@@ -21,7 +21,7 @@ use std::time::Duration;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
 
-#[allow(clippy::struct_excessive_bools)]
+#[allow(clippy::struct_excessive_bools, clippy::struct_field_names)]
 pub struct State {
     pub input: String,
     pub commands: Vec<HoardCommand>,
@@ -196,17 +196,17 @@ pub fn run(trove: &mut CommandTrove, config: &HoardConfig) -> Result<Option<Hoar
         // Draw GUI
         match app_state.draw_state {
             DrawState::Search => {
-                draw_list_search(&mut app_state, config, &mut namespace_tabs, &mut terminal)?;
+                draw_list_search(&mut app_state, config, &namespace_tabs, &mut terminal)?;
             }
             DrawState::ParameterInput => {
-                draw_parameter_input(&mut app_state, config, &mut terminal)?;
+                draw_parameter_input(&app_state, config, &mut terminal)?;
             }
             DrawState::Help => {
                 draw_help(config, &mut terminal)?;
             }
             DrawState::Create => {
                 draw_new_command_input(
-                    &mut app_state,
+                    &app_state,
                     config,
                     &mut terminal,
                     &config.default_namespace,

@@ -17,7 +17,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn draw(
     app_state: &mut State,
     config: &HoardConfig,
-    namespace_tabs: &mut [&str],
+    namespace_tabs: &[&str],
     terminal: &mut Terminal<
         TermionBackend<AlternateScreen<termion::raw::RawTerminal<std::io::Stdout>>>,
     >,
@@ -202,7 +202,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 }
 
 fn get_color(
-    app: &mut State,
+    app: &State,
     config: &HoardConfig,
     command_render: &EditSelection,
 ) -> ratatui::style::Color {

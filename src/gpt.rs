@@ -13,13 +13,13 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
     for line in lines {
         // Trying to anticipate how the GPT response will be formatted. Cant be guaranteed.
         if line.starts_with("name: > ") {
-            name = line.strip_prefix("name: > ").unwrap().to_owned()
+            name = line.strip_prefix("name: > ").unwrap().to_owned();
         } else if line.starts_with("name: ") {
-            name = line.strip_prefix("name: ").unwrap().to_owned()
+            name = line.strip_prefix("name: ").unwrap().to_owned();
         } else if line.starts_with("explanation: > ") {
-            description = line.strip_prefix("explanation: > ").unwrap().to_owned()
+            description = line.strip_prefix("explanation: > ").unwrap().to_owned();
         } else if line.starts_with("explanation: ") {
-            description = line.strip_prefix("explanation: ").unwrap().to_owned()
+            description = line.strip_prefix("explanation: ").unwrap().to_owned();
         } else if line.starts_with("tags: > ") {
             tags = line.strip_prefix("tags: > ").unwrap().to_owned();
             tags = tags.replace(' ', "");
@@ -27,9 +27,9 @@ pub fn from_gpt_string(gpt_string: &str) -> HoardCommand {
             tags = line.strip_prefix("tags: ").unwrap().to_owned();
             tags = tags.replace(' ', "");
         } else if line.starts_with("command: > ") {
-            command = line.strip_prefix("command: > ").unwrap().to_owned()
+            command = line.strip_prefix("command: > ").unwrap().to_owned();
         } else if line.starts_with("command: ") {
-            command = line.strip_prefix("command: ").unwrap().to_owned()
+            command = line.strip_prefix("command: ").unwrap().to_owned();
         }
     }
     cmd.name = name;
