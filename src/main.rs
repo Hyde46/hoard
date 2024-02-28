@@ -25,8 +25,7 @@ async fn main() {
     let (command, is_autocomplete) = Hoard::default()
         .with_config(None)
         .load_trove()
-        .start()
-        .await;
+        .start();
     if is_autocomplete {
         eprintln!("{}", command.trim());
     } else {

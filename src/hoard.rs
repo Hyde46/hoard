@@ -10,7 +10,7 @@ use std::str::FromStr;
 use url::ParseError;
 
 use crate::cli_commands::Mode;
-use crate::config::{compare_with_latest_version, HoardConfig};
+use crate::config::HoardConfig;
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
@@ -45,13 +45,8 @@ impl Hoard {
         self
     }
 
-    pub async fn start(&mut self) -> (String, bool) {
+    pub fn start(&mut self) -> (String, bool) {
         dotenv().ok();
-        if !compare_with_latest_version().await.0 {
-            println!(
-                "A newer Version ({}) is available at https://github.com/Hyde46/hoard \nPlease update.", compare_with_latest_version().await.1
-            );
-        }
         let mut autocomplete_command = String::new();
         let cli = Cli::parse();
 
