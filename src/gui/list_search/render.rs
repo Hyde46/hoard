@@ -301,6 +301,7 @@ fn render_commands<'a>(
             .add_modifier(Modifier::BOLD),
     );
 
+    let hoarded_command_title = format!(" Hoarded command --- Times selected: {} ", selected_command.usage_count);
     let command = Paragraph::new(coerce_string_by_mode(
         selected_command.command.clone(),
         app,
@@ -317,11 +318,11 @@ fn render_commands<'a>(
         Block::default()
             .borders(Borders::ALL)
             .style(Style::default().fg(get_color(app, config, &EditSelection::Command)))
-            .title(" Hoarded command ")
+            .title(hoarded_command_title)
             .border_type(BorderType::Plain),
     );
 
-    let tags = Paragraph::new(coerce_string_by_mode(
+    let tags     = Paragraph::new(coerce_string_by_mode(
         selected_command.get_tags_as_string(),
         app,
         &EditSelection::Tags,
