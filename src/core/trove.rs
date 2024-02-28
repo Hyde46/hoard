@@ -125,6 +125,13 @@ impl Trove {
         colliding_commands.into_iter().next()
     }
 
+    /// Get all commands in the trove collection sorted by usage count
+    pub fn get_commands_sorted_by_usage(&self) -> Vec<HoardCmd> {
+        let mut commands = self.commands.clone();
+        commands.sort_by(|a, b| b.usage_count.cmp(&a.usage_count));
+        commands
+    }
+
     /// Given a `HoardCmd`, check if there is a command with the same name, namespace and saved command already in the collection.
     /// A command with those same parameters is considered to be the same command
     /// If there is, return `true`
@@ -258,6 +265,7 @@ impl Trove {
         for c in &mut self.commands.iter_mut() {
             if c.name == command.name {
                 *c = command.clone();
+                c.mut_update_last_used();
             }
         }
         self

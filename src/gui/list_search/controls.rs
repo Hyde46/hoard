@@ -210,6 +210,7 @@ fn apply_search(state: &mut State, all_commands: &[HoardCmd], selected_tab: &str
         })
         .cloned()
         .collect();
+    state.commands.sort_by(|a, b| b.usage_count.cmp(&a.usage_count));
 }
 
 fn apply_filter(state: &mut State, namespaces: &[&str], commands: &[HoardCmd]) {
