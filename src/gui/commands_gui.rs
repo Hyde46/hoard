@@ -160,7 +160,7 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
 
     let mut app_state = State {
         input: String::new(),
-        commands: trove_clone.commands.clone(),
+        commands: trove.get_commands_sorted_by_usage(),
         command_list: ListState::default(),
         namespace_tab: ListState::default(),
         should_exit: false,
