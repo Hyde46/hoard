@@ -70,8 +70,8 @@ impl Trove {
                     match parsed_trove {
                         Ok(trove) => trove,
                         Err(e) => {
-                            println!("The supplied trove file is invalid!");
-                            println!("{e}");
+                            eprintln!("The supplied trove file is invalid!");
+                            eprintln!("{e}");
                             Self::default()
                         }
                     }
@@ -89,8 +89,8 @@ impl Trove {
         match parsed_trove {
             Ok(trove) => trove,
             Err(e) => {
-                println!("{e}");
-                println!("The supplied trove file is invalid!");
+                eprintln!("{e}");
+                eprintln!("The supplied trove file is invalid!");
                 Self::default()
             }
         }
