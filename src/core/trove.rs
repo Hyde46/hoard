@@ -25,6 +25,7 @@ const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Trove {
     pub version: String,
     pub commands: Vec<HoardCmd>,
+    #[serde(default)]
     pub namespaces: HashSet<String>,
 }
 
@@ -58,7 +59,7 @@ impl Trove {
 
     /// Loads a local trove file and tries to parse it to load it into memory
     pub fn load_trove_file(path: &Option<PathBuf>) -> Self {
-        path.clone().map_or_else(
+        let mut trove = path.clone().map_or_else(
             || {
                 info!("[DEBUG] No trove path available. Creating new trove file");
                 Self::default()
@@ -80,20 +81,24 @@ impl Trove {
                     Self::default()
                 }
             },
-        )
+        );
+        trove.namespaces = trove.namespaces().into_iter().map(std::string::ToString::to_string).collect();
+        trove
     }
 
     /// Loads a trove collection from a string and tries to parse it to load it into memory
     pub fn load_trove_from_string(trove_string: &str) -> Self {
         let parsed_trove = serde_yaml::from_str::<Self>(trove_string);
-        match parsed_trove {
+        let mut trove = match parsed_trove {
             Ok(trove) => trove,
             Err(e) => {
                 eprintln!("{e}");
                 eprintln!("The supplied trove file is invalid!");
                 Self::default()
             }
-        }
+        };
+        trove.namespaces = trove.namespaces().into_iter().map(std::string::ToString::to_string).collect();
+        trove
     }
 
     /// Serialize trove collection to yaml format and returns it as a string
