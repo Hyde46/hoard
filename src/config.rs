@@ -265,25 +265,25 @@ pub struct ClientResponse {
     pub tag_name: String,
 }
 
-pub async fn compare_with_latest_version() -> (bool, String) {
-    let client = reqwest::Client::builder()
-        .user_agent(env!("CARGO_PKG_NAME"))
-        .build()
-        .unwrap();
-    if let Ok(client_response) = client
-        .get("https://api.github.com/repos/Hyde46/hoard/releases/latest")
-        .send()
-        .await
-    {
-        if let Ok(release) = client_response.json::<ClientResponse>().await {
-            let tag_name = release.tag_name;
-            if !tag_name.is_empty() {
-                return (VERSION == &tag_name[1..], tag_name);
-            }
-        }
-    }
-    (true, String::new())
-}
+// pub async fn compare_with_latest_version() -> (bool, String) {
+//     let client = reqwest::Client::builder()
+//         .user_agent(env!("CARGO_PKG_NAME"))
+//         .build()
+//         .unwrap();
+//     if let Ok(client_response) = client
+//         .get("https://api.github.com/repos/Hyde46/hoard/releases/latest")
+//         .send()
+//         .await
+//     {
+//         if let Ok(release) = client_response.json::<ClientResponse>().await {
+//             let tag_name = release.tag_name;
+//             if !tag_name.is_empty() {
+//                 return (VERSION == &tag_name[1..], tag_name);
+//             }
+//         }
+//     }
+//     (true, String::new())
+// }
 
 fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), Error> {
     let s = serde_yaml::to_string(&config_to_save)?;
