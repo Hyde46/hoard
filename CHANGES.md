@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 2.0.0
-- 🧹  Untangled a bunch of spaghetti code. Hopefully now much easier to digest.
+- ✨ Tracking how often a command is used or edited and some timestamps
+- ✨ Sorting commands by their usage count
+- ✨ Display usage count in TUI
+- 🧹 Untangled a bunch of spaghetti code. Hopefully now much easier to digest.
 - 🔧 Better error handling and better documentation
 - 🧪  Bunch more testing
 ## 1.4.2

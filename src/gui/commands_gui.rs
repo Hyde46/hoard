@@ -255,15 +255,18 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
                 if app_state.draw == DrawState::Create {
                     let _ = trove.add_command(output, true);
                     app_state.commands = trove.commands.clone();
+                    app_state.commands.sort_by(|a, b| b.usage_count.cmp(&a.usage_count));
                     app_state.draw = DrawState::Search;
                 } else if app_state.control == ControlState::Edit {
                     // Command has been edited
                     trove.update_command_by_name(&output);
                     app_state.commands = trove.commands.clone();
+                    app_state.commands.sort_by(|a, b| b.usage_count.cmp(&a.usage_count));
                     app_state.control = ControlState::Search;
                 } else if app_state.should_delete {
                     trove.remove_command(&output.name).ok();
                     app_state.commands = trove.commands.clone();
+                    app_state.commands.sort_by(|a, b| b.usage_count.cmp(&a.usage_count));
                     app_state.should_delete = false;
                 } else {
                     // Command has been selected
