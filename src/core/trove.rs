@@ -205,6 +205,18 @@ impl Trove {
         Ok(())
     }
 
+    pub fn update_command_meta(&mut self, command: &HoardCmd) -> Result<(), anyhow::Error> {
+        let command_position = self.commands.iter().position(|x| x.name == command.name);
+        if command_position.is_none() {
+            return Err(anyhow!("Command not found [{}]", command.name));
+        }
+        let mut updated_command = command.clone();
+        updated_command.mut_increase_usage_count();
+        updated_command.mut_update_last_used();
+        self.commands[command_position.unwrap()] = updated_command;
+        Ok(())
+    }
+
     pub fn remove_namespace_commands(&mut self, namespace: &str) -> Result<(), anyhow::Error> {
         let command_position = self.commands.iter().position(|x| x.namespace == namespace);
         if command_position.is_none() {

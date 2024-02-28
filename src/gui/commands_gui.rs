@@ -267,6 +267,8 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<Option<HoardCmd>> 
                     app_state.should_delete = false;
                 } else {
                     // Command has been selected
+                    // Update the command's meta info
+                    let _ = trove.update_command_meta(&output);
                     terminal.show_cursor()?;
                     return Ok(Some(output));
                 }

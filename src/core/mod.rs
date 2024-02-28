@@ -467,9 +467,12 @@ impl HoardCmd {
             description: description_string,
             ..self
         }
-    }
+    } 
 
-    #[allow(dead_code)]
+    pub fn mut_update_last_used(&mut self) {
+        self.last_used = time::SystemTime::now();
+    }
+    
     /// increase the usage count of the command
     pub fn mut_increase_usage_count(&mut self) -> &mut Self {
         self.usage_count += 1;
