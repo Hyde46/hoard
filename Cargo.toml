@@ -55,7 +55,7 @@ url = { version = "2.4.0" }
 console = "0.15.7"
 enum-iterator = "1.4.0"
 base64 = "0.21.2"
-chatgpt_blocking_rs = "0.1.1"
+chatgpt_blocking_rs = "0.1.2"
 dotenv = "0.15.0"
 h2 = "0.3.20"
 regex = "1.10.2"
