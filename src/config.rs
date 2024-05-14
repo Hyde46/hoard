@@ -1,4 +1,4 @@
-use crate::gui::prompts::prompt_input;
+use crate::control::prompts::prompt_input;
 use anyhow::{anyhow, Error, Result};
 use log::info;
 use serde::{Deserialize, Serialize};
