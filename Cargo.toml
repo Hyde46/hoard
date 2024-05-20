@@ -43,7 +43,7 @@ log = "0.4"
 eyre = "0.6"
 simple_logger = "4.1.0"
 prettytable-rs = "0.10.0"
-ratatui = { version = "=0.24.0", default-features = false, features = [
+ratatui = { version = "=0.26.2", default-features = false, features = [
     'termion',
     'serde',
 ] }

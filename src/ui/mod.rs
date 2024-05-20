@@ -17,16 +17,19 @@ use crate::config::HoardConfig;
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
 use crate::ui::event::{Config, Event, Events};
+use crate::ui::search::render::draw_search_screen; 
+use crate::ui::search::controls::draw_search_key_handler; 
 
+const DEFAULT_COLLECTIONS: [&str; 2] = ["All", "Local"];
 
-
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DrawState {
     Search,
     Explore,
     About,
 }
 
+#[derive(Debug, Clone)]
 pub struct App {
     /// If set to true, the UI will exit on the next loop iteration
     pub should_exit: bool,
@@ -36,6 +39,11 @@ pub struct App {
     pub collections: ListState,
     // current screen to draw
     pub screen: DrawState, 
+    // search string to filter commands displayed at the bottom
+    pub search_string: String,
+    pub collection: String,
+
+    pub trove: Trove,
  }
 
 impl Default for App {
@@ -45,10 +53,22 @@ impl Default for App {
             commands: ListState::default(),
             collections: ListState::default(),
             screen: DrawState::Search,
+            trove: Trove::default(),
+            search_string: String::new(),
+            collection: String::from(DEFAULT_COLLECTIONS[0]),
         };
         state.commands.select(Some(0));
         state.collections.select(Some(0));
         state
+    }
+}
+
+impl App {
+    pub fn with_trove(&mut self, trove: Trove) -> Self {
+        Self {
+            trove,
+            ..self.clone()
+        }
     }
 }
 
@@ -66,7 +86,7 @@ pub fn run(trove: &mut Trove, config: &HoardConfig) -> Result<()> {
 
     // create app and run it
     let tick_rate = Duration::from_millis(200);
-    let app = App::default();
+    let app = App::default().with_trove(trove.clone());
     let res = run_app(&mut terminal, app, tick_rate);
 
     // Cleanup
@@ -96,7 +116,7 @@ fn run_app<B: Backend>(
     loop {
         let screen = match app.screen {
             DrawState::Search => {
-                not_implemented_ui
+                draw_search_screen
             }
             DrawState::Explore => {
                 not_implemented_ui
@@ -105,20 +125,47 @@ fn run_app<B: Backend>(
                 not_implemented_ui
             }
         };
+
         terminal.draw(|f| screen(f, &mut app))?;
         
         if let Event::Input(input) = events.next()? {
-            match input {
-                Key::Char('q') => {
-                    return Ok(None);
+            match app.screen {
+                DrawState::Search => {
+                    if let Some(cmd) = draw_search_key_handler(input, &mut app) {
+                        return Ok(Some(cmd));
+                    }
                 }
-                _ => {}
+                DrawState::Explore => {
+                    if let Some(cmd) = not_implemented_key_handler(input, &mut app) {
+                        return Ok(Some(cmd));
+                    }
+                }
+                DrawState::About => {
+                    if let Some(cmd) = not_implemented_key_handler(input, &mut app) {
+                        return Ok(Some(cmd));
+                    }
+                }
             }
         }
 
         if last_tick.elapsed() >= tick_rate {
             last_tick = Instant::now();
         }
+
+        if app.should_exit {
+            terminal.show_cursor()?;
+            return Ok(None);
+        }
+    }
+}
+
+pub fn  not_implemented_key_handler(input: Key, app: &mut App) -> Option<HoardCmd> {
+    match input {
+        Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
+            app.should_exit = true;
+            None
+        }
+        _ => None,
     }
 }
 
