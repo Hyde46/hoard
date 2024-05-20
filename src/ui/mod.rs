@@ -4,11 +4,7 @@ mod search;
 use eyre::Result;
 use ratatui::{prelude::*, widgets::*};
 use std::io::stdout;
-use std::{
-    error::Error,
-    io,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 use termion::event::Key;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
@@ -35,6 +31,8 @@ pub struct App {
     pub should_exit: bool,
     // ratatui list of commands to display
     pub commands: ListState,
+    // vertical scroll position of the command list
+    pub vertical_scroll: usize,
     // ratatui list of collections to display
     pub collections: ListState,
     // current screen to draw
@@ -56,6 +54,7 @@ impl Default for App {
             trove: Trove::default(),
             search_string: String::new(),
             collection: String::from(DEFAULT_COLLECTIONS[0]),
+            vertical_scroll: 0,
         };
         state.commands.select(Some(0));
         state.collections.select(Some(0));

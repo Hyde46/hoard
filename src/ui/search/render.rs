@@ -24,34 +24,11 @@ pub fn draw_search_screen(frame: &mut Frame, app: &mut App) {
     )
     .split(frame.size());
 
-    render_version_header(frame, main_layout[0]);
+    render_version_header_widget(frame, main_layout[0]);
 
     render_main_screen(frame, main_layout[1], app);
 
-    render_search_field(frame, main_layout[2], app);
-}
-
-/// Draw the version header
-///
-/// # Arguments
-/// * `frame` - The frame to draw the UI components
-/// * `rect` - The area to draw the version header
-fn render_version_header(frame: &mut Frame, rect: Rect) {
-    let version = format!("Hoard v{}", VERSION);
-
-    frame.render_widget(Paragraph::new(version), rect);
-}
-
-/// Draw the search field
-///
-/// # Arguments
-/// * `frame` - The frame to draw the UI components
-/// * `rect` - The area to draw the search field
-/// * `app` - The application state
-fn render_search_field(frame: &mut Frame, rect: Rect, app: &mut App) {
-    let search_string = format!("[ {} ] > {}", app.collection, app.search_string);
-
-    frame.render_widget(Paragraph::new(search_string), rect);
+    render_search_field_widget(frame, main_layout[2], app);
 }
 
 /// Draw the main screen
@@ -70,7 +47,55 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
     )
     .split(rect);
 
-    let vertical_scroll = 0; // from app state
+    render_commands_list_widget(frame, main_screen_layout[0], app);
+
+    render_command_detail(frame, main_screen_layout[1], app);
+}
+
+fn render_command_detail(frame: &mut Frame, rect: Rect, app: &mut App) {
+    let detail_layout = Layout::new(
+        Direction::Vertical,
+        [
+            Constraint::Percentage(20),
+            Constraint::Percentage(30),
+            Constraint::Percentage(50),
+        ],
+    )
+    .split(rect);
+
+    render_command_string_widget(frame, detail_layout[0], app);
+
+    render_command_description_widget(frame, detail_layout[1], app);
+
+    render_command_subdetails_widget(frame, detail_layout[2], app);
+}
+
+
+/// Draw the version header
+///
+/// # Arguments
+/// * `frame` - The frame to draw the UI components
+/// * `rect` - The area to draw the version header
+fn render_version_header_widget(frame: &mut Frame, rect: Rect) {
+    let version = format!("Hoard v{}", VERSION);
+
+    frame.render_widget(Paragraph::new(version), rect);
+}
+
+/// Draw the search field
+///
+/// # Arguments
+/// * `frame` - The frame to draw the UI components
+/// * `rect` - The area to draw the search field
+/// * `app` - The application state
+fn render_search_field_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
+    let search_string = format!("[ {} ] > {}", app.collection, app.search_string);
+
+    frame.render_widget(Paragraph::new(search_string), rect);
+}
+
+fn render_commands_list_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
+    let vertical_scroll = app.vertical_scroll; // from app state
 
     let items = vec![
         Line::from(vec![
@@ -90,7 +115,6 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
         Line::from("  go_to_home"),
     ];
 
-    // let paragraph = Paragraph::new(Line::from(vec!["Hello, ".into(), "world!".red()]));
     let paragraph = Paragraph::new(items.clone())
         .scroll((vertical_scroll as u16, 0))
         .block(Block::new().borders(Borders::ALL)); // to show a background for the scrollbar
@@ -101,47 +125,44 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
 
     let mut scrollbar_state = ScrollbarState::new(items.len()).position(vertical_scroll);
 
-    let area = main_screen_layout[0];
+    frame.render_widget(paragraph, rect);
 
-    frame.render_widget(paragraph, area);
     // and the scrollbar, those are separate widgets
     frame.render_stateful_widget(
         scrollbar,
-        area.inner(&Margin {
+        rect.inner(&Margin {
             // using an inner vertical margin of 1 unit makes the scrollbar inside the block
             vertical: 1,
             horizontal: 0,
         }),
         &mut scrollbar_state,
     );
+}
 
-    let detail_layout = Layout::new(
-        Direction::Vertical,
-        [
-            Constraint::Percentage(20),
-            Constraint::Percentage(30),
-            Constraint::Percentage(50),
-        ],
-    )
-    .split(main_screen_layout[1]);
-
+fn render_command_string_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
     frame.render_widget(
         Paragraph::new("cd /home/monarch/code")
             .block(Block::default().borders(Borders::ALL).title(" Command "))
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: false }),
-        detail_layout[0],
+        rect,
     );
+}
 
+fn render_command_description_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
     frame.render_widget(
-        //Block::new().borders(Borders::RIGHT | Borders::TOP),
-        Paragraph::new("This is a longwinded description about the command, Probably left side aligned makes the most sense here").block(Block::default().borders(Borders::ALL).title(" Description ")).alignment(Alignment::Left).wrap(Wrap { trim: false }),
-        detail_layout[1]
+        Paragraph::new("This is a longwinded description about the command, Probably left side aligned makes the most sense here")
+            .block(Block::default().borders(Borders::ALL).title(" Description "))
+            .alignment(Alignment::Left)
+            .wrap(Wrap { trim: false }),
+        rect,
     );
+}
 
+fn render_command_subdetails_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
     frame.render_widget(
         //Block::new().borders(Borders::BOTTOM | Borders::RIGHT | Borders::TOP),
         Block::new().borders(Borders::ALL),
-        detail_layout[2],
+        rect,
     );
 }
