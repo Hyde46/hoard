@@ -1,24 +1,24 @@
 mod event;
 mod search;
 
+use eyre::Result;
+use ratatui::{prelude::*, widgets::*};
+use std::io::stdout;
 use std::{
     error::Error,
     io,
     time::{Duration, Instant},
 };
-use std::io::stdout;
-use eyre::Result;
-use ratatui::{prelude::*, widgets::*};
+use termion::event::Key;
 use termion::raw::IntoRawMode;
 use termion::screen::IntoAlternateScreen;
-use termion::event::Key;
 
 use crate::config::HoardConfig;
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
 use crate::ui::event::{Config, Event, Events};
-use crate::ui::search::render::draw_search_screen; 
-use crate::ui::search::controls::draw_search_key_handler; 
+use crate::ui::search::controls::draw_search_key_handler;
+use crate::ui::search::render::draw_search_screen;
 
 const DEFAULT_COLLECTIONS: [&str; 2] = ["All", "Local"];
 
@@ -38,13 +38,13 @@ pub struct App {
     // ratatui list of collections to display
     pub collections: ListState,
     // current screen to draw
-    pub screen: DrawState, 
+    pub screen: DrawState,
     // search string to filter commands displayed at the bottom
     pub search_string: String,
     pub collection: String,
 
     pub trove: Trove,
- }
+}
 
 impl Default for App {
     fn default() -> Self {
@@ -71,7 +71,6 @@ impl App {
         }
     }
 }
-
 
 /// The main entry point for the UI
 /// Handles setting up the UI, running the main loop
@@ -104,7 +103,7 @@ fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,
-) ->  Result<Option<HoardCmd>> {
+) -> Result<Option<HoardCmd>> {
     let mut last_tick = Instant::now();
     let events = Events::with_config(Config {
         tick_rate: Duration::from_millis(tick_rate.as_millis() as u64),
@@ -115,19 +114,13 @@ fn run_app<B: Backend>(
     // then check for any events that might have happened and handle them
     loop {
         let screen = match app.screen {
-            DrawState::Search => {
-                draw_search_screen
-            }
-            DrawState::Explore => {
-                not_implemented_ui
-            }
-            DrawState::About => {
-                not_implemented_ui
-            }
+            DrawState::Search => draw_search_screen,
+            DrawState::Explore => not_implemented_ui,
+            DrawState::About => not_implemented_ui,
         };
 
         terminal.draw(|f| screen(f, &mut app))?;
-        
+
         if let Event::Input(input) = events.next()? {
             match app.screen {
                 DrawState::Search => {
@@ -159,7 +152,7 @@ fn run_app<B: Backend>(
     }
 }
 
-pub fn  not_implemented_key_handler(input: Key, app: &mut App) -> Option<HoardCmd> {
+pub fn not_implemented_key_handler(input: Key, app: &mut App) -> Option<HoardCmd> {
     match input {
         Key::Esc | Key::Ctrl('c' | 'd' | 'g') => {
             app.should_exit = true;

@@ -1,4 +1,7 @@
-use crate::config::HoardConfig; use crate::ui::App; use ratatui::{prelude::*, widgets::*};
+use crate::config::HoardConfig;
+use crate::ui::App;
+use ratatui::{prelude::*, widgets::*};
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Draw the search screen
@@ -11,7 +14,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The main screen will display the list of commands and details of the selected command
 /// The footer will display the search string and the current collection
 pub fn draw_search_screen(frame: &mut Frame, app: &mut App) {
-
     let main_layout = Layout::new(
         Direction::Vertical,
         [
@@ -30,21 +32,18 @@ pub fn draw_search_screen(frame: &mut Frame, app: &mut App) {
 }
 
 /// Draw the version header
-/// 
+///
 /// # Arguments
 /// * `frame` - The frame to draw the UI components
 /// * `rect` - The area to draw the version header
 fn render_version_header(frame: &mut Frame, rect: Rect) {
     let version = format!("Hoard v{}", VERSION);
 
-    frame.render_widget(
-        Paragraph::new(version),
-        rect,
-    );
+    frame.render_widget(Paragraph::new(version), rect);
 }
 
 /// Draw the search field
-/// 
+///
 /// # Arguments
 /// * `frame` - The frame to draw the UI components
 /// * `rect` - The area to draw the search field
@@ -52,10 +51,7 @@ fn render_version_header(frame: &mut Frame, rect: Rect) {
 fn render_search_field(frame: &mut Frame, rect: Rect, app: &mut App) {
     let search_string = format!("[ {} ] > {}", app.collection, app.search_string);
 
-    frame.render_widget(
-        Paragraph::new(search_string),
-        rect,
-    );
+    frame.render_widget(Paragraph::new(search_string), rect);
 }
 
 /// Draw the main screen
@@ -71,12 +67,16 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
             Constraint::Percentage(30), // Scrollable tray for a list of available commands
             Constraint::Percentage(70), // Detail view for the "hovered" command by the selector
         ],
-    ).split(rect);
+    )
+    .split(rect);
 
     let vertical_scroll = 0; // from app state
 
     let items = vec![
-        Line::from(vec![Span::raw("★ connect_"), Span::styled("psql", Style::new().fg(Color::Red))]),
+        Line::from(vec![
+            Span::raw("★ connect_"),
+            Span::styled("psql", Style::new().fg(Color::Red)),
+        ]),
         Line::from("★ deploy_heroku"),
         Line::from("  hoard_trove_server_psql"),
         Line::from("  connect_mcme_local_db"),
@@ -94,13 +94,13 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
     let paragraph = Paragraph::new(items.clone())
         .scroll((vertical_scroll as u16, 0))
         .block(Block::new().borders(Borders::ALL)); // to show a background for the scrollbar
-    
+
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
         .begin_symbol(Some("↑"))
         .end_symbol(Some("↓"));
-    
+
     let mut scrollbar_state = ScrollbarState::new(items.len()).position(vertical_scroll);
-    
+
     let area = main_screen_layout[0];
 
     frame.render_widget(paragraph, area);
@@ -122,10 +122,14 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
             Constraint::Percentage(30),
             Constraint::Percentage(50),
         ],
-    ).split(main_screen_layout[1]);
+    )
+    .split(main_screen_layout[1]);
 
     frame.render_widget(
-        Paragraph::new("cd /home/monarch/code").block(Block::default().borders(Borders::ALL).title(" Command ")).alignment(Alignment::Center).wrap(Wrap { trim: false }),
+        Paragraph::new("cd /home/monarch/code")
+            .block(Block::default().borders(Borders::ALL).title(" Command "))
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: false }),
         detail_layout[0],
     );
 
@@ -141,4 +145,3 @@ fn render_main_screen(frame: &mut Frame, rect: Rect, app: &mut App) {
         detail_layout[2],
     );
 }
-
