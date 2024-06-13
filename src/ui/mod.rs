@@ -169,3 +169,20 @@ fn not_implemented_ui(frame: &mut Frame, _app: &mut App) {
         frame.size(),
     );
 }
+
+fn partial_highlighted_line<'a>(text_input: &'a str, search: &'a str) -> Line<'a> {
+    // find the index of the search string in the text
+    let index = text_input.find(&search);
+    
+    match index {
+        Some(i) => {
+            let (left, right) = text_input.split_at(i);
+            let (highlight, rest) = right.split_at(search.len());
+            let left_span = Span::raw(left);
+            let highlight_span = Span::styled(highlight, Style::default().fg(Color::LightRed));
+            let rest_span = Span::raw(rest);
+            Line::from(vec![left_span, highlight_span, rest_span])
+        }
+        None => Line::from(text_input),
+    }
+}

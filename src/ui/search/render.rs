@@ -1,5 +1,5 @@
 use crate::config::HoardConfig;
-use crate::ui::App;
+use crate::ui::{App, partial_highlighted_line};
 use ratatui::{prelude::*, widgets::*};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -96,25 +96,7 @@ fn render_search_field_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
 
 fn render_commands_list_widget(frame: &mut Frame, rect: Rect, app: &mut App) {
     let vertical_scroll = app.vertical_scroll; // from app state
-
-    let items = vec![
-        Line::from(vec![
-            Span::raw("★ connect_"),
-            Span::styled("psql", Style::new().fg(Color::Red)),
-        ]),
-        Line::from("★ deploy_heroku"),
-        Line::from("  hoard_trove_server_psql"),
-        Line::from("  connect_mcme_local_db"),
-        Line::from("  start_postgres"),
-        Line::from("  go_to_home"),
-        Line::from("  connect_psql"),
-        Line::from("  deploy_heroku"),
-        Line::from("  hoard_trove_server_psql"),
-        Line::from("  connect_mcme_local_db"),
-        Line::from("  start_postgres"),
-        Line::from("  go_to_home"),
-    ];
-
+    let items = build_command_list_items(app);
     let paragraph = Paragraph::new(items.clone())
         .scroll((vertical_scroll as u16, 0))
         .block(Block::new().borders(Borders::ALL)); // to show a background for the scrollbar
@@ -165,4 +147,14 @@ fn render_command_subdetails_widget(frame: &mut Frame, rect: Rect, app: &mut App
         Block::new().borders(Borders::ALL),
         rect,
     );
+}
+
+/// Build the list of commands to display based on the trove in the current 
+/// app state. The list of commands is highlighted based on the search string
+fn build_command_list_items(app: &App) -> Vec<Line> {
+    app.trove
+        .commands
+        .iter()
+        .map(|command| partial_highlighted_line(&command.name, &app.search_string))
+        .collect()
 }

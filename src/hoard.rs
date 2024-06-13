@@ -177,7 +177,6 @@ impl Hoard {
                     println!("No command selected");
                 }
                 Err(e) => {
-                    eprintln!("here {e}");
                     println!("{e}");
                 }
             }
