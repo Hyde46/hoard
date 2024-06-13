@@ -15,11 +15,7 @@ use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
 use crate::filter::query_trove;
-use crate::gui::commands_gui;
-use crate::gui::prompts::{
-    prompt_input, prompt_multiselect_options, prompt_password, prompt_password_repeat,
-    prompt_yes_or_no, Confirmation,
-};
+use crate::ui;
 use crate::sync_models::TokenResponse;
 use crate::util::rem_first_and_last;
 use base64::Engine as _;
@@ -94,7 +90,8 @@ impl Hoard {
                 self.import_trove(uri);
             }
             Commands::Export { path } => {
-                self.export_command(path);
+                //self.export_command(path);
+                println!("Exporting is not yet implemented");
             }
             Commands::Edit { name } => {
                 self.edit_command(name);
@@ -103,7 +100,8 @@ impl Hoard {
                 Self::shell_config_command(shell);
             }
             Commands::Sync { command } => {
-                self.sync(*command);
+                //self.sync(*command);
+                println!("Syncing is not yet implemented");
             }
         }
 
@@ -163,16 +161,20 @@ impl Hoard {
             let filtered_trove = query_trove(&self.trove, &query_string);
             return Some(filtered_trove.to_yaml());
         } else {
-            match commands_gui::run(&mut self.trove, &self.config) {
-                Ok(selected_command) => {
+            match ui::run(&mut self.trove, &self.config) {
+                Ok(_) => {
                     self.save_trove(None);
-                    if let Some(c) = selected_command {
+                    let mut selected_command = HoardCmd::default();
+                    selected_command.command = String::from("cd ~");
+
+                    if let Some(c) = Some(selected_command) {
                         // Is set if a command is selected in GUI
                         if !c.command.is_empty() {
                             //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
                             return Some(c.command);
                         }
                     }
+                    println!("No command selected");
                 }
                 Err(e) => {
                     println!("{e}");
@@ -237,7 +239,7 @@ impl Hoard {
             }
         }
     }
-
+/*
     fn export_command(&self, path: &str) {
         let target_path = PathBuf::from(path);
         if target_path.file_name().is_some() {
@@ -284,6 +286,7 @@ impl Hoard {
             println!("No valid path with filename provided.");
         }
     }
+    */
 
     pub fn set_parameter_token(&self, parameter_token: &str) {
         if let Some(config_path) = self.config.config_home_path.clone() {
@@ -352,6 +355,7 @@ impl Hoard {
         self.trove.save_trove_file(path_to_save);
     }
 
+/*
     fn revert_trove(&self) {
         let trove_path = self.config.trove_path.as_ref().unwrap();
         let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
@@ -368,7 +372,6 @@ impl Hoard {
             }
         }
     }
-
     fn register_user(&mut self) {
         println!("Registering account..");
         let user_email = prompt_input("Email: ", false, None);
@@ -414,7 +417,7 @@ impl Hoard {
             println!("Invalid Email and password combination.");
         }
     }
-
+*/
     fn get_trove_file(&self) -> Option<Trove> {
         println!("Syncing ...");
         let token = self.config.api_token.clone();
@@ -458,7 +461,7 @@ impl Hoard {
             println!("{}", body.text().unwrap());
         }
     }
-
+/*
     pub fn sync(&mut self, command: Mode) {
         // Check if user is logged in
         // Else inform the user to run `hoard sync login` first and break
@@ -514,6 +517,7 @@ impl Hoard {
             }
         }
     }
+*/
 
     const fn is_logged_in(&self) -> bool {
         self.config.api_token.is_some()

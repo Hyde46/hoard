@@ -1,7 +1,7 @@
 use regex::Regex;
 
 use crate::core::HoardCmd;
-use crate::gui::prompts::prompt_input;
+use crate::control::prompts::prompt_input;
 
 pub trait Parameterized {
     /// Checks if the command string contains a specific token.
