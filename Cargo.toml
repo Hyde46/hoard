@@ -61,4 +61,4 @@ h2 = "0.3.20"
 regex = "1.10.2"
 
 [dev-dependencies]
-tempfile = "3.3.0"
+tempfile = "3.10.1"
