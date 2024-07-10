@@ -1,3 +1,5 @@
+extern crate edit;
+
 use crate::cli_commands::{Cli, Commands};
 use base64::engine::general_purpose;
 use clap::Parser;
@@ -15,12 +17,8 @@ use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
 use crate::filter::query_trove;
-use crate::gui::commands_gui;
-use crate::gui::prompts::{
-    prompt_input, prompt_multiselect_options, prompt_password, prompt_password_repeat,
-    prompt_yes_or_no, Confirmation,
-};
 use crate::sync_models::TokenResponse;
+use crate::ui;
 use crate::util::rem_first_and_last;
 use base64::Engine as _;
 #[derive(Default, Debug)]
@@ -94,16 +92,21 @@ impl Hoard {
                 self.import_trove(uri);
             }
             Commands::Export { path } => {
-                self.export_command(path);
+                //self.export_command(path);
+                println!("Exporting is not yet implemented");
             }
             Commands::Edit { name } => {
                 self.edit_command(name);
+            }
+            Commands::EditTrove {  } => {
+                self.edit_trove();
             }
             Commands::ShellConfig { shell } => {
                 Self::shell_config_command(shell);
             }
             Commands::Sync { command } => {
-                self.sync(*command);
+                //self.sync(*command);
+                println!("Syncing is not yet implemented");
             }
         }
 
@@ -163,18 +166,24 @@ impl Hoard {
             let filtered_trove = query_trove(&self.trove, &query_string);
             return Some(filtered_trove.to_yaml());
         } else {
-            match commands_gui::run(&mut self.trove, &self.config) {
-                Ok(selected_command) => {
-                    self.save_trove(None);
-                    if let Some(c) = selected_command {
-                        // Is set if a command is selected in GUI
-                        if !c.command.is_empty() {
-                            //TODO: If run as cli program, copy command into clipboard, else will be written to READLINE_LINE
-                            return Some(c.command);
+            match ui::run(&mut self.trove, &self.config) {
+                Ok(cmd) => {
+                    match self.trove.update_command_meta(&cmd) {
+                        Ok(_) => {
+                            self.save_trove(None);
+                            // Is set if a command is selected in GUI
+                            if !cmd.command.is_empty() {
+                                return Some(cmd.command);
+                            }
+                        }
+                        Err(e) => {
+                            self.save_trove(None);
+                            println!("{e}");
                         }
                     }
                 }
                 Err(e) => {
+                    self.save_trove(None);
                     println!("{e}");
                 }
             }
@@ -237,7 +246,7 @@ impl Hoard {
             }
         }
     }
-
+    /*
     fn export_command(&self, path: &str) {
         let target_path = PathBuf::from(path);
         if target_path.file_name().is_some() {
@@ -284,6 +293,7 @@ impl Hoard {
             println!("No valid path with filename provided.");
         }
     }
+    */
 
     pub fn set_parameter_token(&self, parameter_token: &str) {
         if let Some(config_path) = self.config.config_home_path.clone() {
@@ -291,6 +301,14 @@ impl Hoard {
                 std::process::exit(1);
             }
         }
+    }
+
+    fn edit_trove(&mut self) {
+        let trove_path = self.config.trove_path.clone().unwrap();
+        let trove_content = fs::read_to_string(trove_path.clone()).unwrap();
+
+        let edited_trove = edit::edit(trove_content).unwrap();
+        fs::write(trove_path, edited_trove).unwrap();
     }
 
     fn edit_command(&mut self, command_name: &str) {
@@ -352,69 +370,69 @@ impl Hoard {
         self.trove.save_trove_file(path_to_save);
     }
 
-    fn revert_trove(&self) {
-        let trove_path = self.config.trove_path.as_ref().unwrap();
-        let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
-        let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
-        if backup_trove_path.exists() {
-            if matches!(prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?"), Confirmation::Yes) {
-                let e = fs::remove_file(trove_path);
-                // make clippy happy
-                drop(e);
-                fs::rename(backup_trove_path_str, trove_path).unwrap();
-                println!("Done!");
-            } else {
-                println!("Keeping current trove file...");
+    /*
+        fn revert_trove(&self) {
+            let trove_path = self.config.trove_path.as_ref().unwrap();
+            let backup_trove_path_str = format!("{}.bk", trove_path.to_str().unwrap());
+            let backup_trove_path = PathBuf::from_str(&backup_trove_path_str).ok().unwrap();
+            if backup_trove_path.exists() {
+                if matches!(prompt_yes_or_no("Found a backup from just before the last time you ran `hoard sync`. Are you sure you want to revert to this state?"), Confirmation::Yes) {
+                    let e = fs::remove_file(trove_path);
+                    // make clippy happy
+                    drop(e);
+                    fs::rename(backup_trove_path_str, trove_path).unwrap();
+                    println!("Done!");
+                } else {
+                    println!("Keeping current trove file...");
+                }
             }
         }
-    }
-
-    fn register_user(&mut self) {
-        println!("Registering account..");
-        let user_email = prompt_input("Email: ", false, None);
-        let user_pw: String = prompt_password_repeat("Password: ");
-        let client = reqwest::blocking::Client::new();
-        let register_url = format!("{}register", self.config.sync_server_url.clone().unwrap());
-        let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
-        let body = client
-            .post(register_url)
-            .body(register_body)
-            .header("Content-Type", "application/json")
-            .send()
-            .unwrap();
-        if body.status() == StatusCode::CREATED {
-            println!("Created new user! Verification not needed for now. Run `hoard sync login` next.\n\nPlease consider supporting further development and help offset server costs here:\nbuy.stripe.com/9AQ9Bm6Nx4qb6YwaEE\nThis is the only time this message will pop up :)");
-        } else {
-            println!("Something went all wrong. Try another email.");
-        }
-    }
-
-    fn login(&mut self) {
-        println!("Logging in..");
-        let user_email = prompt_input("Email: ", false, None);
-        let user_pw: String = prompt_password("Password: ");
-        let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
-        let client = reqwest::blocking::Client::new();
-        let register_url = format!("{}token/new", self.config.sync_server_url.clone().unwrap());
-        let body = client
-            .get(register_url)
-            .body(register_body)
-            .header("Content-Type", "application/json")
-            .send()
-            .unwrap();
-        if body.status() == StatusCode::CREATED {
-            let response_text = body.text().unwrap();
-            let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
-            let b64_token = general_purpose::STANDARD.encode(token.token);
-            self.config.api_token = Some(b64_token);
-            save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap())
+        fn register_user(&mut self) {
+            println!("Registering account..");
+            let user_email = prompt_input("Email: ", false, None);
+            let user_pw: String = prompt_password_repeat("Password: ");
+            let client = reqwest::blocking::Client::new();
+            let register_url = format!("{}register", self.config.sync_server_url.clone().unwrap());
+            let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
+            let body = client
+                .post(register_url)
+                .body(register_body)
+                .header("Content-Type", "application/json")
+                .send()
                 .unwrap();
-            println!("Success!");
-        } else {
-            println!("Invalid Email and password combination.");
+            if body.status() == StatusCode::CREATED {
+                println!("Created new user! Verification not needed for now. Run `hoard sync login` next.\n\nPlease consider supporting further development and help offset server costs here:\nbuy.stripe.com/9AQ9Bm6Nx4qb6YwaEE\nThis is the only time this message will pop up :)");
+            } else {
+                println!("Something went all wrong. Try another email.");
+            }
         }
-    }
 
+        fn login(&mut self) {
+            println!("Logging in..");
+            let user_email = prompt_input("Email: ", false, None);
+            let user_pw: String = prompt_password("Password: ");
+            let register_body = format!("{{\"password\": \"{user_pw}\",\"email\": \"{user_email}\"}}");
+            let client = reqwest::blocking::Client::new();
+            let register_url = format!("{}token/new", self.config.sync_server_url.clone().unwrap());
+            let body = client
+                .get(register_url)
+                .body(register_body)
+                .header("Content-Type", "application/json")
+                .send()
+                .unwrap();
+            if body.status() == StatusCode::CREATED {
+                let response_text = body.text().unwrap();
+                let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
+                let b64_token = general_purpose::STANDARD.encode(token.token);
+                self.config.api_token = Some(b64_token);
+                save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap())
+                    .unwrap();
+                println!("Success!");
+            } else {
+                println!("Invalid Email and password combination.");
+            }
+        }
+    */
     fn get_trove_file(&self) -> Option<Trove> {
         println!("Syncing ...");
         let token = self.config.api_token.clone();
@@ -458,62 +476,63 @@ impl Hoard {
             println!("{}", body.text().unwrap());
         }
     }
-
-    pub fn sync(&mut self, command: Mode) {
-        // Check if user is logged in
-        // Else inform the user to run `hoard sync login` first and break
-        match command {
-            Mode::Register => self.register_user(),
-            Mode::Login => {
-                if self.is_logged_in() {
-                    println!("You are already logged in.");
-                    return;
-                }
-                self.login();
-            }
-            Mode::Logout => {
-                println!("Logging out..");
-                self.config.api_token = None;
-                save_hoard_config_file(
-                    &self.config.clone(),
-                    &self.config.config_home_path.clone().unwrap(),
-                )
-                .unwrap();
-            }
-            Mode::Save => {
-                if !self.is_logged_in() {
-                    println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
-                    return;
-                }
-                self.sync_safe();
-            }
-            Mode::Get => {
-                // `hoard sync` is run
-                // Pull trove
-                if !self.is_logged_in() {
-                    println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
-                    return;
-                }
-                let trove = self.get_trove_file();
-                if let Some(t) = trove {
-                    // Prepare backup trove to enable reverting if merge goes all wrong, or user incorrectly removes commands they wanted to keep
-                    self.save_backup_trove(None);
-                    let was_dirty = self.trove.merge_trove(&t);
-                    if was_dirty {
-                        self.save_trove(None);
-                        println!("All done!");
+    /*
+        pub fn sync(&mut self, command: Mode) {
+            // Check if user is logged in
+            // Else inform the user to run `hoard sync login` first and break
+            match command {
+                Mode::Register => self.register_user(),
+                Mode::Login => {
+                    if self.is_logged_in() {
+                        println!("You are already logged in.");
                         return;
                     }
-                    println!("No changes");
-                } else {
-                    println!("Could not fetch trove file from your account!");
+                    self.login();
+                }
+                Mode::Logout => {
+                    println!("Logging out..");
+                    self.config.api_token = None;
+                    save_hoard_config_file(
+                        &self.config.clone(),
+                        &self.config.config_home_path.clone().unwrap(),
+                    )
+                    .unwrap();
+                }
+                Mode::Save => {
+                    if !self.is_logged_in() {
+                        println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                        return;
+                    }
+                    self.sync_safe();
+                }
+                Mode::Get => {
+                    // `hoard sync` is run
+                    // Pull trove
+                    if !self.is_logged_in() {
+                        println!("Please log in [hoard sync login] or register an account [hoard sync register] to use the sync feature!");
+                        return;
+                    }
+                    let trove = self.get_trove_file();
+                    if let Some(t) = trove {
+                        // Prepare backup trove to enable reverting if merge goes all wrong, or user incorrectly removes commands they wanted to keep
+                        self.save_backup_trove(None);
+                        let was_dirty = self.trove.merge_trove(&t);
+                        if was_dirty {
+                            self.save_trove(None);
+                            println!("All done!");
+                            return;
+                        }
+                        println!("No changes");
+                    } else {
+                        println!("Could not fetch trove file from your account!");
+                    }
+                }
+                Mode::Revert => {
+                    self.revert_trove();
                 }
             }
-            Mode::Revert => {
-                self.revert_trove();
-            }
         }
-    }
+    */
 
     const fn is_logged_in(&self) -> bool {
         self.config.api_token.is_some()

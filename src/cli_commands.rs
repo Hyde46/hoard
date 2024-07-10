@@ -115,6 +115,9 @@ pub enum Commands {
         name: String,
     },
 
+    /// Edit the all your commands in your default editor
+    EditTrove {},
+
     /// Print shell config
     ShellConfig {
         /// shell type to print the config for
