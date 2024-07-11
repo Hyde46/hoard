@@ -59,6 +59,7 @@ chatgpt_blocking_rs = "0.1.2"
 dotenv = "0.15.0"
 h2 = "0.3.20"
 regex = "1.10.2"
+shellexpand = "3.1.0"
 
 [dev-dependencies]
 tempfile = "3.3.0"

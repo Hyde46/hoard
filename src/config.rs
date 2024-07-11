@@ -1,19 +1,20 @@
-use crate::gui::prompts::prompt_input;
 use anyhow::{anyhow, Error, Result};
 use log::info;
 use serde::{Deserialize, Serialize};
+use shellexpand::full;
 use std::{
-    fs,
+    env, fs,
     path::{Path, PathBuf},
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const HOARD_HOMEDIR: &str = ".config/hoard";
-const HOARD_FILE: &str = "trove.yml";
-pub const HOARD_CONFIG: &str = "config.yml";
+const DEFAULT_HOARD_HOMEDIR: &str = ".config/hoard";
+const DEFAULT_HOARD_FILE: &str = "trove.yml";
+const DEFAULT_HOARD_CONFIG_FILE: &str = "config.yml";
+const ENV_HOARD_CONFIG_PATH: &str = "HOARD_CONFIG";
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct HoardConfig {
     pub version: String,
     pub default_namespace: String,
@@ -61,46 +62,9 @@ impl Default for HoardConfig {
 impl HoardConfig {
     pub fn new(hoard_home_path: &Path) -> Self {
         Self {
-            version: VERSION.to_string(),
-            default_namespace: "default".to_string(),
             config_home_path: Some(hoard_home_path.to_path_buf()),
-            trove_path: Some(hoard_home_path.join(HOARD_FILE)),
-            query_prefix: "  >".to_string(),
-            primary_color: Some(Self::default_colors(0)),
-            secondary_color: Some(Self::default_colors(1)),
-            tertiary_color: Some(Self::default_colors(2)),
-            command_color: Some(Self::default_colors(3)),
-            parameter_token: Some(Self::default_parameter_token()),
-            parameter_ending_token: Some(Self::default_ending_parameter_token()),
-            read_from_current_directory: Some(Self::default_read_from_current_directory()),
-            sync_server_url: Some(Self::default_sync_server_url()),
-            api_token: None,
-            gpt_api_key: None,
-        }
-    }
-
-    pub fn with_default_namespace(self) -> Self {
-        let default_namespace = prompt_input(
-            "This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.",
-            false,
-            Some("default".to_string())
-        );
-        Self {
-            version: self.version,
-            default_namespace,
-            config_home_path: self.config_home_path,
-            trove_path: self.trove_path,
-            query_prefix: self.query_prefix,
-            primary_color: self.primary_color,
-            secondary_color: self.secondary_color,
-            tertiary_color: self.tertiary_color,
-            command_color: self.command_color,
-            parameter_token: self.parameter_token,
-            parameter_ending_token: self.parameter_ending_token,
-            read_from_current_directory: self.read_from_current_directory,
-            sync_server_url: self.sync_server_url,
-            api_token: self.api_token,
-            gpt_api_key: self.gpt_api_key,
+            trove_path: Some(hoard_home_path.join(DEFAULT_HOARD_FILE)),
+            ..Self::default()
         }
     }
 
@@ -130,42 +94,34 @@ impl HoardConfig {
     }
 }
 
-/// Loads hoard config file at $HOME/.hoard/config.yml.
-/// if `hoard_home_path` is set, try to read it from that custom path
-///
-/// If no `hoard_home_path` is found, a new config.yml will be created at the specified path
-#[allow(clippy::module_name_repetitions)]
-pub fn load_or_build_config(hoard_home_path: Option<String>) -> Result<HoardConfig> {
-    // First check if custom path should be used
-    hoard_home_path.map_or_else(load_or_build_default_path, |custom_path| {
-        info!("Found custom_path {:?}", custom_path);
-        let path = PathBuf::from(custom_path);
-        load_or_build(&path)
-    })
-}
-
-fn load_or_build_default_path() -> Result<HoardConfig, Error> {
-    dirs::home_dir().map_or_else(
-        || Err(anyhow!("No $HOME directory found for hoard config")),
-        |home| load_or_build(&home),
-    )
-}
-
+/// Loads hoard config file from $HOARD_CONFIG or from $HOME/.hoard/config.yml.
+/// If no config file is found, a new one will be created at the specified path
 #[allow(clippy::useless_let_if_seq)]
-fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
-    info!("Loading or building in {:?}", path);
-    let home_path = Path::new(&path);
+pub fn load_or_build_config() -> Result<HoardConfig, Error> {
+    let (hoard_dir, hoard_config_path) = get_hoard_config_path()
+        //Split up file path and parent dir, since this function requires it.
+        .and_then(|config_path| {
+            config_path
+                .parent()
+                .ok_or_else(|| anyhow!("Config does not have a parent dir"))
+                .map(|parent| (parent.to_path_buf(), config_path.clone()))
+        })
+        .and_then(|(parent, config_path)| {
+            if parent.exists() {
+                Ok((parent, config_path))
+            } else {
+                info!("Creating {:?}", parent);
+                fs::create_dir_all(&parent)
+                    .map_err(|e| anyhow!(e))
+                    .map(|_| (parent, config_path))
+            }
+        })?;
 
-    // Check if $HOME/.hoard directory exists. Create it if it does not exist
-    let hoard_dir = home_path.join(HOARD_HOMEDIR);
-    if !hoard_dir.exists() {
-        info!("Creating {:?}", hoard_dir);
-        fs::create_dir_all(&hoard_dir)?;
-    }
+    info!("Loading or building in {:?}", hoard_dir);
 
-    let hoard_config_path = hoard_dir.join(HOARD_CONFIG);
     info!("Hoard config path: {:?}", hoard_config_path);
-    // Check if $HOME/.hoard/config.yml exists. Create default config if it does not exist
+
+    // Check if path/to/<config>.yml exists. Create default config at path if it does not exist
     let config = if hoard_config_path.exists() {
         info!("Config file exists");
         let f = std::fs::File::open(&hoard_config_path)?;
@@ -177,22 +133,72 @@ fn load_or_build(path: &Path) -> Result<HoardConfig, Error> {
             &hoard_config_path,
         )?;
 
-        let path_buf = Path::new(HOARD_FILE).to_path_buf();
+        let path_buf = Path::new(DEFAULT_HOARD_FILE).to_path_buf();
         if loaded_config.read_from_current_directory.unwrap() && path_buf.exists() {
             loaded_config.trove_path = Some(path_buf);
         }
         // Sanity check. If the config makes sense
         assert!(loaded_config.parameter_token != loaded_config.parameter_ending_token, "Your parameter token {} is equal to your ending token {}. Please set one of them to another character!", loaded_config.parameter_token.as_ref().unwrap(), loaded_config.parameter_ending_token.as_ref().unwrap());
+        loaded_config.trove_path = loaded_config.trove_path.and_then(|p| {
+            full(p.to_str().unwrap())
+                .map(|p| PathBuf::from(p.into_owned()))
+                .map_err(|e| anyhow!(e))
+                .ok()
+        });
 
         Ok(loaded_config)
     } else {
         info!("Config file does not exist. Creating new one");
-        let new_config = HoardConfig::new(&hoard_dir).with_default_namespace();
+        let mut new_config = HoardConfig::new(&hoard_dir);
+        if !cfg!(test) {
+            use crate::gui::prompts::prompt_input;
+            new_config.default_namespace = prompt_input(
+                "This is the first time running hoard.\nChoose a default namespace where you want to hoard your commands.",
+                false,
+                Some(new_config.default_namespace)
+                )
+        }
         save_config(&new_config, &hoard_config_path)?;
         Ok(new_config)
     };
 
     config
+}
+pub fn get_hoard_config_path() -> Result<PathBuf, Error> {
+    env::var(ENV_HOARD_CONFIG_PATH)
+        .map_err(|err| anyhow!(err))
+        .and_then(|env| {
+            full(&env)
+                .map(|env| env.into_owned())
+                .map_err(|err| anyhow!(err))
+        })
+        .and_then(|e| {
+            info!("HOARD_CONFIG: {e:?}");
+            if e.is_empty() {
+                Err(anyhow!("HOARD_CONFIG is empty"))
+            } else {
+                Ok(e)
+            }
+        })
+        .map(PathBuf::from)
+        // Detect if the path in HOARD_CONFIG is a file or a directory
+        .and_then(|p| {
+            p.extension()
+                .and_then(|_| p.file_name().and_then(|f| f.to_str().to_owned()))
+                .zip(p.parent())
+                .map(|(file, parent)| parent.to_path_buf().join(file))
+                .ok_or_else(|| anyhow!("Not a file path, but a dir path, defaulting config.yml"))
+                .or_else(|_| Ok(p.join(DEFAULT_HOARD_CONFIG_FILE)))
+        })
+        // Use default path if HOARD_CONFIG is not set
+        .or_else(|_e| {
+            dirs::home_dir()
+                .ok_or_else(|| anyhow!("No $HOME directory found for hoard config"))
+                .map(|p| {
+                    p.join(DEFAULT_HOARD_HOMEDIR)
+                        .join(DEFAULT_HOARD_CONFIG_FILE)
+                })
+        })
 }
 
 fn append_missing_default_values_to_config(
@@ -216,7 +222,7 @@ fn append_missing_default_values_to_config(
         loaded_config.command_color = Some(HoardConfig::default_colors(3));
         true
     } else if loaded_config.trove_path.is_none() {
-        loaded_config.trove_path = Some(hoard_dir.join(HOARD_FILE));
+        loaded_config.trove_path = Some(hoard_dir.join(DEFAULT_HOARD_FILE));
         true
     } else if loaded_config.parameter_token.is_none() {
         loaded_config.parameter_token = Some(HoardConfig::default_parameter_token());
@@ -246,7 +252,8 @@ pub fn save_parameter_token(
     parameter_token: &str,
 ) -> bool {
     let mut new_config = config.clone();
-    let path_buf = config_path.join(HOARD_CONFIG);
+    let path_buf = config_path.join(DEFAULT_HOARD_CONFIG_FILE);
+
     new_config.parameter_token = Some(String::from(parameter_token));
     match save_config(&new_config, path_buf.as_path()) {
         Ok(()) => true,
@@ -292,16 +299,33 @@ fn save_config(config_to_save: &HoardConfig, config_path: &Path) -> Result<(), E
 }
 
 pub fn save_hoard_config_file(config_to_save: &HoardConfig, base_path: &Path) -> Result<(), Error> {
-    let config_dir = base_path.join(HOARD_CONFIG);
+    let config_dir = base_path.join(DEFAULT_HOARD_CONFIG_FILE);
+
     save_config(config_to_save, &config_dir)
 }
 
 #[cfg(test)]
 mod test_config {
-    use super::{save_parameter_token, HoardConfig, HOARD_CONFIG};
-    use std::fs::File;
+    use crate::config::{get_hoard_config_path, DEFAULT_HOARD_HOMEDIR};
+
+    use super::{
+        load_or_build_config, save_parameter_token, HoardConfig, DEFAULT_HOARD_CONFIG_FILE,
+    };
+    use std::{env, fs::File};
+    //    use rand::{thread_rng, Rng};
     use tempfile::tempdir;
 
+    fn gen_tmp_path(file_name: Option<&str>) -> std::path::PathBuf {
+        use rand::Rng;
+        let random_name = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(6)
+            .map(char::from)
+            .collect::<String>();
+
+        let path = env::temp_dir().join("hoard_config").join(random_name);
+        file_name.map_or(path.clone(), |f| path.join(f))
+    }
     #[test]
     fn test_save_parameter_token() {
         let tmp_dir = tempdir().ok().unwrap();
@@ -312,9 +336,61 @@ mod test_config {
         assert!(save_parameter_token(&config, tmp_path, "@"));
 
         // read config file, and check parameter token.
-        let tmp_file = tmp_dir.path().join(HOARD_CONFIG);
+        let tmp_file = tmp_dir.path().join(DEFAULT_HOARD_CONFIG_FILE);
         let f = File::open(tmp_file).ok().unwrap();
         let parsed_config = serde_yaml::from_reader::<_, HoardConfig>(f).ok().unwrap();
         assert_eq!(parsed_config.parameter_token, Some(String::from("@")));
+    }
+
+    #[test]
+    fn test_config_path_with_env() {
+        let tmp_path: std::path::PathBuf = gen_tmp_path(None);
+        env::set_var("HOARD_CONFIG", &tmp_path);
+
+        let result = get_hoard_config_path().unwrap();
+        assert_eq!(result, tmp_path.clone().join(DEFAULT_HOARD_CONFIG_FILE),);
+
+        let config_name = "my_config_name.yml".to_owned();
+        let tmp_path = gen_tmp_path(Some(&config_name));
+        env::set_var("HOARD_CONFIG", &tmp_path);
+
+        let result = get_hoard_config_path().unwrap();
+        assert_eq!(result, tmp_path.clone());
+    }
+
+    #[test]
+    fn test_config_path_with_default() {
+        env::remove_var("HOARD_CONFIG");
+        let result = get_hoard_config_path().unwrap();
+        let file_name = result.file_name().unwrap().to_str().unwrap();
+        let parent_dir = result.parent().unwrap().to_str();
+        assert_eq!(file_name, DEFAULT_HOARD_CONFIG_FILE);
+        assert!(parent_dir.map_or(false, |s| s.ends_with(DEFAULT_HOARD_HOMEDIR)));
+    }
+
+    #[test]
+    fn test_config_building_with_env() {
+        let tmp_path: std::path::PathBuf = gen_tmp_path(Some("HoardeConfig.yml"));
+
+        env::set_var("HOARD_CONFIG", &tmp_path);
+        let x = load_or_build_config().unwrap();
+        assert_eq!(
+            x.config_home_path.as_ref().unwrap(),
+            tmp_path.clone().parent().unwrap()
+        );
+        let f = File::open(tmp_path).ok().unwrap();
+        let parsed_config = serde_yaml::from_reader::<_, HoardConfig>(f).ok().unwrap();
+        assert_eq!(parsed_config, x);
+
+        let tmp_path: std::path::PathBuf = gen_tmp_path(None);
+
+        env::set_var("HOARD_CONFIG", &tmp_path);
+        let x = load_or_build_config().unwrap();
+        assert_eq!(x.config_home_path.as_ref().unwrap(), tmp_path.as_path());
+        let f = File::open(tmp_path.join(DEFAULT_HOARD_CONFIG_FILE))
+            .ok()
+            .unwrap();
+        let parsed_config = serde_yaml::from_reader::<_, HoardConfig>(f).ok().unwrap();
+        assert_eq!(parsed_config, x);
     }
 }

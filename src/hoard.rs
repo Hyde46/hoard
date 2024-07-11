@@ -30,9 +30,9 @@ pub struct Hoard {
 }
 
 impl Hoard {
-    pub fn with_config(&mut self, hoard_home_path: Option<String>) -> &mut Self {
+    pub fn with_config(&mut self) -> &mut Self {
         info!("Loading config");
-        match load_or_build_config(hoard_home_path) {
+        match load_or_build_config() {
             Ok(config) => self.config = config,
             Err(err) => {
                 eprintln!("ERROR: {err}");
