@@ -10,7 +10,7 @@ use std::str::FromStr;
 use url::ParseError;
 
 use crate::cli_commands::Mode;
-use crate::config::HoardConfig;
+use crate::config::{get_hoard_config_path, HoardConfig};
 use crate::config::{load_or_build_config, save_hoard_config_file, save_parameter_token};
 use crate::core::trove::Trove;
 use crate::core::HoardCmd;
@@ -30,9 +30,9 @@ pub struct Hoard {
 }
 
 impl Hoard {
-    pub fn with_config(&mut self, hoard_home_path: Option<String>) -> &mut Self {
+    pub fn with_config(&mut self) -> &mut Self {
         info!("Loading config");
-        match load_or_build_config(hoard_home_path) {
+        match load_or_build_config() {
             Ok(config) => self.config = config,
             Err(err) => {
                 eprintln!("ERROR: {err}");
@@ -112,7 +112,7 @@ impl Hoard {
 
     pub fn show_info(&self) {
         // Print out path to hoard config file and path to where the trove file is stored
-        if let Some(config_home_path) = self.config.config_home_path.clone() {
+        if let Ok(config_home_path) = get_hoard_config_path() {
             println!(
                 "🔧 Config file is located at {}",
                 config_home_path.display()
@@ -286,7 +286,7 @@ impl Hoard {
     }
 
     pub fn set_parameter_token(&self, parameter_token: &str) {
-        if let Some(config_path) = self.config.config_home_path.clone() {
+        if let Ok(config_path) = get_hoard_config_path() {
             if !save_parameter_token(&self.config, &config_path, parameter_token) {
                 std::process::exit(1);
             }
@@ -407,8 +407,7 @@ impl Hoard {
             let token = serde_yaml::from_str::<TokenResponse>(&response_text).unwrap();
             let b64_token = general_purpose::STANDARD.encode(token.token);
             self.config.api_token = Some(b64_token);
-            save_hoard_config_file(&self.config, &self.config.clone().config_home_path.unwrap())
-                .unwrap();
+            save_hoard_config_file(&self.config).unwrap();
             println!("Success!");
         } else {
             println!("Invalid Email and password combination.");
@@ -474,11 +473,7 @@ impl Hoard {
             Mode::Logout => {
                 println!("Logging out..");
                 self.config.api_token = None;
-                save_hoard_config_file(
-                    &self.config.clone(),
-                    &self.config.config_home_path.clone().unwrap(),
-                )
-                .unwrap();
+                save_hoard_config_file(&self.config.clone()).unwrap();
             }
             Mode::Save => {
                 if !self.is_logged_in() {
