@@ -10,19 +10,9 @@
 autoload -U add-zsh-hook
 
 _hoard_list(){
-	emulate -L zsh
-	zle -I
-
-	echoti rmkx
     # Similar to bash plugin in hoard.bash
 	output=$(hoard --autocomplete list 3>&1 1>&2 2>&3)
-	echoti smkx
-
-	if [[ -n $output ]] ; then
-		LBUFFER=$output
-	fi
-
-	zle reset-prompt
+	print -z $output
 }
 
 zle -N _hoard_list_widget _hoard_list

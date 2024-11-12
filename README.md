@@ -152,6 +152,20 @@ Either install it with `nix-env -iA hoard`, get it temporarily with `nix-shell -
 
 <a name="usage"/>
 
+## Configure
+You can change the location or name of the config file by setting `HOARD_CONFIG` to a directory path **or** a file path.
+
+```sh
+export HOARD_CONFIG="~/.zsh/config/plugins/hoard_config.yml"
+```
+or 
+
+
+This will default to `config.yml`
+```sh
+export HOARD_CONFIG="~/.zsh/config/plugins/hoard" 
+```
+
 ## 🤸 Usage
 
 #### Save a new command
