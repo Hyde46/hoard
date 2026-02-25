@@ -1,29 +1,9 @@
-use regex::Regex;
-
 use crate::core::HoardCmd;
 use crate::gui::prompts::prompt_input;
 
 pub trait Parameterized {
-    /// Checks if the command string contains a specific token.
-    ///
-    /// This function takes a token and checks if the command string contains this token.
-    ///
-    /// # Arguments
-    ///
-    /// * `token` - A string slice that holds the token to be checked.
-    ///
-    /// # Returns
-    ///
-    /// This function returns a boolean. It returns true if the command string contains the token,
-    /// and false otherwise.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let command = HoardCmd::default()::with_command("echo $");
-    /// assert!(command.is_parameterized("$"));
-    /// ```
-
+    fn escape_input(input: &str, start_token: &str, end_token: &str) -> String;
+    fn cleanup_escapes(&self, start_token: &str, end_token: &str) -> HoardCmd;
     fn is_parameterized(&self, token: &str) -> bool;
     /// Counts the number of occurrences of a specific token in the command string.
     ///
@@ -140,12 +120,110 @@ impl Parameterized for HoardCmd {
     fn is_parameterized(&self, token: &str) -> bool {
         self.command.contains(token)
     }
-    fn get_parameter_count(&self, token: &str) -> usize {
-        self.command.matches(token).count()
+    // Escapet einen String so, dass get_parameter_count ihn komplett ignoriert
+    fn escape_input(input: &str, start_token: &str, end_token: &str) -> String {
+        let mut escaped = String::with_capacity(input.len() * 2);
+        let mut i = 0;
+
+        while i < input.len() {
+            if input.as_bytes()[i] == b'\\' {
+                escaped.push_str("\\\\");
+                i += 1;
+                continue;
+            }
+
+            if input[i..].starts_with(start_token) {
+                escaped.push('\\');
+                escaped.push_str(start_token);
+                i += start_token.len();
+                continue;
+            }
+
+            if !end_token.is_empty() && input[i..].starts_with(end_token) {
+                escaped.push('\\');
+                escaped.push_str(end_token);
+                i += end_token.len();
+                continue;
+            }
+
+            let c = input[i..].chars().next().unwrap();
+            escaped.push(c);
+            i += c.len_utf8();
+        }
+
+        escaped
     }
+
+    fn cleanup_escapes(&self, start_token: &str, end_token: &str) -> HoardCmd {
+        let s = &self.command;
+        let mut out = String::with_capacity(s.len());
+        let mut i = 0;
+
+        while i < s.len() {
+            if s.as_bytes()[i] == b'\\' {
+                i += 1;
+                if i < s.len() {
+                    if s[i..].starts_with(start_token) {
+                        out.push_str(start_token);
+                        i += start_token.len();
+                    } else if s[i..].starts_with(end_token) && !end_token.is_empty() {
+                        out.push_str(end_token);
+                        i += end_token.len();
+                    } else if s.as_bytes()[i] == b'\\' {
+                        out.push('\\');
+                        i += 1;
+                    } else {
+                        let c = s[i..].chars().next().unwrap();
+                        out.push(c);
+                        i += c.len_utf8();
+                    }
+                }
+                continue;
+            }
+
+            let c = s[i..].chars().next().unwrap();
+            out.push(c);
+            i += c.len_utf8();
+        }
+
+        Self::default().with_command(&out)
+    }
+
+    fn get_parameter_count(&self, token: &str) -> usize {
+        let s = &self.command;
+        let mut count = 0;
+        let mut i = 0;
+
+        while i < s.len() {
+            if s.as_bytes()[i] == b'\\' {
+                i += 1;
+                if i < s.len() {
+                    if s[i..].starts_with(token) {
+                        i += token.len();
+                    } else {
+                        let c = s[i..].chars().next().unwrap();
+                        i += c.len_utf8();
+                    }
+                }
+                continue;
+            }
+
+            if s[i..].starts_with(token) {
+                count += 1;
+                i += token.len();
+                continue;
+            }
+
+            let c = s[i..].chars().next().unwrap();
+            i += c.len_utf8();
+        }
+        count
+    }
+
     fn split(&self, token: &str) -> Vec<String> {
         self.command.split(token).map(ToString::to_string).collect()
     }
+
     fn split_inclusive_token(&self, token: &str) -> Vec<String> {
         let split = self.split(token);
         let mut collected: Vec<String> = Vec::new();
@@ -162,31 +240,139 @@ impl Parameterized for HoardCmd {
     }
 
     fn replace_parameter(&self, start_token: &str, end_token: &str, value: &str) -> Self {
-        let pattern = format!(
-            "{}.*?{}",
-            regex::escape(start_token),
-            regex::escape(end_token)
-        );
-        let re = Regex::new(&pattern).unwrap();
-        let replaced = re.replace_all(&self.command, value);
-        Self::default().with_command(&replaced)
+        let s = &self.command;
+        let mut out = String::with_capacity(s.len());
+        let mut i = 0;
+        let mut replaced = false;
+
+        while i < s.len() {
+            if s.as_bytes()[i] == b'\\' {
+                out.push('\\'); // Keep Backslash for final cleanup
+                i += 1;
+                if i < s.len() {
+                    if s[i..].starts_with(start_token) {
+                        out.push_str(start_token);
+                        i += start_token.len();
+                    } else if s[i..].starts_with(end_token) && !end_token.is_empty() {
+                        out.push_str(end_token);
+                        i += end_token.len();
+                    } else {
+                        let c = s[i..].chars().next().unwrap();
+                        out.push(c);
+                        i += c.len_utf8();
+                    }
+                }
+                continue;
+            }
+
+            if !replaced && s[i..].starts_with(start_token) {
+                let param_content_start = i + start_token.len();
+
+                let mut search_idx = param_content_start;
+                let mut found_end = None;
+
+                while search_idx < s.len() {
+                    if s.as_bytes()[search_idx] == b'\\' {
+                        search_idx += 1;
+                        if search_idx < s.len() {
+                            let c = s[search_idx..].chars().next().unwrap();
+                            search_idx += c.len_utf8();
+                        }
+                        continue;
+                    }
+
+                    if !end_token.is_empty() && s[search_idx..].starts_with(end_token) {
+                        found_end = Some(search_idx);
+                        break;
+                    }
+
+                    if s[search_idx..].starts_with(start_token) {
+                        break;
+                    }
+
+                    let c = s[search_idx..].chars().next().unwrap();
+                    search_idx += c.len_utf8();
+                }
+
+                if let Some(end_idx) = found_end {
+                    out.push_str(value);
+                    i = end_idx + end_token.len();
+                    replaced = true;
+                    continue;
+                } else {
+                    out.push_str(value);
+                    i += start_token.len();
+                    replaced = true;
+                    continue;
+                }
+            }
+
+            let c = s[i..].chars().next().unwrap();
+            out.push(c);
+            i += c.len_utf8();
+        }
+
+        Self::default().with_command(&out)
     }
 
     fn with_input_parameters(&mut self, token: &str, ending_token: &str) -> Self {
+        let s = &self.command;
+        let mut out = String::with_capacity(s.len());
+        let mut i = 0;
         let mut param_count = 0;
-        while self.get_parameter_count(token) != 0 {
-            let prompt_dialog = format!(
-                "Enter parameter({}) nr {} \n~> {}\n",
-                token,
-                (param_count + 1),
-                self.command
-            );
-            let parameter = prompt_input(&prompt_dialog, false, None);
-            self.command = self
-                .replace_parameter(token, ending_token, &parameter)
-                .command;
-            param_count += 1;
+
+        while i < s.len() {
+            if s.as_bytes()[i] == b'\\' {
+                if i + 1 < s.len() {
+                    let next_pos = i + 1;
+
+                    if s[next_pos..].starts_with(token) {
+                        out.push_str(token);
+                        i = next_pos + token.len();
+                        continue;
+                    }
+
+                    if s.as_bytes()[next_pos] == b'\\' {
+                        out.push('\\');
+                        i = next_pos + 1;
+                        continue;
+                    }
+                }
+                out.push('\\');
+                i += 1;
+                continue;
+            }
+
+            if s[i..].starts_with(token) {
+                param_count += 1;
+                let param_content_start = i + token.len();
+
+                let current_preview = format!("{}{}[...]", out, &s[i..]);
+
+                let prompt_dialog = format!(
+                    "Enter parameter({}) nr {}\n~> {}\n",
+                    token, param_count, current_preview
+                );
+
+                let user_input = prompt_input(&prompt_dialog, false, None);
+
+                if let Some(end_offset) = s[param_content_start..].find(ending_token) {
+                    out.push_str(&user_input);
+                    i = param_content_start + end_offset + ending_token.len();
+                    continue;
+                } else {
+                    out.push_str(&user_input);
+                    i += token.len();
+                    continue;
+                }
+            }
+
+            let c = s[i..].chars().next().unwrap();
+            out.push(c);
+            i += c.len_utf8();
         }
+
+        self.command = out;
         self.clone()
     }
 }
@@ -266,6 +452,39 @@ mod test_commands {
     fn test_replace_parameter_with_endtoken_no_spaces() {
         let command = HoardCmd::default().with_command("test1#thisisacommand!test3");
         let expected = HoardCmd::default().with_command("test1replacementtest3");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+
+    #[test]
+    fn test_escape_double_backslash_before_token() {
+        let command = HoardCmd::default().with_command("wewantto\\\\#escape");
+        // Backslash-Cleanup happens later
+        let expected = HoardCmd::default().with_command("wewantto\\\\replacementescape");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+    #[test]
+    fn test_escape_single_backslash_before_token() {
+        let command = HoardCmd::default().with_command("wewantto\\#escape");
+        let expected = HoardCmd::default().with_command("wewantto\\#escape");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+    #[test]
+    fn test_escape_no_backslash_before_token() {
+        let command = HoardCmd::default().with_command("wewantto#!escape");
+        let expected = HoardCmd::default().with_command("wewanttoreplacementescape");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+    #[test]
+    fn test_escape_backslash_before_token_with_end() {
+        let command = HoardCmd::default().with_command("wewantto\\##!escape");
+        let expected = HoardCmd::default().with_command("wewantto\\#replacementescape");
+        assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
+    }
+    #[test]
+    fn test_escape_backslash_before_multiple_token_with_end() {
+        let command = HoardCmd::default().with_command("wewantto\\##!escape##");
+        // Only the first gets replaced in a single iteration
+        let expected = HoardCmd::default().with_command("wewantto\\#replacementescape##");
         assert_eq!(expected, command.replace_parameter("#", "!", "replacement"));
     }
 }

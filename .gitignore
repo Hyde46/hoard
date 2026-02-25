@@ -17,3 +17,6 @@
 **/.env
 
 **/.idea
+
+# No Nix-Direnv
+./.direnv

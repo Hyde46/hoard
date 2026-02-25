@@ -1,6 +1,6 @@
 use crate::config::HoardConfig;
 use crate::gui::commands_gui::State;
-use crate::util::{split_with_delim, string_find_next, translate_number_to_nth};
+use crate::util::translate_number_to_nth;
 use ratatui::backend::TermionBackend;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
@@ -65,46 +65,82 @@ pub fn draw(
 
         let token = config.parameter_token.as_ref().unwrap().as_str();
         let ending_token = config.parameter_ending_token.as_ref().unwrap().as_str();
-        // Named parameter ending with a space
-        let named_token = string_find_next(command_text, token, " ");
-        // Named parameter ending with ending token. If ending token is not used, `full_named_token` is an empty string
-        let mut full_named_token = string_find_next(command_text, token, ending_token);
-        full_named_token.push_str(ending_token);
-        // Select the split based on whether the ending token is part of the command or not
-        let split_token = if command_text.contains(ending_token) {
-            full_named_token
-        } else {
-            named_token
-        };
+
         let mut command_spans: Vec<Span> = Vec::new();
-        let split_commands: Vec<String> = split_with_delim(command_text, &split_token);
-        if token == split_token {
-            // If the next token to replace is not named
-            let command_parts = command_text.split_once(token);
-            let mut spans: Vec<Span> = if let Some((begin, end)) = command_parts {
-                vec![
-                    Span::styled(begin, command_style),
-                    Span::styled(token, primary_style),
-                    Span::styled(end, command_style),
-                ]
-            } else {
-                vec![Span::styled(command_text, command_style)]
-            };
-            command_spans.append(&mut spans);
-        } else {
-            // if the next token to replaced is named, find all other occurrences and paint them too
-            let mut spans = split_commands
-                .iter()
-                .map(|e| {
-                    if *e == split_token {
-                        (e, primary_style)
+
+        let mut i = 0;
+        let mut found_pos = None;
+        let bytes = command_text.as_bytes();
+
+        while i < command_text.len() {
+            if bytes[i] == b'\\' {
+                i += 1;
+                if i < command_text.len() {
+                    if command_text[i..].starts_with(token) {
+                        i += token.len();
                     } else {
-                        (e, command_style)
+                        let ch = command_text[i..].chars().next().unwrap();
+                        i += ch.len_utf8();
                     }
-                })
-                .map(|(command, style)| Span::styled(command, style))
-                .collect();
-            command_spans.append(&mut spans);
+                }
+                continue;
+            }
+            if command_text[i..].starts_with(token) {
+                found_pos = Some(i);
+                break;
+            }
+            let ch = command_text[i..].chars().next().unwrap();
+            i += ch.len_utf8();
+        }
+
+        if let Some(pos) = found_pos {
+            let mut full_param_len = token.len();
+
+            if !ending_token.is_empty() {
+                let rest = &command_text[pos + token.len()..];
+                let mut search_idx = 0;
+                let mut found_end_at = None;
+
+                while search_idx < rest.len() {
+                    if rest.as_bytes()[search_idx] == b'\\' {
+                        search_idx += 1;
+                        if search_idx < rest.len() {
+                            let ch = rest[search_idx..].chars().next().unwrap();
+                            search_idx += ch.len_utf8();
+                        }
+                        continue;
+                    }
+                    if rest[search_idx..].starts_with(token) {
+                        break;
+                    }
+                    if rest[search_idx..].starts_with(ending_token) {
+                        found_end_at = Some(search_idx + ending_token.len());
+                        break;
+                    }
+                    if rest.as_bytes()[search_idx] == b' ' {
+                        break;
+                    }
+
+                    let ch = rest[search_idx..].chars().next().unwrap();
+                    search_idx += ch.len_utf8();
+                }
+
+                if let Some(offset) = found_end_at {
+                    full_param_len = token.len() + offset;
+                }
+            }
+
+            command_spans.push(Span::styled(&command_text[..pos], command_style));
+            command_spans.push(Span::styled(
+                &command_text[pos..pos + full_param_len],
+                primary_style,
+            ));
+            command_spans.push(Span::styled(
+                &command_text[pos + full_param_len..],
+                command_style,
+            ));
+        } else {
+            command_spans.push(Span::styled(command_text, command_style));
         }
 
         let command = Paragraph::new(Line::from(command_spans))
